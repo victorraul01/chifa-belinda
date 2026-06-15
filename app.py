@@ -71,7 +71,7 @@ def buscar_imagen_plato(id_plato):
             return ruta
     return None
 
-# ESTILOS CSS REVISADOS: ALINEACIÓN FORZADA EN PARALELO Y COLORES DE TEXTO
+# ESTILOS CSS REVISADOS
 st.markdown(f"""
 <style>
 html, body, [data-testid="stAppViewContainer"] {{
@@ -91,11 +91,11 @@ h1, h2, h3, h4, h5, h6, p, label, span {{
 
 /* PESTAÑAS SUPERIORES */
 button[data-baseweb="tab"] {{
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: bold !important;
     color: #555555 !important;
     border-bottom: 2px solid transparent !important;
-    padding: 10px 10px !important;
+    padding: 10px 6px !important;
 }}
 
 button[data-baseweb="tab"][aria-selected="true"] {{
@@ -228,7 +228,7 @@ div[data-testid="stLinkButton"] a p,
 div[data-testid="stLinkButton"] a span {{
     color: white !important;
     font-weight: bold !important;
-}}
+    }}
 
 /* MODALES DE DETALLE */
 div[role="dialog"] {{
@@ -267,6 +267,14 @@ div[data-testid="stNotification"] p, div[data-testid="stNotification"] span {{
     margin-left: 15px;
     display: block;
     font-style: italic;
+}}
+
+.frase-carta {{
+    text-align: center;
+    font-style: italic;
+    color: #777777;
+    margin-bottom: 20px;
+    font-size: 15px;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -337,32 +345,28 @@ st.markdown("<p style='text-align:center; font-weight: bold; font-size: 14px; co
 
 items_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-tab_carta, tab_menu, tab_pedido = st.tabs([
-    "📖 Platos a la Carta", 
-    "📋 Menú", 
+# DEFINICIÓN DE PESTAÑAS BASADAS EN LAS PÁGINAS DEL PDF
+tab_pag1, tab_pag2, tab_pag3, tab_pag4, tab_pag5, tab_menu, tab_pedido = st.tabs([
+    "📄 Pág 1", 
+    "📄 Pág 2", 
+    "📄 Pág 3", 
+    "📄 Pág 4", 
+    "📄 Pág 5",
+    "📋 Menú Diario", 
     f"🛒 Pedido ({items_carrito})"
 ])
 
-# --- CONTENIDO DE LA PESTAÑA: PLATOS A LA CARTA ---
-with tab_carta:
+# FUNCIÓN AUXILIAR PARA COMPONENTES DE LA CARTA
+def renderizar_productos_por_categorias(lista_categorias):
     st.markdown("<style>div[data-testid='stHorizontalBlock'] {display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 10px;}</style>", unsafe_allow_html=True)
-    busqueda = st.text_input("Buscar", placeholder="🔍 Buscar platos...")
-    categorias = ["Todos"] + list(df_productos["Category"].unique()) if not df_productos.empty else ["Todos"]
-    categoria = st.selectbox("Categoría", categorias)
-
-    df_filtrado = df_productos.copy()
-    if categoria != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["Category"] == categoria]
-    if busqueda and not df_filtrado.empty:
-        df_filtrado = df_filtrado[df_filtrado["Name"].str.contains(busqueda, case=False, na=False)]
-
+    df_filtrado = df_productos[df_productos["Category"].isin(lista_categorias)] if not df_productos.empty else pd.DataFrame()
+    
     if df_filtrado.empty:
-        st.warning("No se encontraron platos")
+        st.warning("No hay productos cargados en esta página.")
     else:
         for i in range(0, len(df_filtrado), 2):
             fila = df_filtrado.iloc[i:i+2]
             cols = st.columns(2)
-
             for idx, (_, data) in enumerate(fila.iterrows()):
                 with cols[idx]:
                     ruta_imagen = buscar_imagen_plato(data['ID'])
@@ -370,7 +374,6 @@ with tab_carta:
                         st.image(ruta_imagen, use_container_width=True)
                     
                     desc_plato = data.get('Description', '') if not pd.isna(data.get('Description', '')) else ""
-
                     st.markdown(f"""
                     <div class="product-box">
                         <div class="product-title">{data['Name']}</div>
@@ -378,17 +381,43 @@ with tab_carta:
                         <div class="product-price">S/. {data['Price']:.2f}</div>
                     </div>
                     """, unsafe_allow_html=True)
-
                     if st.button("🛒 Agregar", key=f"btn_carta_{data['ID']}"):
                         modal_agregar_con_detalles(data["Name"], data["Price"], es_menu=False)
 
-# --- CONTENIDO DE LA PESTAÑA: MENÚ CHIFA ---
+# --- PÁGINA 1: COMBOS / ALITAS / BROASTER ---
+with tab_pag1:
+    st.markdown("<p class='frase-carta'>\"DONDE HAY COMIDA HAY FELICIDAD\"</p>", unsafe_allow_html=True)
+    renderizar_productos_por_categorias(["COMBOS", "ALITAS REBOZADAS", "ALITAS ESPECIALES", "POLLO BROASTER"])
+
+# --- PÁGINA 2: SOPAS / CHAUFA ---
+with tab_pag2:
+    st.markdown("<p class='frase-carta'>\"A FALTA DE AMOR ... UN COMBINADO POR FAVOR\"</p>", unsafe_allow_html=True)
+    renderizar_productos_por_categorias(["SOPAS", "CHAUFA"])
+
+# --- PÁGINA 3: AEROPUERTO / COMBINADOS / LOMOS ---
+with tab_pag3:
+    st.markdown("<p class='frase-carta'>\"NO DEJES PARA MAÑANA LO QUE PUEDES COMER HOY\"</p>", unsafe_allow_html=True)
+    renderizar_productos_por_categorias(["AEROPUERTO", "COMBINADOS", "LOMOS SALTADOS"])
+
+# --- PÁGINA 4: TALLARINES / PLATOS SALADOS / DULCES ---
+with tab_pag4:
+    st.markdown("<p class='frase-carta'>\"SI QUIERES SER FELIZ A CHIFA D' BELINDA DEBES VENIR\"</p>", unsafe_allow_html=True)
+    renderizar_productos_por_categorias(["TALLARINES SALTADOS", "PLATOS SALADOS", "PLATOS DULCE"])
+
+# --- PÁGINA 5: TORTILLAS / ENROLLADOS / TAYPA / RES / LANGOSTINOS / PATO / CHICHARRONES / CHANCHO / PORCIONES / BEBIDAS ---
+with tab_pag5:
+    st.markdown("<p class='frase-carta'>\"YO VOY A DONDE SEA SI ES CONTIGO HAY CHIFITA\" <br> \"UN CHIFA SIEMPRE ES UNA BUENA IDEA\"</p>", unsafe_allow_html=True)
+    renderizar_productos_por_categorias([
+        "TORTILLAS", "ENROLLADOS", "TAYPA", "RES", "LANGOSTINOS", 
+        "PATO", "CHICHARRONES", "CHANCHO", "COSTILLAS", "PORCIONES", 
+        "BEBIDAS FRÍAS", "BEBIDAS CALIENTES"
+    ])
+
+# --- TAB: MENÚ DIARIO COMPLETO ---
 with tab_menu:
     st.markdown("<p style='text-align:center; font-style: italic; color: #555555; margin-bottom:15px;'>Todos los menús incluyen refresco y entrada a elección al ordenar.</p>", unsafe_allow_html=True)
-    
     for idx, data in df_menu_diario.iterrows():
         col_izq, col_der = st.columns([4.0, 1.0])
-        
         with col_izq:
             st.markdown(f"""
             <div class="tarjeta-menu-contenido">
@@ -396,7 +425,6 @@ with tab_menu:
                 <span class="texto-plato-precio">S/. {data['Price']:.2f}</span>
             </div>
             """, unsafe_allow_html=True)
-            
         with col_der:
             if st.button("Pedir", key=f"btn_menu_lista_{idx}"):
                 modal_agregar_con_detalles(data["Name"], data["Price"], es_menu=True)
@@ -412,7 +440,6 @@ with tab_pedido:
         for item in st.session_state.carrito:
             subtotal = item["precio"] * item["cant"]
             total_platos += subtotal
-            
             st.markdown(f"🔹 **{item['cant']}   {item['nombre']}** — S/. {subtotal:.2f}")
             
             detalles = []
@@ -432,37 +459,28 @@ with tab_pedido:
         nombre = st.text_input("Tu nombre completo")
         tipo_entrega = st.radio("Entrega", ["🛵 Delivery", "🏪 Recojo en Local"], horizontal=True)
 
-        costo_delivery = 0
         direccion = ""
-        zona = ""
-
         if tipo_entrega == "🛵 Delivery":
-            zona = st.selectbox("Zona", ["-- Selecciona --", "Pucallpa Centro", "Yarinacocha", "Periferia"])
-            if zona == "Pucallpa Centro": costo_delivery = 5
-            elif zona == "Yarinacocha": costo_delivery = 8
-            elif zona == "Periferia": costo_delivery = 6
             direccion = st.text_input("Dirección exacta")
             
-            # CUADRO INFORMATIVO PARA DELIVERY
-            st.info("📌 **Recuerda:** Al presionar el botón verde de abajo, se abrirá tu WhatsApp con los datos listos. No olvides compartirnos tu **Ubicación en Tiempo Real** para guiar al repartidor.")
+            # NUEVO CUADRO INFORMATIVO PARA DELIVERY MANUAL
+            st.warning("📍 **Nota sobre el Delivery:** El costo de envío **no está sumado en el total actual** de la app. Este será calculado y agregado de manera manual al abrir tu WhatsApp. Por favor, comparte también tu ubicación en tiempo real dentro del chat.")
         
         elif tipo_entrega == "🏪 Recojo en Local":
-            # CUADRO INFORMATIVO PARA RECOJO EN LOCAL
             st.info("🏪 **Recojo listo:** Tu pedido se empezará a preparar de inmediato. Puedes pasar a recogerlo al local en aproximadamente **20 a 30 minutos**.")
 
-        total_general = total_platos + costo_delivery
-
-        st.markdown(f"### Subtotal platos: S/. {total_platos:.2f}")
+        # PRESENTACIÓN DEL TOTAL EN LA INTERFAZ
+        st.markdown(f"### Total platos: S/. {total_platos:.2f}")
         if tipo_entrega == "🛵 Delivery":
-            st.markdown(f"### Delivery: S/. {costo_delivery:.2f}")
-        st.markdown(f"### Total final: S/. {total_general:.2f}")
+            st.markdown("### Total final: S/. {:.2f} *(Monto de delivery pendiente)*".format(total_platos))
+        else:
+            st.markdown(f"### Total final: S/. {total_platos:.2f}")
 
         pago = st.radio("Método de pago", ["💵 Efectivo", "📱 Yape"], horizontal=True)
 
-        if pago == "📱 Yape" and os.path.exists("qr_yape.png"):
-            st.image("qr_yape.png", width=220)
+        # SELECCIÓN DE YAPE QUEDA COMPLETAMENTE LIMPIA (SIn QR NI TEXTOS)
 
-        # ARMADO DEL TEXTO DE WHATSAPP (BOTÓN SIEMPRE VISIBLE)
+        # ARMADO DEL TEXTO DE WHATSAPP
         lineas = [
             "🍜 *CHIFA D' BELINDA*",
             ""
@@ -474,25 +492,19 @@ with tab_pedido:
         lineas.append(f"🚚 Entrega: {tipo_entrega}")
 
         if tipo_entrega == "🛵 Delivery":
-            if zona != "-- Selecciona --":
-                lineas.append(f"📍 Zona: {zona}")
             if direccion.strip():
-                lineas.append(f"🏠 Dirección: {direccion.strip()}")
+                lineas.append(f"🏠 Dirección ingresada: {direccion.strip()}")
+            lineas.append("⚠️ *Nota:* Queda pendiente la suma manual del costo de delivery al total.")
+            lineas.append("📌 *¡Enseguida te comparto mi ubicación en tiempo real por aquí!* 🌍")
         elif tipo_entrega == "🏪 Recojo en Local":
             lineas.append("🕒 *Pasaré a recogerlo en 20-30 minutos*")
 
-        lineas.append(f"💳 Pago: {pago}")
-        
-        if tipo_entrega == "🛵 Delivery":
-            lineas.append("")
-            lineas.append("📌 *Enseguida te comparto mi ubicación exacta por aquí...* 🌍")
-
+        lineas.append(f"💳 Método de Pago: {pago.upper()}")
         lineas.append("-------------------------")
 
         for item in st.session_state.carrito:
             subtotal_item = item['precio'] * item['cant']
             lineas.append(f"✅ {item['cant']}  {item['nombre']} — S/. {subtotal_item:.2f}")
-            
             if "entrada" in item and item["entrada"]:
                 lineas.append(f"       ↳ {item['entrada']}")
             if item["cremas"]:
@@ -501,10 +513,12 @@ with tab_pedido:
                 lineas.append(f"       ↳ Nota: {item['nota']}")
 
         lineas.append("-------------------------")
-        lineas.append(f"Subtotal platos: S/. {total_platos:.2f}")
+        lineas.append(f"TOTAL PRODUCTOS: S/. {total_platos:.2f}")
         if tipo_entrega == "🛵 Delivery":
-            lineas.append(f"Delivery: S/. {costo_delivery:.2f}")
-        lineas.append(f"TOTAL FINAL: S/. {total_general:.2f}")
+            lineas.append("DELIVERY: ¡Pendiente de suma manual por WhatsApp!")
+            lineas.append(f"TOTAL GENERAL PREVIO: S/. {total_platos:.2f}")
+        else:
+            lineas.append(f"TOTAL FINAL: S/. {total_platos:.2f}")
 
         texto = "\n".join(lineas)
         link = f"https://wa.me/51923860158?text={urllib.parse.quote(texto)}"
