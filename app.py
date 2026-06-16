@@ -109,10 +109,10 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-# 5. CSS REESTRUCTURADO PARA HACER VISIBLES LOS PLATOS Y PERMITIR SCROLL NATURAL
+# 5. CSS LIMPIO Y SEGURO (Mantiene Scroll Nativo de Celulares)
 st.markdown("""
 <style>
-/* Reset completo de contenedores de Streamlit */
+/* Reset global de márgenes para visualización móvil completa */
 .block-container {
     padding-left: 0px !important;
     padding-right: 0px !important;
@@ -134,7 +134,7 @@ st.markdown("""
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* PESTAÑAS FIJAS */
+/* PESTAÑAS FIJAS SUPERIORES */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
     top: 48px !important;
@@ -146,24 +146,35 @@ div[data-testid="stTabs"] > div:first-child {
 }
 
 .compensar-cabecera-fija {
-    margin-top: 105px !important;
+    margin-top: 115px !important;
 }
 
-/* CONTENEDOR ESPECÍFICO DE LA CARTA (Evita conflictos con inputs del pedido) */
+/* CAPA DE FONDO FIJA E INDEPENDIENTE (No bloquea los elementos de Streamlit) */
+.capa-fondo-pantalla-completa {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: -1 !important; /* Queda al fondo de todo */
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+}
+
+/* DISEÑO DE FILAS DE PLATOS Y CATEGORÍAS */
 .contenedor-menu-platos {
-    padding: 10px 14px 80px 14px !important;
-    box-sizing: border-box !important;
+    padding: 10px 14px 100px 14px !important;
 }
 
-/* DISEÑO DE FILAS Y CATEGORÍAS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
     font-size: 13px !important;
     font-weight: bold !important;
-    padding: 9px 12px !important;
+    padding: 10px 14px !important;
     border-radius: 6px !important;
-    margin: 15px 0 10px 0 !important;
+    margin: 20px 0 12px 0 !important;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
     border-left: 5px solid #FFEB3B !important;
 }
@@ -172,10 +183,10 @@ div[data-testid="stTabs"] > div:first-child {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    background: rgba(0, 0, 0, 0.85) !important; 
-    padding: 6px 10px !important;
-    margin-bottom: 8px !important;
-    border-radius: 8px !important;
+    background: rgba(0, 0, 0, 0.82) !important; /* Fondo oscuro elegante */
+    padding: 8px 12px !important;
+    margin-bottom: 10px !important;
+    border-radius: 10px !important;
     border: 1px solid rgba(255,255,255,0.15) !important;
 }
 
@@ -185,44 +196,44 @@ div[data-testid="stTabs"] > div:first-child {
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding-left: 10px !important;
+    padding-left: 12px !important;
 }
 
 .nombre-plato-unificado {
     color: #FFFFFF !important;
-    font-size: 13px !important;
+    font-size: 13.5px !important;
     font-weight: bold !important;
     text-align: left !important;
-    padding-right: 5px !important;
+    line-height: 1.3;
 }
 
 .precio-plato-unificado {
     color: #FFEB3B !important;
-    font-size: 14px !important;
+    font-size: 14.5px !important;
     font-weight: bold !important;
     white-space: nowrap !important;
 }
 
-/* Estilo para los botones redondos "＋" de Streamlit */
+/* Diseño estilizado esférico para el botón de Streamlit */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
-    font-size: 16px !important;
+    font-size: 18px !important;
     font-weight: bold !important;
     border-radius: 50% !important;
-    width: 34px !important;
-    height: 34px !important;
+    width: 36px !important;
+    height: 36px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
+    box-shadow: 0px 3px 6px rgba(0,0,0,0.5) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# 6. ENCABEZADO FIJO
+# 6. ENCABEZADO FIJO DE LA APP
 st.markdown('<div class="encabezado-fijo-global"><span style="color:#FFFFFF; font-size:19px; font-weight:bold;">🍜 CHIFA D\' BELINDA</span></div>', unsafe_allow_html=True)
 st.markdown('<div class="compensar-cabecera-fija"></div>', unsafe_allow_html=True)
 
@@ -239,6 +250,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Carga tu archivo del catálogo para visualizar el menú.")
     else:
+        # Menú selector por radio botones
         pag_seleccionada = st.radio(
             "Selecciona una Página:",
             options=[1, 2, 3, 4, 5, 6],
@@ -256,22 +268,13 @@ with tab_carta:
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
         imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
         
-        # Inyectamos el fondo dinámico directamente al bloque contenedor de Streamlit mediante CSS 
-        # Esto soluciona de raíz el scroll y hace que los platos queden siempre al frente.
+        # INYECCIÓN IMPLACABLE DEL FONDO (Capa independiente en el fondo absoluto)
         if imagen_b64:
-            st.markdown(f"""
-            <style>
-            div[data-testid="stVerticalBlock"] {{
-                background-image: url('data:image/jpeg;base64,{imagen_b64}') !important;
-                background-size: cover !important;
-                background-repeat: no-repeat !important;
-                background-position: center top !important;
-                background-attachment: scroll !important;
-            }}
-            </style>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div class="capa-fondo-pantalla-completa" style="background-image: url(\'data:image/jpeg;base64,{imagen_b64}\');"></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="capa-fondo-pantalla-completa" style="background-color: #8C0712;"></div>', unsafe_allow_html=True)
         
-        # Contenedor seguro para pintar los platos
+        # Contenedor seguro para los platos
         st.markdown('<div class="contenedor-menu-platos">', unsafe_allow_html=True)
         
         categoria_actual = ""
@@ -280,7 +283,7 @@ with tab_carta:
                 categoria_actual = str(row['Category']).strip()
                 st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
             
-            # Dibujamos cada item acoplando el botón de manera segura
+            # Bloque de fila interactiva unificada
             st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
             col_btn, col_txt = st.columns([0.16, 0.84])
             with col_btn:
@@ -298,13 +301,13 @@ with tab_carta:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA 2: MI PEDIDO
+# PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    # Removemos el fondo para la pestaña del carrito y que sea legible en blanco/negro
-    st.markdown("""<style>div[data-testid="stVerticalBlock"] { background-image: none !important; }</style>""", unsafe_allow_html=True)
+    # Quitamos la imagen de fondo para la sección de datos/pedido y que sea legible en color sólido
+    st.markdown('<div class="capa-fondo-pantalla-completa" style="background-image: none !important; background-color: #111111 !important;"></div>', unsafe_allow_html=True)
     
-    st.markdown("<div style='padding: 12px;'>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 12px; color: #FFFFFF;'>", unsafe_allow_html=True)
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
