@@ -3,27 +3,26 @@ import pandas as pd
 import urllib.parse
 import os
 
-# CONFIGURACIÓN DE LA PÁGINA
+# CONFIGURACIÓN DE LA PÁGINA (Optimizada estrictamente para celulares)
 st.set_page_config(
     page_title="Chifa D' Belinda",
     page_icon="🍜",
     layout="centered"
 )
 
-# INICIALIZACIÓN DE ESTADOS
+# INICIALIZACIÓN DE ESTADOS DEL CARRITO
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 if "mensaje_exito" not in st.session_state:
     st.session_state.mensaje_exito = None
 
-# CAPTURAR CLICKS DESDE LOS BOTONES HTML EN LA URL
+# CAPTURAR CLICKS DESDE LOS ENLACES HTML EN LA URL
 query_params = st.query_params
 if "add_id" in query_params:
     id_elegido = query_params["add_id"]
     nombre_elegido = query_params.get("add_name", "Plato")
     precio_elegido = float(query_params.get("add_price", 0))
     
-    # Agregar directo al carrito
     st.session_state.carrito.append({
         "nombre": nombre_elegido,
         "precio": precio_elegido,
@@ -31,45 +30,74 @@ if "add_id" in query_params:
         "nota": ""
     })
     st.session_state.mensaje_exito = f"¡{nombre_elegido} agregado! 🛒✅"
-    # Limpiar la URL para evitar que se agregue doble al recargar
     st.query_params.clear()
     st.rerun()
 
-# MOSTRAR MENSAJE DE ÉXITO
+# MOSTRAR MENSAJE FLOTANTE DE ÉXITO (TOAST)
 if st.session_state.mensaje_exito:
     st.toast(st.session_state.mensaje_exito)
     st.session_state.mensaje_exito = None
 
-# DATOS REALES DE TU HOJA 2
+# BASE DE DATOS COMPLETA DE TODA LA CARTA (Páginas 2, 3, 4 y 5 de tu PDF)
 def obtener_carta_completa_pdf():
     datos = {
-        "ID": [f"P{i}" for i in range(1, 22)],
+        "ID": [f"P{i}" for i in range(1, 46)],
         "Name": [
-            "COMBO 1 (Chi Jau Kay + Pollo Tamarindo)", 
-            "COMBO 2 (Tipa Kay + Pollo Verdura)", 
-            "COMBO 3 (Enrollado Ostión + Pollo Durazno)",
-            "COMBO 4 (Alitas Verduras + Chaufa/Papas)",
-            "Alitas Rebozadas 3 Pzs", "Alitas Rebozadas 4 Pzs", 
-            "Alitas Rebozadas 5 Pzs", "Alitas Rebozadas 6 Pzs",
-            "Alitas en Salsa BBQ", "Alitas Bravas", 
-            "Alitas con Verduras", "Alitas con Tamarindo", 
-            "Alitas con Piña", "Alitas en Salsa Ostión", 
-            "Alitas Tausi", "Alitas con Durazno", 
-            "Alitas con Piña y Durazno", "Alitas Beli Beli", 
-            "Alitas en Salsa Blanca",
-            "1/8 Pollo Broaster", "1/4 Pollo Broaster"
+            # --- PÁGINA 2: COMBOS, ALITAS Y BROASTER ---
+            "COMBO 1 (Chi Jau Kay + Pollo)", "COMBO 2 (Tipa Kay + Pollo)", 
+            "COMBO 3 (Enrollado + Pollo)", "COMBO 4 (Alitas + Chaufa/Papas)",
+            "Alitas Rebozadas 3 Pzs", "Alitas Rebozadas 4 Pzs", "Alitas Rebozadas 5 Pzs", "Alitas Rebozadas 6 Pzs",
+            "Alitas BBQ", "Alitas Bravas", "Alitas con Verduras", "Alitas con Tamarindo", 
+            "Alitas con Piña", "Alitas Ostión", "Alitas Tausi", "Alitas con Durazno", 
+            "Alitas Piña y Durazno", "Alitas Beli Beli", "Alitas Salsa Blanca",
+            "1/8 Pollo Broaster", "1/4 Pollo Broaster",
+            
+            # --- PÁGINA 3: SOPAS Y CHAUFAS ---
+            "Sopa Wantán Especial", "Sopa Fuchifú", "Sopa de Wantán Simple",
+            "Chaufa de Pollo", "Chaufa de Chancho", "Chaufa de Res", 
+            "Chaufa de Langostinos", "Chaufa Especial", "Chaufa Beli Beli (Salvaje)",
+            
+            # --- PÁGINA 4: AEROPUERTOS, COMBINADOS Y LOMOS ---
+            "Aeropuerto de Pollo", "Aeropuerto de Carne / Chancho", "Aeropuerto Especial",
+            "Combinado de Pollo", "Combinado de Carne / Chancho", "Combinado Especial",
+            "Lomo Saltado de Pollo", "Lomo Saltado de Res", "Lomo Saltado Especial Chifa",
+            
+            # --- PÁGINA 5: TALLARINES, WOK SALADO Y DULCE ---
+            "Tallarín Saltado de Pollo", "Tallarín Saltado de Res / Chancho", "Tallarín Especial",
+            "Pollo con Verduras (Wok)", "Chi Jau Kay (Plato)", "Tipa Kay (Plato)",
+            "Pollo con Tamarindo", "Pollo con Piña"
         ],
-        "Price": [37.00, 37.00, 37.00, 35.00, 14.00, 18.00, 20.00, 25.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 26.00, 25.00, 28.00, 13.00, 21.00],
-        "Category": ["COMBOS", "COMBOS", "COMBOS", "COMBOS", "REBOZADAS", "REBOZADAS", "REBOZADAS", "REBOZADAS", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "BROASTER", "BROASTER"]
+        "Price": [
+            # Precios Página 2
+            37.00, 37.00, 37.00, 35.00, 14.00, 18.00, 20.00, 25.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 26.00, 25.00, 28.00, 13.00, 21.00,
+            # Precios Página 3
+            16.00, 16.00, 10.00, 14.00, 18.00, 18.00, 25.00, 22.00, 26.00,
+            # Precios Página 4
+            16.00, 19.00, 22.00, 16.00, 19.00, 22.00, 17.00, 20.00, 24.00,
+            # Precios Página 5
+            16.00, 19.00, 22.00, 18.00, 20.00, 20.00, 18.00, 19.00
+        ],
+        "Page": [
+            # Mapeo de a qué página física pertenece cada plato
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, # Pág 2
+            3, 3, 3, 3, 3, 3, 3, 3, 3,                                     # Pág 3
+            4, 4, 4, 4, 4, 4, 4, 4, 4,                                     # Pág 4
+            5, 5, 5, 5, 5, 5, 5, 5                                         # Pág 5
+        ]
     }
     return pd.DataFrame(datos)
 
 df_carta = obtener_carta_completa_pdf()
 
-# ESTILOS CSS REVISADOS: OBLIGAN A UNA SOLA LÍNEA SIN ROMPERSE
+# BASE DE DATOS DEL MENÚ DIARIO
+df_menu_diario = pd.DataFrame({
+    "Name": ["Chaufa de Pollo", "Alita Rebozada", "1/8 Broaster", "Aeropuerto de Pollo", "Combinado de Pollo"],
+    "Price": [14.00, 15.00, 14.00, 17.00, 17.00]
+})
+
+# ESTILOS CSS (Garantiza una sola línea compacta por plato)
 st.markdown("""
 <style>
-/* Forzar columnas de la App para que queden lado a lado en celulares */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
@@ -77,9 +105,8 @@ div[data-testid="stHorizontalBlock"] {
     gap: 5px !important;
 }
 
-/* CAJA REDONDEADA QUE CONTIENE TODO EL MENÚ DIGITAL DE LA DERECHA */
 .contenedor-menu-rojo {
-    background-color: #8B0000 !important; /* Rojo idéntico a tu carta */
+    background-color: #8B0000 !important;
     padding: 8px 5px !important;
     border-radius: 6px;
     display: flex !important;
@@ -88,7 +115,6 @@ div[data-testid="stHorizontalBlock"] {
     width: 100%;
 }
 
-/* FILA ULTRA COMPACTA */
 .fila-plato-unica-linea {
     display: flex !important;
     flex-direction: row !important;
@@ -99,7 +125,6 @@ div[data-testid="stHorizontalBlock"] {
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-/* BOTÓN REDONDO "+" ENLACE */
 .btn-agregar-inline {
     background-color: #FFFFFF !important;
     color: #8B0000 !important;
@@ -115,10 +140,9 @@ div[data-testid="stHorizontalBlock"] {
     flex-shrink: 0 !important;
 }
 
-/* TEXTO DEL PLATO RECORTE */
 .texto-plato-inline {
     color: #FFFFFF !important;
-    font-size: 10.5px !important;
+    font-size: 10px !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -128,7 +152,6 @@ div[data-testid="stHorizontalBlock"] {
     text-align: left !important;
 }
 
-/* PRECIO AMARILLO */
 .precio-plato-inline {
     color: #FFEB3B !important;
     font-size: 11px !important;
@@ -137,81 +160,17 @@ div[data-testid="stHorizontalBlock"] {
     flex-shrink: 0 !important;
     margin-left: 4px !important;
 }
+
+.titulo-seccion-carta {
+    color: #8B0000;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 2px;
+    border-bottom: 2px solid #8B0000;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ENCABEZADO
-st.markdown("<h2 style='text-align:center; color:#8B0000; margin-bottom:0;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
-
-items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
-tab_carta, tab_pedido = st.tabs(["📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
-
-with tab_carta:
-    # Dividimos la pantalla en 2 columnas fijas (45% foto de la izquierda, 55% carta digital derecha)
-    col_izq, col_der = st.columns([4.5, 5.5])
-    
-    with col_izq:
-        if os.path.exists("images/pag2_lateral.jpg"):
-            st.image("images/pag2_lateral.jpg", use_container_width=True)
-        else:
-            st.info("📸 [Recorte Izquierdo]")
-            
-    with col_der:
-        # Iniciamos el contenedor rojo oriental para que se vea como un pergamino integrado
-        html_filas = ""
-        categorias_hoja = ["COMBOS", "REBOZADAS", "ESPECIALES", "BROASTER"]
-        df_hoja = df_carta[df_carta["Category"].isin(categorias_hoja)]
-        
-        for _, row in df_hoja.iterrows():
-            p_id = row['ID']
-            p_name = row['Name']
-            p_price = row['Price']
-            
-            # Crear los parámetros seguros para el link URL
-            params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
-            link_url = f"?{params}"
-            
-            # Construcción estricta de una sola línea HTML limpia
-            html_filas += f"""
-            <div class="fila-plato-unica-linea">
-                <a class="btn-agregar-inline" href="{link_url}" target="_self">＋</a>
-                <span class="texto-plato-inline">{p_name}</span>
-                <span class="precio-plato-inline">{int(p_price)}</span>
-            </div>
-            """
-            
-        # Imprimimos todo el bloque junto dentro del contenedor para que no se desarme jamás en celulares
-        st.markdown(f"""
-        <div class="contenedor-menu-rojo">
-            {html_filas}
-        </div>
-        """, unsafe_allow_html=True)
-
-# =========================================================
-# PESTAÑA: PEDIDO / WHATSAPP
-# =========================================================
-with tab_pedido:
-    if not st.session_state.carrito:
-        st.info("Tu carrito está vacío.")
-    else:
-        st.subheader("📋 Tu Pedido")
-        total = 0
-        for item in st.session_state.carrito:
-            subtotal = item["precio"] * item["cant"]
-            total += subtotal
-            st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
-            
-        st.divider()
-        nombre_cliente = st.text_input("Tu Nombre")
-        
-        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
-        for item in st.session_state.carrito:
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
-        mensaje_wa += f"-------------------------\n💰 *TOTAL:* S/. {total:.2f}"
-        
-        link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-        st.link_button("📲 ENVIAR PEDIDO POR WHATSAPP", link_final, use_container_width=True)
-        
-        if st.button("🧹 Vaciar Carrito", use_container_width=True):
-            st.session_state.carrito = []
-            st.rerun()
+# ENCABEZADO PRINCIPAL
+st.markdown("<h2 style='text-align:center; color:#8B
