@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import urllib.parse
+import base64
 import os
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
@@ -9,6 +10,19 @@ st.set_page_config(
     page_icon="🍜",
     layout="centered"
 )
+
+# Función optimizada para convertir imágenes locales a Base64
+def cargar_imagen_base64(ruta_relativa):
+    rutas_posibles = [
+        os.path.join("images", ruta_relativa),
+        os.path.join("app", "static", "images", ruta_relativa),
+        ruta_relativa
+    ]
+    for r in rutas_posibles:
+        if os.path.exists(r):
+            with open(r, "rb") as image_file:
+                return base64.b64encode(image_file.read()).decode()
+    return None
 
 # 2. INICIALIZACIÓN DE ESTADOS DEL CARRITO
 if "carrito" not in st.session_state:
@@ -36,31 +50,31 @@ if st.session_state.mensaje_exito:
     st.toast(st.session_state.mensaje_exito)
     st.session_state.mensaje_exito = None
 
-# 4. BASE DE DATOS DETALLADA DE LA CARTA (Páginas 2 a 7)
+# 4. BASE DE DATOS ACTUALIZADA SEGÚN TU CARTA REAL
 def obtener_carta_completa_pdf():
-    # PÁGINA 2: COMBOS Y ALITAS
+    # PÁGINA 2: COMBOS Y ALITAS HASTA POLLO BROASTER
     p2 = pd.DataFrame({
         "Name": [
             "COMBO 1 (Chi Jau Kay + Pollo)", "COMBO 2 (Tipa Kay + Pollo)", 
             "COMBO 3 (Enrollado + Pollo)", "COMBO 4 (Alitas + Chaufa/Papas)",
-            "Alitas Rebozadas 3 Pzs", "Alitas Rebozadas 4 Pzs", "Alitas Rebozadas 5 Pzs", "Alitas Rebozadas 6 Pzs",
-            "Alitas BBQ", "Alitas Bravas", "Alitas con Verduras", "Alitas con Tamarindo"
+            "Alitas Rebozadas 6 Pzs", "Alitas BBQ", "Alitas Bravas", 
+            "Pollo Broaster 1/4", "Pollo Broaster 1/8"
         ],
-        "Price": [37.00, 37.00, 37.00, 35.00, 14.00, 18.00, 20.00, 25.00, 22.00, 22.00, 22.00, 22.00],
+        "Price": [37.00, 37.00, 37.00, 35.00, 25.00, 22.00, 22.00, 18.00, 14.00],
         "Page": 2
     })
     
-    # PÁGINA 3: SOPAS Y CHAUFAS
+    # PÁGINA 3: SOPAS HASTA CHAUFA
     p3 = pd.DataFrame({
         "Name": [
-            "Sopa Wantán Especial", "Sopa Fuchifú", "Sopa de Wantán Simple",
+            "Sopa Wantán Especial", "Sopa Fuchifú", "Sopa Wantán Simple",
             "Chaufa de Pollo", "Chaufa de Chancho", "Chaufa de Res", "Chaufa Especial"
         ],
         "Price": [16.00, 16.00, 10.00, 14.00, 18.00, 18.00, 22.00],
         "Page": 3
     })
     
-    # PÁGINA 4: AEROPUERTOS Y LOMOS
+    # PÁGINA 4: AEROPUERTOS, COMBINADOS Y LOMOS SALTADOS
     p4 = pd.DataFrame({
         "Name": [
             "Aeropuerto de Pollo", "Aeropuerto Especial",
@@ -71,27 +85,34 @@ def obtener_carta_completa_pdf():
         "Page": 4
     })
     
-    # PÁGINA 5: TALLARINES Y WOK
+    # PÁGINA 5: TALLARINES, PLATOS SALADOS, DULCES Y TORTILLAS
     p5 = pd.DataFrame({
         "Name": [
             "Tallarín Saltado de Pollo", "Tallarín Especial",
-            "Pollo con Verduras", "Chi Jau Kay (Plato)", "Tipa Kay (Plato)"
+            "Pollo con Verduras (Salado)", "Chi Jau Kay (Salado)", 
+            "Tipa Kay (Dulce)", "Pollo con Piña (Dulce)", "Tortilla de Pollo"
         ],
-        "Price": [16.00, 22.00, 18.00, 20.00, 20.00],
+        "Price": [16.00, 22.00, 18.00, 20.00, 20.00, 20.00, 15.00],
         "Page": 5
     })
 
-    # PÁGINA 6: ENTRADAS Y EXTRAS
+    # PÁGINA 6: ENROLLADOS, TAYPA, RES, LANGOSTINOS, PATO, CHICHARRONES
     p6 = pd.DataFrame({
-        "Name": ["Porción Wantán Frito", "Chaufa Familiar", "Nabo Encurtido", "Papas Fritas"],
-        "Price": [10.00, 25.00, 5.00, 8.00],
+        "Name": [
+            "Enrollado de Pollo", "Taypa Especial", "Res con Verduras",
+            "Langostinos al Tausi", "Pato al Horno", "Chicharrón de Pollo"
+        ],
+        "Price": [22.00, 26.00, 22.00, 25.00, 28.00, 18.00],
         "Page": 6
     })
 
-    # PÁGINA 7: BEBIDAS
+    # PÁGINA 7: CHANCHO, COSTILLAS, PORCIONES, BEBIDAS CALIENTES Y FRÍAS
     p7 = pd.DataFrame({
-        "Name": ["Gaseosa 1L", "Chicha Morada Jarra", "Gaseosa Personal", "Agua Mineral"],
-        "Price": [10.00, 12.00, 4.00, 3.50],
+        "Name": [
+            "Chancho asado con Tamarindo", "Costillas Agridulces", "Porción Wantán Frito",
+            "Té de Jengibre Kion (Caliente)", "Gaseosa 1L (Fría)", "Chicha Jarrón"
+        ],
+        "Price": [22.00, 24.00, 10.00, 4.00, 10.00, 12.00],
         "Page": 7
     })
     
@@ -106,7 +127,7 @@ df_menu_diario = pd.DataFrame({
     "Price": [14.00, 15.00, 14.00, 17.00]
 })
 
-# 5. ESTILOS CSS CORREGIDOS (Para evitar textos sueltos y mejorar carga en móvil)
+# 5. CSS AVANZADO PROFESIONAL: IMAGEN FIJA + CONTENEDOR DE PLATOS SCROLLABLE
 st.markdown("""
 <style>
 .block-container {
@@ -115,91 +136,96 @@ st.markdown("""
     padding-top: 10px !important;
 }
 
-/* Tarjeta contenedora de dos columnas fijas */
-.tarjeta-split-carta {
+/* Estructura Split tipo Libro */
+.tarjeta-split-container {
     display: flex !important;
     flex-direction: row !important;
     width: 100% !important;
+    height: 480px !important; /* Altura fija para controlar el scroll del lado derecho */
     background-color: #8C0712 !important;
-    border-radius: 10px !important;
+    border-radius: 12px !important;
     overflow: hidden !important;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.4) !important;
-    margin-bottom: 20px !important;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.5) !important;
+    margin-bottom: 15px !important;
 }
 
-/* Columna izquierda para tu imagen real */
-.columna-foto-carta {
+/* Columna Izquierda: Completamente fija con la imagen de fondo */
+.columna-carta-fija {
     width: 45% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background-color: #70050e !important;
-}
-.columna-foto-carta img {
-    width: 100% !important;
-    height: auto !important;
-    object-fit: cover !important;
+    height: 100% !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    flex-shrink: 0 !important;
+    border-right: 2px solid #70050e !important;
 }
 
-/* Columna derecha interactiva para tus platos */
-.columna-platos-interactiva {
+/* Columna Derecha: Contenedor con Scroll independiente para deslizar los platos */
+.columna-platos-scroll {
     width: 55% !important;
-    padding: 10px 6px !important;
+    height: 100% !important;
+    padding: 12px 6px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 6px !important;
+    gap: 8px !important;
     box-sizing: border-box !important;
+    overflow-y: auto !important; /* Habilita el desplazamiento vertical en esta lista */
+    background-color: #990b16 !important;
 }
 
-/* Filas de los platos individuales */
-.fila-plato-interactiva {
+/* Diseño elegante de las filas de los platos */
+.fila-plato-bloque {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     width: 100% !important;
-    background: rgba(0, 0, 0, 0.2) !important;
-    padding: 6px 4px !important;
-    border-radius: 5px !important;
-    box-sizing: border-box !important;
+    background: rgba(0, 0, 0, 0.35) !important;
+    padding: 8px 6px !important;
+    border-radius: 6px !important;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 .btn-mas-flotante {
     background-color: #FFFFFF !important;
     color: #8B0000 !important;
     text-decoration: none !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: bold !important;
     border-radius: 50% !important;
-    width: 20px !important;
-    height: 20px !important;
+    width: 22px !important;
+    height: 22px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     flex-shrink: 0 !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
 }
 
 .texto-menu-flotante {
     color: #FFFFFF !important;
-    font-size: 10px !important;
+    font-size: 10.5px !important;
     font-weight: bold !important;
     line-height: 1.2 !important;
     margin-left: 6px !important;
     margin-right: auto !important;
     text-align: left !important;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
 }
 
 .precio-menu-flotante {
     color: #FFEB3B !important;
-    font-size: 11px !important;
+    font-size: 11.5px !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
     margin-left: 4px !important;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ENCABEZADO
+# ENCABEZADO PRINCIPAL
 st.markdown("<h2 style='text-align:center; color:#8B0000; margin-bottom:0; font-size:24px;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
@@ -216,11 +242,11 @@ with tab_carta:
     pag_seleccionada = st.radio(
         "📖 Selecciona una página de la carta:",
         options=[2, 3, 4, 5, 6, 7],
-        format_func=lambda x: f"Pág. {x} " + ("(Combos)" if x==2 else "(Chaufas)" if x==3 else "(Lomos)" if x==4 else "(Wok)" if x==5 else "(Extras)" if x==6 else "(Bebidas)"),
+        format_func=lambda x: f"Pág. {x} " + ("(Combos)" if x==2 else "(Chaufas)" if x==3 else "(Lomos)" if x==4 else "(Wok)" if x==5 else "(Especiales)" if x==6 else "(Bebidas/Extras)"),
         horizontal=True
     )
     
-    # Construcción limpia de las filas de platos en HTML
+    # Construcción de la lista de platos de la página activa
     html_filas = ""
     df_filtrado = df_carta[df_carta["Page"] == pag_seleccionada]
     
@@ -231,48 +257,35 @@ with tab_carta:
         
         params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
         html_filas += f"""
-        <div class="fila-plato-interactiva">
+        <div class="fila-plato-bloque">
             <a class="btn-mas-flotante" href="?{params}" target="_self">＋</a>
             <span class="texto-menu-flotante">{p_name}</span>
-            <span class="precio-menu-flotante">{int(p_price)}</span>
+            <span class="precio-menu-flotante">S/. {p_price:.2f}</span>
         </div>
         """
         
-    # Rutas alternativas de imágenes para evitar fallas de carga en GitHub/Streamlit Cloud
+    # Intentar cargar la imagen correspondiente en Base64 para inyección directa e infalible
     nombre_imagen = f"pag{pag_seleccionada}.jpg"
+    imagen_b64 = cargar_imagen_base64(nombre_imagen)
     
-    # Intentar buscar la imagen en múltiples rutas posibles del proyecto
-    rutas_posibles = [
-        os.path.join("images", nombre_imagen),
-        os.path.join("app", "static", "images", nombre_imagen),
-        nombre_imagen
-    ]
-    
-    ruta_valida = None
-    for r in rutas_posibles:
-        if os.path.exists(r):
-            ruta_valida = r
-            break
-
-    if ruta_valida:
-        # Si encuentra la imagen, monta la estructura split perfectamente balanceada
+    if imagen_b64:
+        # Renderizado Split perfecto: Izquierda fija en CSS por Base64, Derecha con scroll interactivo
         html_carta_completa = f"""
-        <div class="tarjeta-split-carta">
-            <div class="columna-foto-carta">
-                <img src="app/static/{ruta_valida}" />
-            </div>
-            <div class="columna-platos-interactiva">
+        <div class="tarjeta-split-container">
+            <div class="columna-carta-fija" style="background-image: url('data:image/jpeg;base64,{imagen_b64}');"></div>
+            <div class="columna-platos-scroll">
                 {html_filas}
             </div>
         </div>
         """
         st.markdown(html_carta_completa, unsafe_allow_html=True)
     else:
-        # Alerta amigable si la imagen no se subió o cambió de nombre
-        st.info(f"💡 Mostrando platos de la Página {pag_seleccionada}. Recuerda subir '{nombre_imagen}' a tu carpeta 'images'.")
+        # Respaldo visual estilizado por si la imagen aún no está cargada en el repositorio
+        st.info(f"💡 Cargando lista de platos. Asegúrate de añadir '{nombre_imagen}' en tu carpeta 'images' de GitHub.")
         html_carta_sin_foto = f"""
-        <div class="tarjeta-split-carta">
-            <div class="columna-platos-interactiva" style="width: 100% !important;">
+        <div class="tarjeta-split-container">
+            <div class="columna-carta-fija" style="background-color: #70050e; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; padding: 10px; text-align: center;">📖 Fondo Pág. {pag_seleccionada}</div>
+            <div class="columna-platos-scroll" style="width: 55% !important;">
                 {html_filas}
             </div>
         </div>
