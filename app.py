@@ -4,17 +4,16 @@ import urllib.parse
 import base64
 import os
 
-# 1. CONFIGURACIÓN DE LA PÁGINA (Aprovechamiento total en pantallas de celular)
+# 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
     page_title="Chifa D' Belinda",
     page_icon="🍜",
     layout="centered"
 )
 
-# Función para cargar la imagen de fondo según la página del menú gráfico
+# Función para cargar la imagen de fondo según la página seleccionada
 def cargar_imagen_fondo_pagina(numero_pagina):
-    # Traducir el número de página al nombre de tu archivo físico real
-    # Pagina 1 -> pag2.jpg, Pagina 2 -> pag3.jpg, etc.
+    # Mapeo exacto solicitado: Página 1 -> pag2.jpg, Página 2 -> pag3.jpg, etc.
     mapeo_archivos = {1: "pag2.jpg", 2: "pag3.jpg", 3: "pag4.jpg", 4: "pag5.jpg", 5: "pag6.jpg", 6: "pag7.jpg"}
     nombre_imagen = mapeo_archivos.get(numero_pagina, "pag2.jpg")
     
@@ -29,11 +28,11 @@ def cargar_imagen_fondo_pagina(numero_pagina):
                 return base64.b64encode(image_file.read()).decode()
     return None
 
-# 2. INICIALIZACIÓN DE ESTADOS GLOBAL DE CARRITO (Persistente y acumulativo)
+# 2. INICIALIZACIÓN DEL CARRITO
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# 3. CARGA Y ASIGNACIÓN ESTRICTA DE CATEGORÍAS POR PÁGINA
+# 3. CARGA DE DATOS Y ASIGNACIÓN ESTRICTA DE PÁGINAS
 def cargar_catalogo_con_paginas_corregido():
     nombre_archivo = "Catalogo_Productos.xlsx"
     nombre_csv = "Catalogo_Productos.xlsx - in.csv"
@@ -49,7 +48,6 @@ def cargar_catalogo_con_paginas_corregido():
     df.columns = df.columns.str.strip()
     df['Category'] = df['Category'].astype(str).str.strip().str.upper()
     
-    # Tu distribución exacta solicitada
     def mapear_fila_a_pagina(cat):
         if cat in ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER']:
             return 1
@@ -70,17 +68,15 @@ def cargar_catalogo_con_paginas_corregido():
 
 df_carta = cargar_catalogo_con_paginas_corregido()
 
-# 4. VENTANA EMERGENTE INTERACTIVA (MODAL) PARA PERSONALIZAR EL PLATO
+# 4. VENTANA EMERGENTE INTERACTIVA (MODAL) PARA DETALLES
 @st.dialog("Configura tu Plato 🍜")
 def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
     st.markdown(f"### {nombre_plato}")
     st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
     st.write("---")
     
-    # Selección de cantidad
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     
-    # Opciones de cremas
     st.markdown("**Selecciona tus Cremas / Salsas:**")
     col1, col2 = st.columns(2)
     with col1:
@@ -90,13 +86,11 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         c_ketchup = st.checkbox("Ketchup 🍅")
         c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
         
-    # Campo de notas opcional
     st.write("")
-    notas = st.text_input("Notas / Observaciones del plato (Opcional):", placeholder="Ej: Sin cebolla, tarta extra...")
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla, bien frito...")
     
     st.write("")
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
-        # Procesar cremas seleccionadas
         cremas_list = []
         if c_aji: cremas_list.append("Ají")
         if c_mayo: cremas_list.append("Mayo")
@@ -105,7 +99,6 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         
         cremas_texto = ", ".join(cremas_list) if cremas_list else "Ninguna"
         
-        # Guardar en la lista acumulativa sin borrar lo anterior
         st.session_state.carrito.append({
             "id": id_plato,
             "nombre": nombre_plato,
@@ -114,12 +107,13 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
             "cremas": cremas_texto,
             "notas": notas if notas.strip() != "" else "Ninguna"
         })
-        st.toast(f"¡{cantidad}x {nombre_plato} agregado con éxito!")
+        st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-# 5. CSS AVANZADO: FIJAR ENCABEZADO Y CONFIGURAR CONTENEDORES DE ANCHO COMPLETO
+# 5. CSS REESTRUCTURADO PARA CAMBIO DE FONDO FÍSICO Y SCROLL SEGURO
 st.markdown("""
 <style>
+/* Reset completo de contenedores de Streamlit */
 .block-container {
     padding-left: 0px !important;
     padding-right: 0px !important;
@@ -127,11 +121,7 @@ st.markdown("""
     max-width: 100% !important;
 }
 
-div[data-testid="stRadio"] > div {
-    padding: 0 10px !important;
-}
-
-/* ENCABEZADO SUPERIOR FIJO */
+/* ENCABEZADO FIJO */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -153,7 +143,6 @@ div[data-testid="stTabs"] > div:first-child {
     width: 100% !important;
     background-color: #8B0000 !important;
     z-index: 999998 !important;
-    box-shadow: 0px 3px 6px rgba(0,0,0,0.3) !important;
     padding: 0 5px !important;
 }
 
@@ -161,19 +150,21 @@ div[data-testid="stTabs"] > div:first-child {
     margin-top: 105px !important;
 }
 
-/* CONTENEDOR CON FONDO DINÁMICO */
-.scroller-carta-completa {
+/* CONTENEDOR SEGURO CON SCROLL INDEPENDIENTE PARA CELULARES */
+.scroller-carta-con-fondo {
     width: 100% !important;
-    height: 540px !important; 
+    height: calc(100vh - 220px) !important;
+    min-height: 460px !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important; /* Habilita scroll fluido en iOS/Android */
     background-size: cover !important;
     background-repeat: no-repeat !important;
     background-position: center center !important;
-    background-attachment: local !important;
-    overflow-y: auto !important; 
-    padding: 10px 12px 40px 12px !important;
+    padding: 15px 12px 60px 12px !important;
     box-sizing: border-box !important;
 }
 
+/* DISEÑO DE FILAS Y CATEGORÍAS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
@@ -181,66 +172,82 @@ div[data-testid="stTabs"] > div:first-child {
     font-weight: bold !important;
     padding: 9px 12px !important;
     border-radius: 6px !important;
-    margin-top: 10px !important;
-    margin-bottom: 12px !important;
+    margin: 15px 0 10px 0 !important;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
     border-left: 5px solid #FFEB3B !important;
-    width: 100% !important;
-    box-sizing: border-box;
 }
 
-.fila-plato-unificada {
+.bloque-fila-interactiva {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    width: 100% !important;
-    background: rgba(0, 0, 0, 0.82) !important; 
-    padding: 11px 14px !important;
+    background: rgba(0, 0, 0, 0.85) !important; 
+    padding: 6px 10px !important;
     margin-bottom: 8px !important;
     border-radius: 8px !important;
-    box-sizing: border-box !important;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+.caja-texto-plato {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding-left: 10px !important;
 }
 
 .nombre-plato-unificado {
     color: #FFFFFF !important;
-    font-size: 12.5px !important;
+    font-size: 13px !important;
     font-weight: bold !important;
-    line-height: 1.3 !important;
     text-align: left !important;
-    margin-right: 8px !important;
-    flex-grow: 1 !important; 
+    padding-right: 5px !important;
 }
 
 .precio-plato-unificado {
     color: #FFEB3B !important;
     font-size: 14px !important;
-    font-weight: bold !important; white-space: nowrap !important;
-    flex-shrink: 0 !important; text-align: right !important;
-    margin-right: 5px;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+}
+
+/* Forzar que los botones de Streamlit se vean esféricos y estilizados */
+div.stButton > button {
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# 6. ENCABEZADO FIJO DE LA APLICACIÓN
+# 6. ENCABEZADO FIJO
 st.markdown('<div class="encabezado-fijo-global"><span style="color:#FFFFFF; font-size:19px; font-weight:bold;">🍜 CHIFA D\' BELINDA</span></div>', unsafe_allow_html=True)
 st.markdown('<div class="compensar-cabecera-fija"></div>', unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# PESTAÑAS DE NAVEGACIÓN
 tab_carta, tab_pedido = st.tabs([
     "📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
 # =========================================================
-# PESTAÑA 1: NUESTRA CARTA
+# PESTAÑA 1: NUESTRA CARTA (CON FONDO EN LÍNEA Y SCROLL SEGURO)
 # =========================================================
 with tab_carta:
     if df_carta.empty:
-        st.warning("⚠️ Carga el archivo del catálogo para inicializar los datos.")
+        st.warning("⚠️ Carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Menú de selección corregido con nombres "Página X" tal cual me pediste
         pag_seleccionada = st.radio(
             "Selecciona una Página:",
             options=[1, 2, 3, 4, 5, 6],
@@ -255,57 +262,44 @@ with tab_carta:
             horizontal=True
         )
         
-        # Filtrado estricto por el número de página asignado
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
-        
-        # Renderizado del catálogo completo usando botones nativos incrustados de forma limpia
         imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
         
-        # Iniciamos bloque contenedor visual de la carta
-        st.write("")
-        categoria_actual = ""
+        # Construimos el estilo de fondo dinámico directo en línea para asegurar su carga
+        style_background = f"background-image: url('data:image/jpeg;base64,{imagen_b64}');" if imagen_b64 else "background-color: #8C0712;"
         
-        # Usamos columnas nativas controladas para simular el formato de lista compacta sobre el fondo
-        with st.container():
-            for idx, row in df_filtrado.iterrows():
-                if str(row['Category']).strip() != categoria_actual:
-                    categoria_actual = str(row['Category']).strip()
-                    st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
-                
-                # Formato de fila unificada: Botón de suma, Nombre y Precio derecho
+        # Iniciamos el contenedor HTML con Scroll e imagen fija integrada
+        st.markdown(f'<div class="scroller-carta-con-fondo" style="{style_background}">', unsafe_allow_html=True)
+        
+        categoria_actual = ""
+        for idx, row in df_filtrado.iterrows():
+            if str(row['Category']).strip() != categoria_actual:
+                categoria_actual = str(row['Category']).strip()
+                st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
+            
+            # Dibujamos cada item acoplando el botón interactivo de Streamlit de manera limpia
+            with st.container():
+                st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
                 col_btn, col_txt = st.columns([0.15, 0.85])
                 with col_btn:
-                    # El botón gatilla el pop-up interactivo directamente sin perder el estado del carrito
                     if st.button("＋", key=f"btn_{row['ID']}_{idx}"):
                         abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
                 with col_txt:
                     st.markdown(f"""
-                    <div class="fila-plato-unificada" style="margin-top:-5px;">
+                    <div class="caja-texto-plato">
                         <span class="nombre-plato-unificado">{row['Name']}</span>
                         <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
                     </div>
                     """, unsafe_allow_html=True)
-
-        # Inyección dinámica de fondo usando estilos CSS controlados para que cambie según la página activa
-        if imagen_b64:
-            st.markdown(f"""
-            <style>
-            .stMainBlockContainer {{
-                background-image: url('data:image/jpeg;base64,{imagen_b64}') !important;
-                background-size: cover !important;
-                background-position: center center !important;
-                background-attachment: fixed !important;
-            }}
-            </style>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""<style>.stMainBlockContainer { background-color: #8C0712 !important; }</style>""", unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA 2: MI PEDIDO (ACUMULATIVO)
+# PESTAÑA 2: MI PEDIDO
 # =========================================================
 with tab_pedido:
-    st.markdown("<div style='padding: 10px;'>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 12px;'>", unsafe_allow_html=True)
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
@@ -316,7 +310,6 @@ with tab_pedido:
             subtotal = item["precio"] * item["cant"]
             total += subtotal
             
-            # Formato claro mostrando cremas y notas asociadas a cada plato
             st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
             st.markdown(f"<span style='color:#FFEB3B; font-size:12px;'>└ 🧂 Cremas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
             st.write("")
