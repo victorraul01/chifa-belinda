@@ -27,14 +27,14 @@ def cargar_imagen_b64(nombre_imagen):
                 return base64.b64encode(image_file.read()).decode()
     return None
 
-# Mapeo página -> archivo de imagen de fondo
+# 🌟 CORREGIDO: Cambiado de .jpg a .jpeg para que coincida exactamente con tu carpeta
 IMAGENES_POR_PAGINA = {
-    1: "pag1.jpg",
-    2: "pag2.jpg",
-    3: "pag3.jpg",
-    4: "pag4.jpg",
-    5: "pag5.jpg",
-    6: "pag6.jpg",
+    1: "pag1.jpeg",
+    2: "pag2.jpeg",
+    3: "pag3.jpeg",
+    4: "pag4.jpeg",
+    5: "pag5.jpeg",
+    6: "pag6.jpeg",
 }
 
 def aplicar_fondo(nombre_imagen, pagina_id):
@@ -42,12 +42,17 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
+        /* Aplicar fondo directamente al viewport de la app */
         .stApp {{
             background-image: url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
             background-repeat: no-repeat !important;
             background-position: center center !important;
             background-attachment: fixed !important;
+        }}
+        /* Hacer transparentes los bloques intermedios de Streamlit para que se note tu imagen trasera */
+        .main, [data-testid="stAppViewContainer"], [data-testid="stCanvas"] {{
+            background-color: transparent !important;
         }}
         </style>
         """, unsafe_allow_html=True)
@@ -139,25 +144,25 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS GLOBAL OPTIMIZADO PARA MÓVILES (SCROLL TÁCTIL FIJO)
+# 5. CSS GLOBAL MAESTRO (ESTÁTICO + TRANSPARENCIAS DE CAPA)
 # =========================================================
 st.markdown("""
 <style>
-/* Bloquear el scroll de toda la pantalla exterior */
+/* Bloquear scroll general exterior */
 html, body, [data-testid="stApp"] {
     overflow: hidden !important;
     height: 100vh !important;
     position: relative;
 }
 
-/* Limpieza de márgenes de Streamlit */
+/* Limpieza de contenedores de Streamlit */
 .main .block-container {
     padding: 0px !important;
     max-width: 100% !important;
     height: 100vh !important;
 }
 
-/* ENCABEZADO FIJO (No se mueve) */
+/* ENCABEZADO FIJO ROJO Superior */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -198,49 +203,59 @@ button[aria-selected="true"] {
     width: 100% !important;
     background-color: #8B0000 !important;
     z-index: 999997 !important;
-    padding: 5px 14px 12px 14px !important;
+    padding: 10px 14px 14px 14px !important;
     box-shadow: 0px 6px 12px rgba(0,0,0,0.6) !important;
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* ACTIVACIÓN DE SCROLL EXCLUSIVO Y TÁCTIL EN EL CONTENIDO */
+/* Botones de radio legibles en blanco */
+.bloque-paginas-estatico label div[data-testid="stMarkdownContainer"] p {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+
+/* ACTIVACIÓN DE SCROLL TÁCTIL EXCLUSIVO PARA LOS PLATOS */
 div[data-testid="stTabs"] [data-testid="stVerticalBlock"] {
-    max-height: calc(100vh - 165px) !important;
+    max-height: calc(100vh - 190px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    background-color: transparent !important;
 }
 
 div[data-testid="stTabs"] > div:nth-child(2) {
-    height: calc(100vh - 165px) !important;
+    height: calc(100vh - 190px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    margin-top: 165px !important;
+    margin-top: 190px !important;
+    background-color: transparent !important;
 }
 
 .contenedor-menu-platos {
-    padding: 10px 14px 120px 14px !important; /* Colchón abajo para evitar cortes */
+    padding: 10px 14px 140px 14px !important; 
     box-sizing: border-box !important;
+    background-color: transparent !important;
 }
 
+/* TÍTULOS DE CATEGORÍAS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
     font-weight: bold !important;
     padding: 10px 14px !important;
     border-radius: 6px !important;
-    margin: 20px 0 12px 0 !important;
+    margin: 15px 0 12px 0 !important;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
     border-left: 5px solid #FFEB3B !important;
 }
 
-/* FILA DE CADA PLATO */
+/* FILA DE CADA PLATO (Oscura semitransparente para leer bien sobre tu foto de fondo) */
 div[class*="st-key-fila_"] {
     background: rgba(0, 0, 0, 0.85) !important;
-    padding: 6px 10px !important;
-    margin-bottom: 10px !important;
-    border-radius: 10px !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
+    padding: 10px 12px !important;
+    margin-bottom: 12px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
 }
 
 div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
@@ -259,15 +274,15 @@ div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
 
 .nombre-plato-unificado {
     color: #FFFFFF !important;
-    font-size: 13.5px !important;
+    font-size: 14px !important;
     font-weight: bold !important;
     text-align: left !important;
-    line-height: 1.3;
+    line-height: 1.3 !important;
 }
 
 .precio-plato-unificado {
     color: #FFEB3B !important;
-    font-size: 14.5px !important;
+    font-size: 15px !important;
     font-weight: bold !important;
     white-space: nowrap !important;
 }
@@ -276,11 +291,11 @@ div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
-    font-size: 18px !important;
+    font-size: 20px !important;
     font-weight: bold !important;
     border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
+    width: 40px !important;
+    height: 40px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -325,8 +340,8 @@ with tab_carta:
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Fondo dinámico: cambia según la página seleccionada
-        imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpg")
+        # 🌟 Fondo dinámico: cambia y carga el archivo .jpeg correspondiente
+        imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
@@ -340,7 +355,7 @@ with tab_carta:
 
             fila = st.container(border=True, key=f"fila_{row['ID']}")
             with fila:
-                col_btn, col_txt = st.columns([0.16, 0.84])
+                col_btn, col_txt = st.columns([0.18, 0.82])
                 with col_btn:
                     if st.button("＋", key=f"btn_{row['ID']}"):
                         abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
@@ -357,10 +372,9 @@ with tab_carta:
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    # Fondo sólido oscuro para facilitar lectura en esta pestaña
     st.markdown("""
     <style>
-    .stApp { background-image: none !important; background-color: #111111 !important; }
+    .stApp {{ background-image: none !important; background-color: #111111 !important; }}
     </style>
     """, unsafe_allow_html=True)
 
