@@ -78,11 +78,11 @@ def obtener_carta_completa_pdf():
             16.00, 19.00, 22.00, 18.00, 20.00, 20.00, 18.00, 19.00
         ],
         "Page": [
-            # Mapeo de a qué página física pertenece cada plato
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, # Pág 2
-            3, 3, 3, 3, 3, 3, 3, 3, 3,                                     # Pág 3
-            4, 4, 4, 4, 4, 4, 4, 4, 4,                                     # Pág 4
-            5, 5, 5, 5, 5, 5, 5, 5                                         # Pág 5
+            # Mapeo de páginas
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+            3, 3, 3, 3, 3, 3, 3, 3, 3,                                     
+            4, 4, 4, 4, 4, 4, 4, 4, 4,                                     
+            5, 5, 5, 5, 5, 5, 5, 5                                         
         ]
     }
     return pd.DataFrame(datos)
@@ -172,5 +172,108 @@ div[data-testid="stHorizontalBlock"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ENCABEZADO PRINCIPAL
-st.markdown("<h2 style='text-align:center; color:#8B
+# ENCABEZADO PRINCIPAL (Línea corregida aquí)
+st.markdown("<h2 style='text-align:center; color:#8B0000; margin-bottom:0;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
+
+items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
+tab_carta, tab_menu, tab_pedido = st.tabs([
+    "📖 Nuestra Carta", "📋 Menú Diario", f"🛒 Mi Pedido ({items_en_carrito})"
+])
+
+# FUNCIÓN REUTILIZABLE PARA GENERAR PÁGINAS DE LA CARTA
+def renderizar_hoja_carta(numero_pagina, nombre_imagen):
+    col_izq, col_der = st.columns([4.5, 5.5])
+    
+    with col_izq:
+        ruta_foto = f"images/{nombre_imagen}"
+        if os.path.exists(ruta_foto):
+            st.image(ruta_foto, use_container_width=True)
+        else:
+            st.info(f"📸 [Falta {ruta_foto}]")
+            
+    with col_der:
+        html_filas = ""
+        df_filtrado = df_carta[df_carta["Page"] == numero_pagina]
+        
+        for _, row in df_filtrado.iterrows():
+            p_id = row['ID']
+            p_name = row['Name']
+            p_price = row['Price']
+            
+            params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
+            link_url = f"?{params}"
+            
+            html_filas += f"""
+            <div class="fila-plato-unica-linea">
+                <a class="btn-agregar-inline" href="{link_url}" target="_self">＋</a>
+                <span class="texto-plato-inline">{p_name}</span>
+                <span class="precio-plato-inline">{int(p_price)}</span>
+            </div>
+            """
+            
+        st.markdown(f"""
+        <div class="contenedor-menu-rojo">
+            {html_filas}
+        </div>
+        """, unsafe_allow_html=True)
+
+# =========================================================
+# 1. PESTAÑA: NUESTRA CARTA (TODAS LAS HOJAS)
+# =========================================================
+with tab_carta:
+    st.markdown('<div class="titulo-seccion-carta">🔥 COMBOS & ALITAS ESPECIALES</div>', unsafe_allow_html=True)
+    renderizar_hoja_carta(2, "pag2.jpg")
+    
+    st.markdown('<div class="titulo-seccion-carta">🥣 SOPAS & ARROZ CHAUFA</div>', unsafe_allow_html=True)
+    renderizar_hoja_carta(3, "pag3.jpg")
+    
+    st.markdown('<div class="titulo-seccion-carta">✈️ AEROPUERTOS & LOMOS</div>', unsafe_allow_html=True)
+    renderizar_hoja_carta(4, "pag4.jpg")
+    
+    st.markdown('<div class="titulo-seccion-carta">🔥 TALLARINES & PLATOS AL WOK</div>', unsafe_allow_html=True)
+    renderizar_hoja_carta(5, "pag5.jpg")
+
+# =========================================================
+# 2. PESTAÑA: MENÚ DIARIO
+# =========================================================
+with tab_menu:
+    st.write("### 📋 Platos de Menú del Día")
+    for idx, row in df_menu_diario.iterrows():
+        params_menu = urllib.parse.urlencode({"add_id": f"M{idx}", "add_name": f"Menú: {row['Name']}", "add_price": row['Price']})
+        
+        st.markdown(f"""
+        <div style="background-color:#8B0000; padding:6px; margin-bottom:4px; border-radius:4px; display:flex; align-items:center;">
+            <a class="btn-agregar-inline" href="?{params_menu}" target="_self">＋</a>
+            <span style="color:white; font-size:12px; font-weight:bold; margin-left:8px; flex-grow:1;">{row['Name']}</span>
+            <span style="color:#FFEB3B; font-size:12px; font-weight:bold;">S/. {row['Price']:.2f}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+# =========================================================
+# 3. PESTAÑA: MI PEDIDO / WHATSAPP
+# =========================================================
+with tab_pedido:
+    if not st.session_state.carrito:
+        st.info("Tu carrito está vacío. Ve a la sección de la carta para añadir tus platos favoritos.")
+    else:
+        st.subheader("📋 Resumen de tu pedido")
+        total = 0
+        for item in st.session_state.carrito:
+            subtotal = item["precio"] * item["cant"]
+            total += subtotal
+            st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
+            
+        st.divider()
+        nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
+        
+        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
+        for item in st.session_state.carrito:
+            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+        mensaje_wa += f"-------------------------\n💰 *TOTAL PRODUCTOS:* S/. {total:.2f}"
+        
+        link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+        st.link_button("📲 ENVIAR PEDIDO POR WHATSAPP", link_final, use_container_width=True)
+        
+        if st.button("🧹 Vaciar Carrito", use_container_width=True):
+            st.session_state.carrito = []
+            st.rerun()
