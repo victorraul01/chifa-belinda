@@ -109,22 +109,21 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-# 5. CSS AVANZADO CORRECTO (Cabecera Compacta Fija + Scroll Libre de Contenedor)
+# 5. CONTROL CSS ESTRUCTURAL ABSOLUTO (Cabecera fija unificada + scroll interno forzado)
 st.markdown("""
 <style>
-/* Permitir el comportamiento de scroll nativo de Streamlit sin romper la pantalla */
+/* Desactivar scroll exterior para que la cabecera NUNCA se mueva de su sitio */
 html, body, [data-testid="stApp"] {
-    overflow: auto !important;
+    overflow: hidden !important;
+    height: 100vh !important;
 }
 
 .block-container {
-    padding-left: 0px !important;
-    padding-right: 0px !important;
-    padding-top: 0px !important;
+    padding: 0px !important;
     max-width: 100% !important;
 }
 
-/* ENCABEZADO PRINCIPAL FIJO */
+/* ENCABEZADO FIJO */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -133,12 +132,11 @@ html, body, [data-testid="stApp"] {
     background-color: #8B0000 !important;
     z-index: 999999 !important;
     text-align: center !important;
-    padding: 14px 0 8px 0 !important;
+    padding: 12px 0 6px 0 !important;
     border-bottom: 2px solid #FFEB3B !important;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
 }
 
-/* FIJAR PESTAÑAS (Carta y Pedido) JUSTO DEBAJO DEL ENCABEZADO */
+/* PESTAÑAS (CARTA Y PEDIDO) FIJAS */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
     top: 48px !important;
@@ -147,10 +145,9 @@ div[data-testid="stTabs"] > div:first-child {
     background-color: #8B0000 !important;
     z-index: 999998 !important;
     padding: 2px 10px !important;
-    border-bottom: 2px solid #FFEB3B !important;
 }
 
-/* Forzar realce de las pestañas activas */
+/* Forzar colores de realce para las pestañas de Streamlit */
 button[data-baseweb="tab"] {
     color: #FFAAAA !important;
     font-weight: bold !important;
@@ -160,17 +157,36 @@ button[aria-selected="true"] {
     border-bottom-color: #FFEB3B !important;
 }
 
-/* ESPACIADOR DE PLATOS: Para que no queden ocultos debajo de la cabecera fija */
-.compensar-cabecera-fija {
-    padding-top: 220px !important; /* Espacio ideal para que los botones de radio se vean fijos arriba */
+/* CONTENEDOR DE CONTROL SUPERIOR (Para agrupar y congelar los botones de cambio de página) */
+.bloque-paginas-estatico {
+    position: fixed !important;
+    top: 94px !important;
+    left: 0 !important;
+    width: 100% !important;
+    background-color: #8B0000 !important;
+    z-index: 999997 !important;
+    padding: 5px 14px 12px 14px !important;
+    box-shadow: 0px 6px 10px rgba(0,0,0,0.5) !important;
+    border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* DISEÑO DE FILAS DE PLATOS Y CATEGORÍAS */
-.contenedor-menu-platos {
-    padding: 10px 14px 120px 14px !important;
+/* ESPACIADOR OBLIGATORIO: Empuja los platos hacia abajo para que la cabecera gigante no los tape */
+.compensar-cabecera-bloqueada {
+    height: 235px !important;
+    width: 100% !important;
+}
+
+/* CAJA CON SCROLL SEGURO Y SUAVE PARA LOS PLATOS */
+.zona-scroll-platos {
+    width: 100% !important;
+    height: calc(100vh - 235px) !important; /* Ocupa exactamente el alto restante de la pantalla */
+    overflow-y: scroll !important; /* Fuerza la aparición del scroll vertical */
+    -webkit-overflow-scrolling: touch !important; /* Hace que el deslizamiento con el dedo en celular sea ultra fluido */
+    padding: 10px 14px 80px 14px !important;
     box-sizing: border-box !important;
 }
 
+/* DISEÑO DE FILAS DE PLATOS Y CATEGORÍAS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
@@ -178,7 +194,7 @@ button[aria-selected="true"] {
     font-weight: bold !important;
     padding: 10px 14px !important;
     border-radius: 6px !important;
-    margin: 20px 0 12px 0 !important;
+    margin: 15px 0 10px 0 !important;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
     border-left: 5px solid #FFEB3B !important;
 }
@@ -237,7 +253,7 @@ div.stButton > button {
 </style>
 """, unsafe_allow_html=True)
 
-# 6. ENCABEZADO FIJO DE LA APLICACIÓN
+# 6. ENCABEZADO FIJO DE LA APP
 st.markdown('<div class="encabezado-fijo-global"><span style="color:#FFFFFF; font-size:19px; font-weight:bold;">🍜 CHIFA D\' BELINDA</span></div>', unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
@@ -253,25 +269,28 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Menú selector estático superior de páginas
+        # Metemos el selector de radios dentro del bloque estático rojo superior
+        st.markdown('<div class="bloque-paginas-estatico">', unsafe_allow_html=True)
         pag_seleccionada = st.radio(
             "Selecciona una Página:",
             options=[1, 2, 3, 4, 5, 6],
             format_func=lambda x: (
-                "Pág. 1 (Combos)" if x==1 else
-                "Pág. 2 (Sopas)" if x==2 else
-                "Pág. 3 (Aeropuertos)" if x==3 else
-                "Pág. 4 (Tallarines)" if x==4 else
-                "Pág. 5 (Especiales)" if x==5 else
-                "Pág. 6 (Bebidas)"
+                "Pág. 1" if x==1 else
+                "Pág. 2" if x==2 else
+                "Pág. 3" if x==3 else
+                "Pág. 4" if x==4 else
+                "Pág. 5" if x==5 else
+                "Pág. 6"
             ),
-            horizontal=True
+            horizontal=True,
+            label_visibility="collapsed" # Esconde el texto de etiqueta para ganar espacio en pantalla
         )
+        st.markdown('</div>', unsafe_allow_html=True)
         
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
         imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
         
-        # INYECCIÓN EXCLUSIVA DE FONDO FIJO POR DETRÁS DE LOS PLATOS
+        # INYECCIÓN EXCLUSIVA DE FONDO FIJO QUE SÍ CAMBIA SEGÚN LA PÁGINA
         if imagen_b64:
             st.markdown(f"""
             <style>
@@ -285,11 +304,11 @@ with tab_carta:
             </style>
             """, unsafe_allow_html=True)
             
-        # Bloque de compensación para empujar los platos debajo del menú fijo superior
-        st.markdown('<div class="compensar-cabecera-fija"></div>', unsafe_allow_html=True)
+        # 1. Creamos el espacio en blanco para que los platos bajen
+        st.markdown('<div class="compensar-cabecera-bloqueada"></div>', unsafe_allow_html=True)
         
-        # Contenedor seguro de la lista de platos con scroll nativo libre
-        st.markdown('<div class="contenedor-menu-platos">', unsafe_allow_html=True)
+        # 2. Abrimos la zona de scroll forzado exclusivo para la lista de productos
+        st.markdown('<div class="zona-scroll-platos">', unsafe_allow_html=True)
         
         categoria_actual = ""
         for idx, row in df_filtrado.iterrows():
@@ -297,7 +316,7 @@ with tab_carta:
                 categoria_actual = str(row['Category']).strip()
                 st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
             
-            # Fila interactiva individual
+            # Fila de plato interactiva
             st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
             col_btn, col_txt = st.columns([0.16, 0.84])
             with col_btn:
@@ -312,21 +331,21 @@ with tab_carta:
                 """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
                 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True) # Cierre de zona-scroll-platos
 
 # =========================================================
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    # Quitamos el fondo de imagen en el carrito para legibilidad total
+    # Quitamos el fondo para ver el resumen con comodidad en color oscuro sólido
     st.markdown("""
     <style>
     .stApp { background-image: none !important; background-color: #111111 !important; }
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="compensar-cabecera-fija" style="padding-top:130px !important;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="contenedor-menu-platos" style="color:#FFFFFF;">', unsafe_allow_html=True)
+    st.markdown('<div class="compensar-cabecera-bloqueada" style="height:110px !important;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="zona-scroll-platos" style="height: calc(100vh - 110px) !important; color:#FFFFFF;">', unsafe_allow_html=True)
     
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
