@@ -1,39 +1,22 @@
 import streamlit as st
 import pandas as pd
 import urllib.parse
-import base64
 
+# CONFIG
 st.set_page_config(
     page_title="Chifa D' Belinda",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ---------------------------
-# FUNCIONES
-# ---------------------------
-
-def get_base64(file_path):
-    with open(file_path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-
-# ---------------------------
 # ESTADO
-# ---------------------------
-
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# ---------------------------
 # CARGAR EXCEL
-# ---------------------------
-
 df = pd.read_excel("Catalogo_Productos.xlsx")
 
-# ---------------------------
 # CONFIGURACIÓN DE PÁGINAS
-# ---------------------------
-
 paginas = {
     "Página 1": {
         "imagen": "pag2.jpg",
@@ -91,18 +74,54 @@ paginas = {
     }
 }
 
-# ---------------------------
-# TÍTULO
-# ---------------------------
+# ESTILOS
+st.markdown("""
+<style>
+div[data-testid="stHorizontalBlock"]{
+    display:flex;
+    flex-direction:row !important;
+    align-items:flex-start !important;
+    gap:0 !important;
+}
 
+.panel-rojo{
+    background:#9b1111;
+    border-radius:0px 18px 18px 0px;
+    padding:15px;
+    height:75vh;
+    overflow-y:auto;
+}
+
+.categoria{
+    color:yellow;
+    font-size:24px;
+    font-weight:bold;
+    margin-top:15px;
+    margin-bottom:8px;
+}
+
+.plato{
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+}
+
+.precio{
+    color:white;
+    font-size:15px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# TÍTULO
 st.title("🍜 Chifa D' Belinda")
 
-tabs = st.tabs(["📖 Carta", "🛒 Mi Pedido"])
+tabs = st.tabs([
+    "📖 Carta",
+    "🛒 Mi Pedido"
+])
 
-# ---------------------------
 # TAB CARTA
-# ---------------------------
-
 with tabs[0]:
 
     pagina_actual = st.selectbox(
@@ -115,99 +134,66 @@ with tabs[0]:
 
     productos = df[df["Category"].isin(categorias_actuales)]
 
-    imagen_base64 = get_base64(config["imagen"])
+    col1, col2 = st.columns([1, 2], gap="small")
 
-    st.markdown(f"""
-    <style>
-    .menu-container {{
-        position: relative;
-        width: 100%;
-        height: 92vh;
-        background-image: url("data:image/jpeg;base64,{imagen_base64}");
-        background-size: cover;
-        background-position: center;
-        border-radius: 18px;
-        overflow: hidden;
-    }}
+    # IMAGEN IZQUIERDA
+    with col1:
+        st.image(
+            config["imagen"],
+            use_container_width=True
+        )
 
-    .scroll-menu {{
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 63%;
-        height: 100%;
-        overflow-y: auto;
-        padding: 15px;
-    }}
+    # PANEL DERECHO
+    with col2:
 
-    .categoria {{
-        color: yellow;
-        font-size: 24px;
-        font-weight: bold;
-        margin-top: 15px;
-        margin-bottom: 8px;
-    }}
+        st.markdown(
+            '<div class="panel-rojo">',
+            unsafe_allow_html=True
+        )
 
-    .plato {{
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        line-height: 1.2;
-    }}
+        for categoria in categorias_actuales:
 
-    .precio {{
-        color: white;
-        font-size: 15px;
-        font-weight: bold;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+            grupo = productos[
+                productos["Category"] == categoria
+            ]
 
-    st.markdown(
-        '<div class="menu-container"><div class="scroll-menu">',
-        unsafe_allow_html=True
-    )
+            if not grupo.empty:
 
-    for categoria in categorias_actuales:
-
-        grupo = productos[productos["Category"] == categoria]
-
-        if not grupo.empty:
-
-            st.markdown(
-                f"<div class='categoria'>{categoria}</div>",
-                unsafe_allow_html=True
-            )
-
-            for i, row in grupo.iterrows():
-
-                c1, c2, c3 = st.columns([0.58, 0.22, 0.20])
-
-                c1.markdown(
-                    f"<div class='plato'>{row['Name']}</div>",
+                st.markdown(
+                    f"<div class='categoria'>{categoria}</div>",
                     unsafe_allow_html=True
                 )
 
-                c2.markdown(
-                    f"<div class='precio'>S/. {row['Price']}</div>",
-                    unsafe_allow_html=True
-                )
+                for i, row in grupo.iterrows():
 
-                if c3.button("➕", key=f"{pagina_actual}_{i}"):
+                    c1, c2, c3 = st.columns([0.55, 0.25, 0.20])
 
-                    st.session_state.carrito.append({
-                        "nombre": row["Name"],
-                        "precio": row["Price"]
-                    })
+                    c1.markdown(
+                        f"<div class='plato'>{row['Name']}</div>",
+                        unsafe_allow_html=True
+                    )
 
-                    st.toast(f"{row['Name']} agregado")
+                    c2.markdown(
+                        f"<div class='precio'>S/. {row['Price']}</div>",
+                        unsafe_allow_html=True
+                    )
 
-    st.markdown("</div></div>", unsafe_allow_html=True)
+                    if c3.button(
+                        "➕",
+                        key=f"{pagina_actual}_{i}"
+                    ):
+                        st.session_state.carrito.append({
+                            "nombre": row["Name"],
+                            "precio": row["Price"]
+                        })
 
-# ---------------------------
+                        st.toast(
+                            f"{row['Name']} agregado"
+                        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
 # TAB CARRITO
-# ---------------------------
-
 with tabs[1]:
 
     st.subheader("🛒 Mi Pedido")
@@ -225,7 +211,9 @@ with tabs[1]:
             )
             total += item["precio"]
 
-        st.markdown(f"### Total: S/. {total}")
+        st.markdown(
+            f"### Total: S/. {total}"
+        )
 
         detalle = "\n".join([
             f"- {item['nombre']}: S/. {item['precio']}"
