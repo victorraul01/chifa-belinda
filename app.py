@@ -27,7 +27,7 @@ def cargar_imagen_b64(nombre_imagen):
                 return base64.b64encode(image_file.read()).decode()
     return None
 
-# 🌟 CORREGIDO: Cambiado de .jpg a .jpeg para que coincida exactamente con tu carpeta
+# Mapeo de páginas a tus archivos reales .jpeg
 IMAGENES_POR_PAGINA = {
     1: "pag1.jpeg",
     2: "pag2.jpeg",
@@ -42,7 +42,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
-        /* Aplicar fondo directamente al viewport de la app */
+        /* Imagen de fondo principal fija en el fondo */
         .stApp {{
             background-image: url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
@@ -50,8 +50,12 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* Hacer transparentes los bloques intermedios de Streamlit para que se note tu imagen trasera */
-        .main, [data-testid="stAppViewContainer"], [data-testid="stCanvas"] {{
+        /* 🚨 DESACTIVAMOS CUALQUIER COLOR DE RESPALDO O CAPA DE STREAMLIT */
+        .main, 
+        [data-testid="stAppViewContainer"], 
+        [data-testid="stCanvas"],
+        [data-testid="stTabs"],
+        div[data-testid="stTabs"] > div:nth-child(2) {{
             background-color: transparent !important;
         }}
         </style>
@@ -144,25 +148,25 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS GLOBAL MAESTRO (ESTÁTICO + TRANSPARENCIAS DE CAPA)
+# 5. CSS GLOBAL MAESTRO (TRANSPARENCIAS + FIJADO MÓVIL)
 # =========================================================
 st.markdown("""
 <style>
-/* Bloquear scroll general exterior */
+/* Bloquear scroll molesto de la pantalla exterior en celulares */
 html, body, [data-testid="stApp"] {
     overflow: hidden !important;
     height: 100vh !important;
     position: relative;
 }
 
-/* Limpieza de contenedores de Streamlit */
+/* Limpieza de márgenes estructurales */
 .main .block-container {
     padding: 0px !important;
     max-width: 100% !important;
     height: 100vh !important;
 }
 
-/* ENCABEZADO FIJO ROJO Superior */
+/* ENCABEZADO SUPERIOR FIJO (Rojo Chifa) */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -195,7 +199,7 @@ button[aria-selected="true"] {
     border-bottom-color: #FFEB3B !important;
 }
 
-/* SELECTOR DE PÁGINAS FIJO */
+/* SELECTOR DE PÁGINAS (Pág 1, Pág 2...) FIJO */
 .bloque-paginas-estatico {
     position: fixed !important;
     top: 94px !important;
@@ -208,7 +212,7 @@ button[aria-selected="true"] {
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* Botones de radio legibles en blanco */
+/* Forzar que los textos del selector de páginas se lean en blanco */
 .bloque-paginas-estatico label div[data-testid="stMarkdownContainer"] p {
     color: #FFFFFF !important;
     font-weight: bold !important;
@@ -249,9 +253,9 @@ div[data-testid="stTabs"] > div:nth-child(2) {
     border-left: 5px solid #FFEB3B !important;
 }
 
-/* FILA DE CADA PLATO (Oscura semitransparente para leer bien sobre tu foto de fondo) */
+/* FILA DE CADA PLATO (Ahora con fondo transparente o sutil para ver tu diseño de fondo) */
 div[class*="st-key-fila_"] {
-    background: rgba(0, 0, 0, 0.85) !important;
+    background: rgba(0, 0, 0, 0.4) !important; /* Bajado a 0.4 para ver más tu imagen detrás */
     padding: 10px 12px !important;
     margin-bottom: 12px !important;
     border-radius: 12px !important;
@@ -272,6 +276,7 @@ div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
     padding-left: 8px !important;
 }
 
+/* Forzar color de texto de los platos en Blanco */
 .nombre-plato-unificado {
     color: #FFFFFF !important;
     font-size: 14px !important;
@@ -280,6 +285,7 @@ div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
     line-height: 1.3 !important;
 }
 
+/* Forzar color de los precios en Amarillo */
 .precio-plato-unificado {
     color: #FFEB3B !important;
     font-size: 15px !important;
@@ -340,7 +346,7 @@ with tab_carta:
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # 🌟 Fondo dinámico: cambia y carga el archivo .jpeg correspondiente
+        # Cargar dinámicamente tu fondo .jpeg respectivo
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
@@ -374,7 +380,7 @@ with tab_carta:
 with tab_pedido:
     st.markdown("""
     <style>
-    .stApp {{ background-image: none !important; background-color: #111111 !important; }}
+    .stApp { background-image: none !important; background-color: #111111 !important; }
     </style>
     """, unsafe_allow_html=True)
 
