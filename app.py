@@ -27,7 +27,7 @@ if "carrito" not in st.session_state:
 df = pd.read_excel("Catalogo_Productos.xlsx")
 
 # -------------------------
-# PAGINAS
+# PÁGINAS
 # -------------------------
 paginas = {
     "Página 1": {
@@ -56,6 +56,51 @@ paginas = {
     }
 }
 
+# -------------------------
+# HEADER FIJO
+# -------------------------
+st.markdown("""
+<style>
+.stAppHeader {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.block-container {
+    padding-top: 0.5rem;
+}
+
+.panel-derecho {
+    margin-left: 42%;
+    width: 58%;
+    height: 72vh;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.categoria {
+    color: yellow;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.nombre-plato {
+    color: white;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.precio {
+    color: white;
+    font-size: 13px;
+    text-align: center;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("🍜 Chifa D' Belinda")
 
 tabs = st.tabs(["📖 Carta", "🛒 Mi Pedido"])
@@ -75,7 +120,7 @@ with tabs[0]:
 
     fondo = get_base64(config["imagen"])
 
-    # Fondo fijo completo
+    # Fondo fijo
     st.markdown(f"""
     <style>
     .stApp {{
@@ -84,36 +129,9 @@ with tabs[0]:
         background-position: center;
         background-attachment: fixed;
     }}
-
-    .panel-derecho {{
-        margin-left: 42%;
-        width: 58%;
-        height: 75vh;
-        overflow-y: auto;
-        padding: 10px;
-    }}
-
-    .categoria {{
-        color: yellow;
-        font-size: 24px;
-        font-weight: bold;
-        margin-top: 15px;
-    }}
-
-    .plato {{
-        color: white;
-        font-size: 15px;
-        font-weight: bold;
-    }}
-
-    .precio {{
-        color: white;
-        font-size: 15px;
-    }}
     </style>
     """, unsafe_allow_html=True)
 
-    # Aquí empieza el panel que se posiciona justo sobre el rojo
     st.markdown('<div class="panel-derecho">', unsafe_allow_html=True)
 
     for categoria in config["categorias"]:
@@ -129,10 +147,10 @@ with tabs[0]:
 
             for i, row in grupo.iterrows():
 
-                c1, c2, c3 = st.columns([0.55, 0.25, 0.20])
+                c1, c2, c3 = st.columns([0.65, 0.20, 0.15])
 
                 c1.markdown(
-                    f"<div class='plato'>{row['Name']}</div>",
+                    f"<div class='nombre-plato'>{row['Name']}</div>",
                     unsafe_allow_html=True
                 )
 
@@ -148,12 +166,10 @@ with tabs[0]:
                         "precio": row["Price"]
                     })
 
-                    st.toast(f"{row['Name']} agregado")
-
     st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
-# CARRITO
+# PEDIDO
 # -------------------------
 with tabs[1]:
 
@@ -167,14 +183,17 @@ with tabs[1]:
         total = 0
 
         for item in st.session_state.carrito:
-            st.write(f"✅ {item['nombre']} - S/. {item['precio']}")
+            st.write(
+                f"✅ {item['nombre']} - S/. {item['precio']}"
+            )
             total += item["precio"]
 
         st.markdown(f"### Total: S/. {total}")
 
-        detalle = "\n".join(
-            [f"- {x['nombre']}: S/. {x['precio']}" for x in st.session_state.carrito]
-        )
+        detalle = "\n".join([
+            f"- {x['nombre']}: S/. {x['precio']}"
+            for x in st.session_state.carrito
+        ])
 
         mensaje = f"Hola, quiero pedir:\n{detalle}\n\nTotal: S/. {total}"
 
