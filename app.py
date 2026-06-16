@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import urllib.parse
+import base64
 
 st.set_page_config(
     page_title="Chifa D' Belinda",
@@ -8,14 +9,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Estado carrito
+# -----------------------------
+# FUNCIÓN BASE64
+# -----------------------------
+def get_base64(imagen):
+    with open(imagen, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+# -----------------------------
+# CARRITO
+# -----------------------------
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# Leer excel
+# -----------------------------
+# EXCEL
+# -----------------------------
 df = pd.read_excel("Catalogo_Productos.xlsx")
 
-# Config páginas
+# -----------------------------
+# PÁGINAS
+# -----------------------------
 paginas = {
     "Página 1": {
         "imagen": "pag2.jpg",
@@ -43,67 +57,69 @@ paginas = {
     }
 }
 
-# CSS fijo real
+# -----------------------------
+# CSS
+# -----------------------------
 st.markdown("""
 <style>
-html, body, [data-testid="stAppViewContainer"] {
-    overflow: hidden !important;
+html, body, [data-testid="stAppViewContainer"]{
+    overflow:hidden !important;
 }
 
-.main .block-container {
-    padding: 0rem;
-    max-width: 100%;
+.main .block-container{
+    padding:0rem;
+    max-width:100%;
 }
 
-.left-panel {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    width: 38%;
-    height: calc(100vh - 60px);
-    overflow: hidden;
+.left-panel{
+    position:fixed;
+    top:60px;
+    left:0;
+    width:38%;
+    height:calc(100vh - 60px);
+    z-index:1;
 }
 
-.left-panel img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.right-panel{
+    position:fixed;
+    top:60px;
+    right:0;
+    width:62%;
+    height:calc(100vh - 60px);
+    overflow-y:auto;
+    padding:15px;
+    z-index:2;
 }
 
-.right-panel {
-    position: fixed;
-    top: 60px;
-    right: 0;
-    width: 62%;
-    height: calc(100vh - 60px);
-    overflow-y: auto;
-    padding: 15px;
-    background: transparent;
+.categoria{
+    color:yellow;
+    font-size:22px;
+    font-weight:bold;
+    margin-top:15px;
 }
 
-.categoria {
-    color: yellow;
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 15px;
+.plato{
+    color:white;
+    font-size:15px;
+    font-weight:bold;
 }
 
-.plato {
-    color: white;
-    font-size: 15px;
-    font-weight: bold;
-}
-
-.precio {
-    color: white;
+.precio{
+    color:white;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# -----------------------------
+# APP
+# -----------------------------
 st.title("🍜 Chifa D' Belinda")
 
 tabs = st.tabs(["📖 Carta", "🛒 Mi Pedido"])
 
+# -----------------------------
+# CARTA
+# -----------------------------
 with tabs[0]:
 
     pagina_actual = st.selectbox(
@@ -114,17 +130,20 @@ with tabs[0]:
     config = paginas[pagina_actual]
     productos = df[df["Category"].isin(config["categorias"])]
 
-    # Panel izquierdo fijo
+    img_base64 = get_base64(config["imagen"])
+
+    # Imagen fija izquierda
     st.markdown(
         f"""
         <div class="left-panel">
-            <img src="data:image/jpg;base64,{open(config['imagen'],'rb').read().hex()}">
+            <img src="data:image/jpeg;base64,{img_base64}" 
+                 style="width:100%;height:100%;object-fit:cover;">
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # Panel derecho scroll
+    # Contenedor derecho
     st.markdown('<div class="right-panel">', unsafe_allow_html=True)
 
     for categoria in config["categorias"]:
@@ -140,27 +159,32 @@ with tabs[0]:
 
             for i, row in grupo.iterrows():
 
-                col1, col2, col3 = st.columns([0.55, 0.25, 0.20])
+                c1, c2, c3 = st.columns([0.55, 0.25, 0.20])
 
-                col1.markdown(
+                c1.markdown(
                     f"<div class='plato'>{row['Name']}</div>",
                     unsafe_allow_html=True
                 )
 
-                col2.markdown(
+                c2.markdown(
                     f"<div class='precio'>S/. {row['Price']}</div>",
                     unsafe_allow_html=True
                 )
 
-                if col3.button("➕", key=f"{pagina_actual}_{i}"):
+                if c3.button("➕", key=f"{pagina_actual}_{i}"):
+
                     st.session_state.carrito.append({
                         "nombre": row["Name"],
                         "precio": row["Price"]
                     })
+
                     st.toast(f"{row['Name']} agregado")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+# -----------------------------
+# CARRITO
+# -----------------------------
 with tabs[1]:
 
     st.subheader("Mi Pedido")
@@ -169,6 +193,7 @@ with tabs[1]:
         st.write("Tu carrito está vacío")
 
     else:
+
         total = 0
 
         for item in st.session_state.carrito:
