@@ -11,9 +11,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# Función para cargar la imagen de fondo de la página actual (pag2.jpg, pag3.jpg, etc.)
+# Función para cargar la imagen de fondo según la página del menú gráfico
 def cargar_imagen_fondo_pagina(numero_pagina):
-    nombre_imagen = f"pag{numero_pagina}.jpg"
+    # Traducir el número de página al nombre de tu archivo físico real
+    # Pagina 1 -> pag2.jpg, Pagina 2 -> pag3.jpg, etc.
+    mapeo_archivos = {1: "pag2.jpg", 2: "pag3.jpg", 3: "pag4.jpg", 4: "pag5.jpg", 5: "pag6.jpg", 6: "pag7.jpg"}
+    nombre_imagen = mapeo_archivos.get(numero_pagina, "pag2.jpg")
+    
     rutas_posibles = [
         os.path.join("images", nombre_imagen),
         os.path.join("app", "static", "images", nombre_imagen),
@@ -25,76 +29,97 @@ def cargar_imagen_fondo_pagina(numero_pagina):
                 return base64.b64encode(image_file.read()).decode()
     return None
 
-# 2. INICIALIZACIÓN DE ESTADOS DEL CARRITO
+# 2. INICIALIZACIÓN DE ESTADOS GLOBAL DE CARRITO (Persistente y acumulativo)
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
-if "mensaje_exito" not in st.session_state:
-    st.session_state.mensaje_exito = None
 
-# 3. PROCESAR CLICKS DE AGREGAR PLATOS DE FORMA INSTANTÁNEA
-query_params = st.query_params
-if "add_id" in query_params:
-    id_elegido = query_params["add_id"]
-    nombre_elegido = query_params.get("add_name", "Plato")
-    precio_elegido = float(query_params.get("add_price", 0))
-    
-    st.session_state.carrito.append({
-        "nombre": nombre_elegido,
-        "precio": precio_elegido,
-        "cant": 1
-    })
-    st.session_state.mensaje_exito = f"¡{nombre_elegido} agregado! 🛒"
-    st.query_params.clear()
-    st.rerun()
-
-if st.session_state.mensaje_exito:
-    st.toast(st.session_state.mensaje_exito)
-    st.session_state.mensaje_exito = None
-
-# 4. CARGA AUTOMÁTICA DESDE TU EXCEL REAL (Mapeo exacto por páginas)
-@st.cache_data
-def cargar_catalogo_con_paginas():
+# 3. CARGA Y ASIGNACIÓN ESTRICTA DE CATEGORÍAS POR PÁGINA
+def cargar_catalogo_con_paginas_corregido():
     nombre_archivo = "Catalogo_Productos.xlsx"
+    nombre_csv = "Catalogo_Productos.xlsx - in.csv"
+    
     if os.path.exists(nombre_archivo):
         df = pd.read_excel(nombre_archivo)
+    elif os.path.exists(nombre_csv):
+        df = pd.read_csv(nombre_csv)
     else:
-        # Respaldo por si se lee la versión CSV en el servidor
-        nombre_csv = "Catalogo_Productos.xlsx - in.csv"
-        if os.path.exists(nombre_csv):
-            df = pd.read_csv(nombre_csv)
-        else:
-            st.error(f"❌ No se encontró el archivo '{nombre_archivo}'.")
-            return pd.DataFrame()
+        st.error(f"❌ No se encontró el archivo del catálogo.")
+        return pd.DataFrame()
 
     df.columns = df.columns.str.strip()
+    df['Category'] = df['Category'].astype(str).str.strip().str.upper()
     
-    # Definimos las categorías que van en cada página según tu instrucción exacta
-    mapeo_paginas = {
-        2: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
-        3: ['SOPAS', 'CHAUFA'],
-        4: ['AEROPUERTO', 'COMBINADOS', 'LOMOS SALTADOS'],
-        5: ['TALLARINES SALTADOS', 'PLATOS SALADOS', 'PLATOS DULCE', 'TORTILLAS'],
-        6: ['ENROLLADOS', 'TAYPA', 'RES', 'LANGOSTINOS', 'PATO', 'CHICHARRONES'],
-        7: ['CHANCHO', 'COSTILLAS', 'PORCIONES', 'BEBIDAS CALIENTES', 'BEBIDAS FRÍAS']
-    }
-    
-    # Asignamos el número de página a cada fila basándonos en su columna 'Category'
-    def asignar_pagina(cat):
-        cat_upper = str(cat).strip().upper()
-        for num_pag, categorias in mapeo_paginas.items():
-            if cat_upper in categorias:
-                return num_pag
-        return 2 # Por defecto si hubiera alguna variación
+    # Tu distribución exacta solicitada
+    def mapear_fila_a_pagina(cat):
+        if cat in ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER']:
+            return 1
+        elif cat in ['SOPAS', 'CHAUFA']:
+            return 2
+        elif cat in ['AEROPUERTO', 'COMBINADOS', 'LOMOS SALTADOS']:
+            return 3
+        elif cat in ['TALLARINES SALTADOS', 'PLATOS SALADOS', 'PLATOS DULCE', 'TORTILLAS']:
+            return 4
+        elif cat in ['ENROLLADOS', 'TAYPA', 'RES', 'LANGOSTINOS', 'PATO', 'CHICHARRONES']:
+            return 5
+        elif cat in ['CHANCHO', 'COSTILLAS', 'PORCIONES', 'BEBIDAS CALIENTES', 'BEBIDAS FRÍAS']:
+            return 6
+        return 1
 
-    df['Page'] = df['Category'].apply(asignar_pagina)
+    df['Page_Num'] = df['Category'].apply(mapear_fila_a_pagina)
     return df
 
-df_carta = cargar_catalogo_con_paginas()
+df_carta = cargar_catalogo_con_paginas_corregido()
 
-# 5. CSS AVANZADO: FIJAR ELEMENTOS SUPERIORES Y ALINEAR FILAS UNIFICADAS
+# 4. VENTANA EMERGENTE INTERACTIVA (MODAL) PARA PERSONALIZAR EL PLATO
+@st.dialog("Configura tu Plato 🍜")
+def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
+    st.markdown(f"### {nombre_plato}")
+    st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
+    st.write("---")
+    
+    # Selección de cantidad
+    cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
+    
+    # Opciones de cremas
+    st.markdown("**Selecciona tus Cremas / Salsas:**")
+    col1, col2 = st.columns(2)
+    with col1:
+        c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+        c_mayo = st.checkbox("Mayonesa ⚪")
+    with col2:
+        c_ketchup = st.checkbox("Ketchup 🍅")
+        c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+        
+    # Campo de notas opcional
+    st.write("")
+    notas = st.text_input("Notas / Observaciones del plato (Opcional):", placeholder="Ej: Sin cebolla, tarta extra...")
+    
+    st.write("")
+    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
+        # Procesar cremas seleccionadas
+        cremas_list = []
+        if c_aji: cremas_list.append("Ají")
+        if c_mayo: cremas_list.append("Mayo")
+        if c_ketchup: cremas_list.append("Ketchup")
+        if c_tamarindo: cremas_list.append("Tamarindo")
+        
+        cremas_texto = ", ".join(cremas_list) if cremas_list else "Ninguna"
+        
+        # Guardar en la lista acumulativa sin borrar lo anterior
+        st.session_state.carrito.append({
+            "id": id_plato,
+            "nombre": nombre_plato,
+            "precio": float(precio_plato),
+            "cant": int(cantidad),
+            "cremas": cremas_texto,
+            "notas": notas if notas.strip() != "" else "Ninguna"
+        })
+        st.toast(f"¡{cantidad}x {nombre_plato} agregado con éxito!")
+        st.rerun()
+
+# 5. CSS AVANZADO: FIJAR ENCABEZADO Y CONFIGURAR CONTENEDORES DE ANCHO COMPLETO
 st.markdown("""
 <style>
-/* Eliminar márgenes laterales nativos de Streamlit */
 .block-container {
     padding-left: 0px !important;
     padding-right: 0px !important;
@@ -102,12 +127,11 @@ st.markdown("""
     max-width: 100% !important;
 }
 
-/* Fijar el selector de navegación por páginas */
 div[data-testid="stRadio"] > div {
     padding: 0 10px !important;
 }
 
-/* ENCABEZADO SUPERIOR 100% FIJO */
+/* ENCABEZADO SUPERIOR FIJO */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -121,7 +145,7 @@ div[data-testid="stRadio"] > div {
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* Forzar que las pestañas de Streamlit queden fijas justo debajo del título principal */
+/* PESTAÑAS FIJAS */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
     top: 48px !important;
@@ -133,15 +157,14 @@ div[data-testid="stTabs"] > div:first-child {
     padding: 0 5px !important;
 }
 
-/* Espacio exacto de compensación para que el catálogo empiece abajo de las pestañas fijas */
 .compensar-cabecera-fija {
     margin-top: 105px !important;
 }
 
-/* CONTENEDOR PRINCIPAL CON SCROLL VERTICAL INDEPENDIENTE */
+/* CONTENEDOR CON FONDO DINÁMICO */
 .scroller-carta-completa {
     width: 100% !important;
-    height: 550px !important; 
+    height: 540px !important; 
     background-size: cover !important;
     background-repeat: no-repeat !important;
     background-position: center center !important;
@@ -151,7 +174,6 @@ div[data-testid="stTabs"] > div:first-child {
     box-sizing: border-box !important;
 }
 
-/* RESALTE PARA LOS TÍTULOS DE LAS CATEGORÍAS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
@@ -167,35 +189,17 @@ div[data-testid="stTabs"] > div:first-child {
     box-sizing: border-box;
 }
 
-/* FILA HORIZONTAL DE ANCHO COMPLETO: Botón | Nombre | Precio */
 .fila-plato-unificada {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     width: 100% !important;
-    background: rgba(0, 0, 0, 0.78) !important; 
+    background: rgba(0, 0, 0, 0.82) !important; 
     padding: 11px 14px !important;
     margin-bottom: 8px !important;
     border-radius: 8px !important;
     box-sizing: border-box !important;
     border: 1px solid rgba(255,255,255,0.12);
-}
-
-.btn-agregar-directo {
-    background-color: #FFEB3B !important;
-    color: #8B0000 !important;
-    text-decoration: none !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    border-radius: 50% !important;
-    width: 28px !important;
-    height: 28px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5) !important;
-    margin-right: 14px !important;
 }
 
 .nombre-plato-unificado {
@@ -211,127 +215,129 @@ div[data-testid="stTabs"] > div:first-child {
 .precio-plato-unificado {
     color: #FFEB3B !important;
     font-size: 14px !important;
-    font-weight: bold !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    text-align: right !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    font-weight: bold !important; white-space: nowrap !important;
+    flex-shrink: 0 !important; text-align: right !important;
+    margin-right: 5px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # 6. ENCABEZADO FIJO DE LA APLICACIÓN
-st.markdown("""
-<div class="encabezado-fijo-global">
-    <span style='color:#FFFFFF; font-size:19px; font-weight:bold; letter-spacing:0.5px;'>🍜 CHIFA D' BELINDA</span>
-</div>
-""", unsafe_allow_html=True)
-
+st.markdown('<div class="encabezado-fijo-global"><span style="color:#FFFFFF; font-size:19px; font-weight:bold;">🍜 CHIFA D\' BELINDA</span></div>', unsafe_allow_html=True)
 st.markdown('<div class="compensar-cabecera-fija"></div>', unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# PESTAÑAS PRINCIPALES NATIVAS
+# PESTAÑAS DE NAVEGACIÓN
 tab_carta, tab_pedido = st.tabs([
     "📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
 # =========================================================
-# PESTAÑA: NUESTRA CARTA (CON FILTRADO POR PÁGINA)
+# PESTAÑA 1: NUESTRA CARTA
 # =========================================================
 with tab_carta:
     if df_carta.empty:
-        st.warning("⚠️ Asegúrate de tener tu archivo 'Catalogo_Productos.xlsx' cargado.")
+        st.warning("⚠️ Carga el archivo del catálogo para inicializar los datos.")
     else:
-        # Control horizontal por páginas tal como especificaste
+        # Menú de selección corregido con nombres "Página X" tal cual me pediste
         pag_seleccionada = st.radio(
-            "Sección de la carta:",
-            options=[2, 3, 4, 5, 6, 7],
+            "Selecciona una Página:",
+            options=[1, 2, 3, 4, 5, 6],
             format_func=lambda x: (
-                "Pág. 2 (Combos/Alitas/Broaster)" if x==2 else
-                "Pág. 3 (Sopas/Chaufa)" if x==3 else
-                "Pág. 4 (Aeropuertos/Lomos)" if x==4 else
-                "Pág. 5 (Tallarines/Wok/Tortillas)" if x==5 else
-                "Pág. 6 (Especialidades/Enrollados)" if x==6 else
-                "Pág. 7 (Chancho/Bebidas)"
+                "Página 1 (Combos/Alitas)" if x==1 else
+                "Página 2 (Sopas/Chaufas)" if x==2 else
+                "Página 3 (Aeropuertos/Lomos)" if x==3 else
+                "Página 4 (Tallarines/Woks)" if x==4 else
+                "Página 5 (Especialidades)" if x==5 else
+                "Página 6 (Chancho/Bebidas)"
             ),
             horizontal=True
         )
         
-        # Filtramos los platos que corresponden únicamente a esta página
-        df_filtrado = df_carta[df_carta["Page"] == pag_seleccionada]
+        # Filtrado estricto por el número de página asignado
+        df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
         
-        html_items = ""
-        categoria_actual = ""
-        
-        # Construimos las filas de platos correspondientes
-        for _, row in df_filtrado.iterrows():
-            if str(row['Category']).strip() != categoria_actual:
-                categoria_actual = str(row['Category']).strip()
-                html_items += f'<div class="titulo-categoria-resaltado">📂 {categoria_actual.upper()}</div>'
-                
-            p_id = row['ID']
-            p_name = row['Name']
-            p_price = float(row['Price'])
-            
-            params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
-            
-            html_items += f"""
-            <div class="fila-plato-unificada">
-                <a class="btn-agregar-directo" href="?{params}" target="_self">＋</a>
-                <span class="nombre-plato-unificado">{p_name}</span>
-                <span class="precio-plato-unificado">S/. {p_price:.2f}</span>
-            </div>
-            """
-            
-        # CARGAMOS LA IMAGEN DE FONDO RESPECTIVA A LA PÁGINA (pag2.jpg, pag3.jpg, etc.)
+        # Renderizado del catálogo completo usando botones nativos incrustados de forma limpia
         imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
         
+        # Iniciamos bloque contenedor visual de la carta
+        st.write("")
+        categoria_actual = ""
+        
+        # Usamos columnas nativas controladas para simular el formato de lista compacta sobre el fondo
+        with st.container():
+            for idx, row in df_filtrado.iterrows():
+                if str(row['Category']).strip() != categoria_actual:
+                    categoria_actual = str(row['Category']).strip()
+                    st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
+                
+                # Formato de fila unificada: Botón de suma, Nombre y Precio derecho
+                col_btn, col_txt = st.columns([0.15, 0.85])
+                with col_btn:
+                    # El botón gatilla el pop-up interactivo directamente sin perder el estado del carrito
+                    if st.button("＋", key=f"btn_{row['ID']}_{idx}"):
+                        abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
+                with col_txt:
+                    st.markdown(f"""
+                    <div class="fila-plato-unificada" style="margin-top:-5px;">
+                        <span class="nombre-plato-unificado">{row['Name']}</span>
+                        <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        # Inyección dinámica de fondo usando estilos CSS controlados para que cambie según la página activa
         if imagen_b64:
-            html_carta_completa = f"""
-            <div class="scroller-carta-completa" style="background-image: url('data:image/jpeg;base64,{imagen_b64}');">
-                {html_items}
-            </div>
-            """
-            st.markdown(html_carta_completa, unsafe_allow_html=True)
+            st.markdown(f"""
+            <style>
+            .stMainBlockContainer {{
+                background-image: url('data:image/jpeg;base64,{imagen_b64}') !important;
+                background-size: cover !important;
+                background-position: center center !important;
+                background-attachment: fixed !important;
+            }}
+            </style>
+            """, unsafe_allow_html=True)
         else:
-            st.info(f"💡 Mostrando platos. Si deseas el fondo gráfico real de esta sección, guarda tu imagen como 'pag{pag_seleccionada}.jpg'")
-            html_carta_sin_foto = f"""
-            <div class="scroller-carta-completa" style="background-color: #8C0712;">
-                {html_items}
-            </div>
-            """
-            st.markdown(html_carta_sin_foto, unsafe_allow_html=True)
+            st.markdown("""<style>.stMainBlockContainer { background-color: #8C0712 !important; }</style>""", unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA: MI PEDIDO (CARRITO Y ENVÍO A WHATSAPP)
+# PESTAÑA 2: MI PEDIDO (ACUMULATIVO)
 # =========================================================
 with tab_pedido:
-    st.markdown("<div style='padding: 15px;'>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 10px;'>", unsafe_allow_html=True)
     if not st.session_state.carrito:
-        st.info("Tu carrito está vacío. ¡Explora el menú y empieza a armar tu orden!")
+        st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
-        st.subheader("📋 Resumen del Pedido")
+        st.subheader("📋 Resumen Total del Pedido")
         total = 0
-        for item in st.session_state.carrito:
+        
+        for idx, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
+            
+            # Formato claro mostrando cremas y notas asociadas a cada plato
             st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
+            st.markdown(f"<span style='color:#FFEB3B; font-size:12px;'>└ 🧂 Cremas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
+            st.write("")
             
         st.divider()
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         
+        # Estructura del mensaje de WhatsApp incluyendo las especificaciones completas
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
         for item in st.session_state.carrito:
             mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
-        mensaje_wa += f"-------------------------\n💰 *TOTAL PEDIDO:* S/. {total:.2f}"
+            if item['cremas'] != "Ninguna": mensaje_wa += f"  • Salsas: {item['cremas']}\n"
+            if item['notas'] != "Ninguna": mensaje_wa += f"  • Nota: {item['notas']}\n"
+        mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
         
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
         st.write("")
         st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
         
         st.write("")
-        if st.button("🧹 Vaciar Carrito", use_container_width=True):
+        if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
