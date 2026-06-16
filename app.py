@@ -11,11 +11,9 @@ st.set_page_config(
     layout="centered"
 )
 
-# Función para cargar la imagen de fondo según la página seleccionada
-def cargar_imagen_fondo_pagina(numero_pagina):
-    mapeo_archivos = {1: "pag2.jpg", 2: "pag3.jpg", 3: "pag4.jpg", 4: "pag5.jpg", 5: "pag6.jpg", 6: "pag7.jpg"}
-    nombre_imagen = mapeo_archivos.get(numero_pagina, "pag2.jpg")
-    
+# Función para cargar únicamente la imagen de fondo general (pag2.jpg)
+def cargar_imagen_fondo_general():
+    nombre_imagen = "pag2.jpg"
     rutas_posibles = [
         os.path.join("images", nombre_imagen),
         os.path.join("app", "static", "images", nombre_imagen),
@@ -109,10 +107,10 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-# 5. CONTROL CSS - CABECERA PEGAJOSA Y SCROLL DE PÁGINA FLUIDO
+# 5. CONTROL CSS - FONDO GENERAL ÚNICO, CABECERA FIJA Y SCROLL LIBRE
 st.markdown("""
 <style>
-/* Permitir el scroll nativo y fluido en toda la aplicación */
+/* Permitir scroll nativo y fluido en la zona de contenidos */
 html, body, [data-testid="stApp"] {
     overflow-y: auto !important;
     height: auto !important;
@@ -125,13 +123,7 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* CONTENEDOR FLUIDO DE PLATOS */
-.contenedor-menu-platos {
-    padding: 10px 14px 60px 14px !important;
-    box-sizing: border-box !important;
-}
-
-/* ENCABEZADO FIJO */
+/* ENCABEZADO FIJO DE TÍTULO */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -144,7 +136,7 @@ html, body, [data-testid="stApp"] {
     border-bottom: 2px solid #FFEB3B !important;
 }
 
-/* PESTAÑAS (CARTA Y PEDIDO) TOTALMENTE FIJAS */
+/* PESTAÑAS (CARTA / PEDIDO) FIJAS */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
     top: 48px !important;
@@ -155,7 +147,7 @@ div[data-testid="stTabs"] > div:first-child {
     padding: 2px 10px !important;
 }
 
-/* Estilización de colores de pestañas activas */
+/* Colores de realce de pestañas */
 button[data-baseweb="tab"] {
     color: #FFAAAA !important;
     font-weight: bold !important;
@@ -178,13 +170,19 @@ button[aria-selected="true"] {
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* ESPACIADOR AUTOMÁTICO: Empuja los platos hacia abajo de los elementos fijos */
+/* ESPACIADOR AUTOMÁTICO: Empuja el contenido exactamente debajo de la cabecera fija */
 .compensar-cabecera-bloqueada {
     height: 160px !important;
     width: 100% !important;
 }
 
-/* DISEÑO DE FILAS INTERACTIVAS Y TEXTOS */
+/* CONTENEDOR DE PLATOS */
+.contenedor-menu-platos {
+    padding: 10px 14px 60px 14px !important;
+    box-sizing: border-box !important;
+}
+
+/* DISEÑO DE FILAS INTERACTIVAS DE PRODUCTOS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
@@ -232,7 +230,7 @@ button[aria-selected="true"] {
     white-space: nowrap !important;
 }
 
-/* Botones redondos amarillos de adición "＋" */
+/* Botones redondos amarillos "＋" */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -251,6 +249,21 @@ div.stButton > button {
 </style>
 """, unsafe_allow_html=True)
 
+# INYECCIÓN DE LA IMAGEN DE FONDO GENERAL FIJA PARA TODA LA APLICACIÓN
+imagen_general_b64 = cargar_imagen_fondo_general()
+if imagen_general_b64:
+    st.markdown(f"""
+    <style>
+    .stApp {{
+        background-image: url('data:image/jpeg;base64,{imagen_general_b64}') !important;
+        background-size: cover !important;
+        background-repeat: no-repeat !important;
+        background-position: center center !important;
+        background-attachment: fixed !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
 # 6. ENCABEZADO FIJO DE LA APP
 st.markdown('<div class="encabezado-fijo-global"><span style="color:#FFFFFF; font-size:19px; font-weight:bold;">🍜 CHIFA D\' BELINDA</span></div>', unsafe_allow_html=True)
 
@@ -267,7 +280,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Colocamos el selector de radios dentro del bloque estático fijado arriba
+        # Bloque de navegación de páginas estático superior
         st.markdown('<div class="bloque-paginas-estatico">', unsafe_allow_html=True)
         pag_seleccionada = st.radio(
             "Selecciona una Página:",
@@ -285,27 +298,13 @@ with tab_carta:
         )
         st.markdown('</div>', unsafe_allow_html=True)
         
+        # Filtrado dinámico estricto por página (solo cambian los platos)
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
-        imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
-        
-        # INYECCIÓN DEL FONDO FIJO DETRÁS DE TODO (Sigue la página activa)
-        if imagen_b64:
-            st.markdown(f"""
-            <style>
-            .stApp {{
-                background-image: url('data:image/jpeg;base64,{imagen_b64}') !important;
-                background-size: cover !important;
-                background-repeat: no-repeat !important;
-                background-position: center center !important;
-                background-attachment: fixed !important;
-            }}
-            </style>
-            """, unsafe_allow_html=True)
             
-        # Creamos el espacio para que la lista de platos empiece abajo de la cabecera
+        # Espacio de separación para arrancar debajo del menú
         st.markdown('<div class="compensar-cabecera-bloqueada"></div>', unsafe_allow_html=True)
         
-        # Renderizado limpio y continuo con scroll completo de la pantalla
+        # Renderizado continuo de platos con scroll libre nativo
         st.markdown('<div class="contenedor-menu-platos">', unsafe_allow_html=True)
         categoria_actual = ""
         for idx, row in df_filtrado.iterrows():
@@ -313,7 +312,7 @@ with tab_carta:
                 categoria_actual = str(row['Category']).strip()
                 st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
             
-            # Fila de plato interactiva
+            # Fila interactiva individual
             st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
             col_btn, col_txt = st.columns([0.16, 0.84])
             with col_btn:
@@ -333,7 +332,7 @@ with tab_carta:
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    # Fondo negro plano para el carrito
+    # Cambiamos momentáneamente el fondo a oscuro sólido solo en el pedido para facilitar la lectura de datos
     st.markdown("""
     <style>
     .stApp { background-image: none !important; background-color: #111111 !important; }
