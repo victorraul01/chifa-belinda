@@ -139,14 +139,15 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS GLOBAL CORREGIDO (CAPAS FIJAS + SCROLL INDEPENDIENTE)
+# 5. CSS GLOBAL OPTIMIZADO PARA MÓVILES (SCROLL TÁCTIL FIJO)
 # =========================================================
 st.markdown("""
 <style>
-/* Forzar que el contenedor principal use todo el alto disponible sin scroll exterior */
+/* Bloquear el scroll de toda la pantalla exterior */
 html, body, [data-testid="stApp"] {
     overflow: hidden !important;
     height: 100vh !important;
+    position: relative;
 }
 
 /* Limpieza de márgenes de Streamlit */
@@ -154,8 +155,6 @@ html, body, [data-testid="stApp"] {
     padding: 0px !important;
     max-width: 100% !important;
     height: 100vh !important;
-    display: flex;
-    flex-direction: column;
 }
 
 /* ENCABEZADO FIJO (No se mueve) */
@@ -191,7 +190,7 @@ button[aria-selected="true"] {
     border-bottom-color: #FFEB3B !important;
 }
 
-/* SELECTOR DE PÁGINAS FIJO (Botones de radio horizontales) */
+/* SELECTOR DE PÁGINAS FIJO */
 .bloque-paginas-estatico {
     position: fixed !important;
     top: 94px !important;
@@ -204,16 +203,22 @@ button[aria-selected="true"] {
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* EL TRUCO CENTRAL: Volver deslizable únicamente la zona donde se listan los platos */
-div[data-testid="stTabs"] > div:nth-child(2) {
-    height: calc(100vh - 160px) !important;
+/* ACTIVACIÓN DE SCROLL EXCLUSIVO Y TÁCTIL EN EL CONTENIDO */
+div[data-testid="stTabs"] [data-testid="stVerticalBlock"] {
+    max-height: calc(100vh - 165px) !important;
     overflow-y: auto !important;
-    margin-top: 160px !important;
-    padding-bottom: 80px !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+div[data-testid="stTabs"] > div:nth-child(2) {
+    height: calc(100vh - 165px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin-top: 165px !important;
 }
 
 .contenedor-menu-platos {
-    padding: 10px 14px !important;
+    padding: 10px 14px 120px 14px !important; /* Colchón abajo para evitar cortes */
     box-sizing: border-box !important;
 }
 
