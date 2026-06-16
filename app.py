@@ -60,7 +60,7 @@ paginas = {
 }
 
 # --------------------------------
-# SELECTOR PAGINA
+# PAGINA ACTUAL
 # --------------------------------
 pagina_actual = st.selectbox(
     "Selecciona página",
@@ -69,18 +69,13 @@ pagina_actual = st.selectbox(
 
 config = paginas[pagina_actual]
 productos = df[df["Category"].isin(config["categorias"])]
-
 fondo = get_base64(config["imagen"])
 
 # --------------------------------
-# CSS GLOBAL
+# CSS
 # --------------------------------
 st.markdown(f"""
 <style>
-html, body {{
-    overflow: hidden !important;
-}}
-
 .stApp {{
     background-image: url("data:image/jpeg;base64,{fondo}");
     background-size: cover;
@@ -92,37 +87,50 @@ header[data-testid="stHeader"] {{
     position: fixed;
     top: 0;
     width: 100%;
-    z-index: 1000;
+    z-index: 999;
 }}
 
 .main .block-container {{
-    padding-top: 80px;
+    padding-top: 90px;
+    padding-left: 25px;
+    padding-right: 25px;
     max-width: 100%;
 }}
 
-.panel-derecho {{
-    margin-left: 45%;
-    width: 52%;
-    height: 75vh;
-    overflow-y: auto;
-    padding: 5px;
+.categoria {{
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 18px;
+    margin-bottom: 8px;
 }}
 
-.categoria {{
-    color: yellow;
-    font-size: 15px;
+.nombre {{
+    color: black;
+    font-size: 14px;
+    font-weight: 600;
+}}
+
+.precio {{
+    color: black;
+    font-size: 14px;
     font-weight: bold;
-    margin-top: 8px;
-    margin-bottom: 4px;
+    text-align: right;
+}}
+
+div.stButton > button {{
+    padding: 0px 8px !important;
+    min-height: 28px !important;
+    font-size: 12px !important;
 }}
 </style>
 """, unsafe_allow_html=True)
 
 # --------------------------------
-# HEADER
+# HEADER FIJO
 # --------------------------------
 st.markdown("""
-<h2 style="color:white; margin-bottom:10px;">
+<h2 style="color:black; margin-bottom:10px;">
 🍜 Chifa D' Belinda
 </h2>
 """, unsafe_allow_html=True)
@@ -134,11 +142,11 @@ tabs = st.tabs(["📖 Carta", "🛒 Pedido"])
 # --------------------------------
 with tabs[0]:
 
-    st.markdown('<div class="panel-derecho">', unsafe_allow_html=True)
-
     for categoria in config["categorias"]:
 
-        grupo = productos[productos["Category"] == categoria]
+        grupo = productos[
+            productos["Category"] == categoria
+        ]
 
         if not grupo.empty:
 
@@ -149,43 +157,28 @@ with tabs[0]:
 
             for i, row in grupo.iterrows():
 
-                # Más compactos y juntos
-                c1, c2, c3 = st.columns([0.70, 0.18, 0.12])
+                col1, col2, col3 = st.columns(
+                    [0.68, 0.18, 0.14]
+                )
 
-                c1.markdown(
-                    f"""
-                    <div style="
-                    color:white;
-                    font-size:12px;
-                    white-space:nowrap;
-                    overflow:hidden;
-                    text-overflow:ellipsis;">
-                    {row['Name']}
-                    </div>
-                    """,
+                col1.markdown(
+                    f"<div class='nombre'>{row['Name']}</div>",
                     unsafe_allow_html=True
                 )
 
-                c2.markdown(
-                    f"""
-                    <div style="
-                    color:white;
-                    font-size:12px;
-                    text-align:right;">
-                    S/. {row['Price']}
-                    </div>
-                    """,
+                col2.markdown(
+                    f"<div class='precio'>S/. {row['Price']}</div>",
                     unsafe_allow_html=True
                 )
 
-                if c3.button("➕", key=f"{pagina_actual}_{i}"):
-
+                if col3.button(
+                    "＋",
+                    key=f"{pagina_actual}_{i}"
+                ):
                     st.session_state.carrito.append({
                         "nombre": row["Name"],
                         "precio": row["Price"]
                     })
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------
 # TAB PEDIDO
@@ -198,6 +191,7 @@ with tabs[1]:
         st.write("Tu carrito está vacío")
 
     else:
+
         total = 0
 
         for item in st.session_state.carrito:
@@ -206,14 +200,20 @@ with tabs[1]:
             )
             total += item["precio"]
 
-        st.markdown(f"### Total: S/. {total}")
+        st.markdown(
+            f"### Total: S/. {total}"
+        )
 
         detalle = "\n".join([
             f"- {x['nombre']}: S/. {x['precio']}"
             for x in st.session_state.carrito
         ])
 
-        mensaje = f"Hola, quiero pedir:\n{detalle}\n\nTotal: S/. {total}"
+        mensaje = (
+            f"Hola, quiero realizar este pedido:\n"
+            f"{detalle}\n\n"
+            f"Total: S/. {total}"
+        )
 
         st.link_button(
             "📲 Enviar pedido",
