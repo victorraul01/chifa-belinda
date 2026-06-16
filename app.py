@@ -2,153 +2,13 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 import os
-import base64
 
-# CONFIGURACIÓN DE LA PÁGINA
+# CONFIGURACIÓN DE LA PÁGINA (Optimizada estrictamente para celulares)
 st.set_page_config(
     page_title="Chifa D' Belinda",
     page_icon="🍜",
     layout="centered"
 )
-
-# LECTURA DEL EXCEL CON CACHÉ
-@st.cache_data(ttl=300)
-def cargar_productos():
-    if os.path.exists("Catalogo_Productos.xlsx"):
-        return pd.read_excel("Catalogo_Productos.xlsx")
-    return pd.DataFrame(columns=["ID", "Name", "Price", "Category", "Description"])
-
-df_productos = cargar_productos()
-
-# BASE DE DATOS DEL MENÚ DIARIO
-def obtener_menu_diario_real():
-    datos_menu = {
-        "Name": [
-            "Chaufa de Pollo", "Alita Rebozada", "1/8 Broaster",
-            "Aeropuerto de Pollo", "Combinado de Pollo", "Pollo con Verdura",
-            "Tallarín Saltado de Pollo", "Pollo con Tamarindo", "Alita con Tamarindo",
-            "Lomo Saltado de Pollo", "Alitas (4 Pzs)", "Tortilla de Verdura",
-            "Alitas con Piña", "Pollo con Piña", "Chaufa de Chancho",
-            "Chaufa de Res", "Chaufa de Molleja", "Chicharrón de Pollo",
-            "Chi Jau Kay", "Kam Lu Wantán", "Enrollado de Pollo",
-            "Tipa Kay", "Tallarín de Res", "Combinado de Res",
-            "Chancho con Piña", "Chancho con Tamarindo", "¼ Broaster"
-        ],
-        "Price": [
-            14.00, 15.00, 14.00, 17.00, 17.00, 17.00, 17.00, 17.00, 17.00,
-            17.00, 18.00, 19.00, 18.00, 19.00, 20.00, 20.00, 20.00, 20.00,
-            20.00, 20.00, 20.00, 20.00, 20.00, 20.00, 20.00, 20.00, 22.00
-        ]
-    }
-    return pd.DataFrame(datos_menu)
-
-df_menu_diario = obtener_menu_diario_real()
-
-# ESTILOS CSS AVANZADOS: CAPAS SUPERPUESTAS (OVERLAYS) PARA MÓVILES
-st.markdown("""
-<style>
-/* PESTAÑAS GLOBALES */
-button[data-baseweb="tab"] {
-    font-size: 14px !important;
-    font-weight: bold !important;
-    color: #555555 !important;
-    padding: 10px 5px !important;
-    flex-grow: 1 !important;
-    text-align: center !important;
-}
-button[data-baseweb="tab"][aria-selected="true"] {
-    color: #d32f2f !important;
-    border-bottom: 3px solid #d32f2f !important;
-}
-
-/* CONTENEDOR CONTRA EL DESCUADRE (Mantiene la proporción de la carta física) */
-.contenedor-carta-real {
-    position: relative !important;
-    width: 100% !important;
-    max-width: 450px; /* Tamaño estándar de pantalla móvil */
-    margin: 0 auto !important;
-    overflow: hidden;
-}
-
-.imagen-fondo-carta {
-    width: 100% !important;
-    display: block !important;
-    height: auto !important;
-}
-
-/* EL ESPACIO ROJO DIGITAL (Capa transparente encima del recuadro rojo de tu foto) */
-.capa-overlay-platos {
-    position: absolute !important;
-    top: 5%;      /* Ajustable para que empiece exactamente donde abre el recuadro rojo */
-    right: 4%;    /* Margen derecho interno del marco oriental */
-    width: 54%;   /* Ocupa exactamente el ancho de tu espacio rojo derecho */
-    height: 90%;  /* Alto máximo para que no se salga de la hoja */
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 4px !important; /* Separación milimétrica entre filas */
-    z-index: 10 !important;
-}
-
-/* CADA LÍNEA DE PLATO (Súper delgada, fondo invisible o sutil) */
-.fila-plato-sobre-foto {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    background: rgba(0, 0, 0, 0.15) !important; /* Sombreado ligero para leer bien sobre el rojo */
-    padding: 2px 4px !important;
-    border-radius: 3px;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* TEXTOS DELGADOS EN UNA SOLA LÍNEA */
-.nombre-plato-encima {
-    color: #ffffff !important;
-    font-size: 10.5px !important; /* Letras pequeñas para que no hagan doble línea */
-    font-weight: bold !important;
-    text-align: left !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important; /* Si el nombre es muy largo, pone '...' al final */
-    flex-grow: 1 !important;
-    margin-left: 5px !important;
-}
-
-.precio-plato-encima {
-    color: #ffeb3b !important; /* Amarillo brillante para resaltar en el fondo rojo */
-    font-size: 11px !important;
-    font-weight: bold !important;
-    white-space: nowrap !important;
-    margin-left: 4px !important;
-}
-
-/* BOTÓN MÓVIL ESTILO INLINE (IZQUIERDA) */
-.boton-agregar-izquierda {
-    background-color: #ffffff !important;
-    color: #d32f2f !important;
-    border: none !important;
-    font-size: 11px !important;
-    font-weight: bold !important;
-    border-radius: 50% !important; /* Redondito e integrado */
-    width: 16px !important;
-    height: 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    padding: 0 !important;
-    box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
-}
-
-.detalle-carrito {
-    font-size: 12px;
-    color: #555555;
-    margin-left: 10px;
-    display: block;
-    font-style: italic;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # INICIALIZACIÓN DE ESTADOS
 if "carrito" not in st.session_state:
@@ -156,164 +16,221 @@ if "carrito" not in st.session_state:
 if "mensaje_exito" not in st.session_state:
     st.session_state.mensaje_exito = None
 
+# MOSTRAR METADATO DE ÉXITO TIPO TOAST
 if st.session_state.mensaje_exito:
     st.toast(st.session_state.mensaje_exito)
     st.session_state.mensaje_exito = None
 
-# MODAL DINÁMICO DE CREMAS Y ADICIONALES
-@st.dialog("🛒 Configura tu pedido")
-def modal_agregar_con_detalles(nombre_plato, precio_plato, categoria_plato="", es_menu=False):
-    st.markdown(f"<h3 style='text-align:center; color:white;'>{nombre_plato}</h3>", unsafe_allow_html=True)
-    cantidad = st.number_input("Cantidad:", min_value=1, value=1)
-    
-    entrada_seleccionada = None
-    if es_menu:
-        entrada_seleccionada = st.radio("Entrada:", ["🥣 Sopa Wantán", "🥟 Wantán Frito"], horizontal=True)
+# ESTRUCTURA DE DATOS REALES EXTRAÍDOS DIRECTAMENTE DE TU PDF
+def obtener_carta_completa_pdf():
+    # Mapeo exacto de categorías y precios según tu documento oficial
+    datos = {
+        "ID": [f"P{i}" for i in range(1, 22)],
+        "Name": [
+            "COMBO 1 (Chi Jau Kay + Pollo Tamarindo)", 
+            "COMBO 2 (Tipa Kay + Pollo Verdura)", 
+            "COMBO 3 (Enrollado Ostión + Pollo Durazno)",
+            "COMBO 4 (Alitas Verduras + Chaufa/Papas)",
+            "Alitas Rebozadas 3 Pzs", "Alitas Rebozadas 4 Pzs", 
+            "Alitas Rebozadas 5 Pzs", "Alitas Rebozadas 6 Pzs",
+            "Alitas en Salsa BBQ", "Alitas Bravas", 
+            "Alitas con Verduras", "Alitas con Tamarindo", 
+            "Alitas con Piña", "Alitas en Salsa Ostión", 
+            "Alitas Tausi", "Alitas con Durazno", 
+            "Alitas con Piña y Durazno", "Alitas Beli Beli", 
+            "Alitas en Salsa Blanca",
+            "1/8 Pollo Broaster", "1/4 Pollo Broaster"
+        ],
+        "Price": [
+            37.00, 37.00, 37.00, 35.00,
+            14.00, 18.00, 20.00, 25.00,
+            22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 26.00, 25.00, 28.00,
+            13.00, 21.00
+        ],
+        "Category": [
+            "COMBOS", "COMBOS", "COMBOS", "COMBOS",
+            "REBOZADAS", "REBOZADAS", "REBOZADAS", "REBOZADAS",
+            "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES", "ESPECIALES",
+            "BROASTER", "BROASTER"
+        ]
+    }
+    return pd.DataFrame(datos)
 
-    st.markdown("**Cremas:**")
-    c1, c2 = st.columns(2)
-    with c1:
-        aji = st.checkbox("Ají")
-        mayo = st.checkbox("Mayonesa")
-    with c2:
-        tamarindo = st.checkbox("Tamarindo")
-        ketchup = st.checkbox("Ketchup")
-        
-    limon = False
-    if categoria_plato == "ALITAS ESPECIALES":
-        limon = st.checkbox("🍋 Agregar Limón")
-        
-    notas = st.text_input("Notas adicionales:")
+df_carta = obtener_carta_completa_pdf()
+
+# BASE DE DATOS DEL MENÚ DIARIO
+df_menu_diario = pd.DataFrame({
+    "Name": ["Chaufa de Pollo", "Alita Rebozada", "1/8 Broaster", "Aeropuerto de Pollo", "Combinado de Pollo"],
+    "Price": [14.00, 15.00, 14.00, 17.00, 17.00]
+})
+
+# ESTILOS CSS CORREGIDOS: CERO CÓDIGO HTML EXPUESTO, INTEGRACIÓN NATIVA LIMPIA
+st.markdown("""
+<style>
+/* Forzar que las columnas de Streamlit no tengan márgenes gigantes en teléfonos */
+div[data-testid="stHorizontalBlock"] {
+    gap: 4px !important;
+    background-color: #7A0A0A !important; /* Rojo oscuro oriental idéntico al de tu carta */
+    padding: 3px 6px !important;
+    border-radius: 4px;
+    margin-bottom: 3px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Estilo para los textos de los platos */
+.label-plato-blanco {
+    color: #FFFFFF !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+}
+
+/* Estilo para los precios */
+.label-precio-amarillo {
+    color: #FFEB3B !important; /* Amarillo brillante para contrastar en el fondo rojo */
+    font-size: 11px !important;
+    font-weight: bold !important;
+    text-align: right;
+}
+
+/* Rediseño total de los botones nativos de agregar */
+div.stButton > button {
+    background-color: #FFFFFF !important;
+    color: #7A0A0A !important;
+    border: 1px solid #FFFFFF !important;
+    border-radius: 50% !important; /* Circular impecable */
+    width: 22px !important;
+    height: 22px !important;
+    padding: 0px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+div.stButton > button:hover {
+    background-color: #FFEB3B !important;
+    color: #7A0A0A !important;
+}
+
+/* Ocultar elementos globales innecesarios en móviles */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+# MODAL DE SELECCIÓN DE DETALLES
+@st.dialog("🛒 Detalles del Pedido")
+def modal_pedido(nombre, precio):
+    st.write(f"### {nombre}")
+    st.write(f"Precio: S/. {precio:.2f}")
+    cant = st.number_input("Cantidad", min_value=1, value=1)
+    notas = st.text_input("Notas adicionales (Sin cebolla, etc.)")
     
-    if st.button("Confirmar", use_container_width=True):
-        cremas_list = []
-        if aji: cremas_list.append("Ají")
-        if mayo: cremas_list.append("Mayonesa")
-        if tamarindo: cremas_list.append("Tamarindo")
-        if ketchup: cremas_list.append("Ketchup")
-        if limon: cremas_list.append("Limón")
-        
+    if st.button("Agregar al carrito", use_container_width=True):
         st.session_state.carrito.append({
-            "nombre": f"Menú: {nombre_plato}" if es_menu else nombre_plato,
-            "precio": precio_plato,
-            "cant": cantidad,
-            "entrada": entrada_seleccionada,
-            "cremas": cremas_list,
-            "nota": notas.strip()
+            "nombre": nombre,
+            "precio": precio,
+            "cant": cant,
+            "nota": notas
         })
-        st.session_state.mensaje_exito = f"¡{nombre_plato} añadido! 🛒"
+        st.session_state.mensaje_exito = f"¡{nombre} agregado! 🛒"
         st.rerun()
 
-# INTERFAZ PRINCIPAL
-st.markdown("<h2 style='text-align:center; margin-bottom:0;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
+# CUERPO DE LA APLICACIÓN
+st.markdown("<h2 style='text-align:center; color:#7A0A0A; margin-bottom:0;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
 
-items_carrito = sum(item["cant"] for item in st.session_state.carrito)
+items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 tab_carta, tab_menu, tab_pedido = st.tabs([
-    "📖 Carta Digital", "📋 Menú Diario", f"🛒 Pedido ({items_carrito})"
+    "📖 Nuestra Carta", "📋 Menú Diario", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
-# FUNCIÓN REVOLUCIONARIA: RENDERIZA EL HTML DONDE LOS PLATOS FLOTAN SOBRE EL RECUADRO ROJO
-def generar_pagina_con_platos_superpuestos(nombre_imagen_archivo, lista_categorias, id_pagina_unica):
-    # Convertimos la imagen de la carta local a Base64 para que el navegador la pinte directo de fondo
-    ruta_img = f"images/{nombre_imagen_archivo}.jpg"
-    img_b64 = ""
-    if os.path.exists(ruta_img):
-        with open(ruta_img, "rb") as f:
-            img_b64 = base64.b64encode(f.read()).decode()
-            
-    df_filtrado = df_productos[df_productos["Category"].isin(lista_categorias)] if not df_productos.empty else pd.DataFrame()
-    
-    # Construcción del bloque HTML de la carta física con el espacio rojo interactivo
-    html_platos = ""
-    if not df_filtrado.empty:
-        for idx, row in df_filtrado.iterrows():
-            id_plato = row['ID']
-            nombre = row['Name']
-            precio = f"{row['Price']:.2f}"
-            
-            # Cada fila tiene: El botón "+" (izquierda), Nombre (centro) y Precio (derecha) en 1 sola línea
-            html_platos += f"""
-            <div class="fila-plato-sobre-foto">
-                <button class="boton-agregar-izquierda" onclick="window.parent.postMessage({{type: 'click_plato', id: '{id_plato}'}}, '*')">＋</button>
-                <span class="nombre-plato-encima">{nombre}</span>
-                <span class="precio-plato-encima">S/.{precio}</span>
-            </div>
-            """
-            
-            # Detectamos de manera invisible el click del botón nativo del HTML mediante Streamlit alterno
-            if st.button("", key=f"hidden_btn_{id_pagina_unica}_{id_plato}", help=f"Agregar {nombre}", use_container_width=False):
-                if row["Category"] in ["BEBIDAS FRÍAS", "BEBIDAS CALIENTES"]:
-                    st.session_state.carrito.append({"nombre": nombre, "precio": row["Price"], "cant": 1, "entrada": None, "cremas": [], "nota": ""})
-                    st.session_state.mensaje_exito = f"¡{nombre} añadido! 🥤✅"
-                    st.rerun()
-                else:
-                    modal_agregar_con_detalles(nombre, row["Price"], categoria_plato=row["Category"])
-
-    # Renderizado final combinado (Imagen real de fondo + textos flotando a la derecha)
-    if img_b64:
-        st.markdown(f"""
-        <div class="contenedor-carta-real">
-            <img class="imagen-fondo-carta" src="data:image/jpeg;base64,{img_b64}">
-            <div class="capa-overlay-platos">
-                {html_platos}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.error(f"Falta archivo: images/{nombre_imagen_archivo}.jpg")
-
 # =========================================================
-# 1. PESTAÑA: CARTA DIGITAL (TEXTOS EXACTOS DENTRO DEL RECUADRO ROJO)
+# 1. PESTAÑA: NUESTRA CARTA (DISEÑO DE PÁGINA 2)
 # =========================================================
 with tab_carta:
-    st.info("💡 Haz clic en el símbolo ＋ a la izquierda del nombre del plato para ordenar.")
+    # Columna izquierda: Tu imagen real recortada / Columna derecha: El menú digital integrado en bloque rojo
+    col_izq_foto, col_der_menu = st.columns([4.5, 5.5])
     
-    # PÁGINA 2 COMPLETA: Muestra la foto de la página y mete Combos, Alitas y Broaster dentro del recuadro rojo
-    generar_pagina_con_platos_superpuestos("pag2", ["COMBOS", "ALITAS REBOZADAS", "ALITAS ESPECIALES", "POLLO BROASTER"], "p2")
-    
-    # PÁGINA 3 COMPLETA: Sopas y Chaufas dentro del recuadro rojo de su respectiva foto
-    generar_pagina_con_platos_superpuestos("pag3", ["SOPAS", "CHAUFA"], "p3")
-    
-    # PÁGINA 4 COMPLETA: Aeropuertos, Combinados y Lomos
-    generar_pagina_con_platos_superpuestos("pag4", ["AEROPUERTO", "COMBINADOS", "LOMOS SALTADOS"], "p4")
-    
-    # PÁGINA 5 COMPLETA: Tallarines y Platos Wok
-    generar_pagina_con_platos_superpuestos("pag5", ["TALLARINES SALTADOS", "PLATOS SALADOS", "PLATOS DULCE"], "p5")
+    with col_izq_foto:
+        # Aquí se carga de forma nativa la foto lateral que enviaste
+        if os.path.exists("images/pag2_lateral.jpg"):
+            st.image("images/pag2_lateral.jpg", use_container_width=True)
+        else:
+            # Cuadro de muestra temporal por si no encuentra el archivo físico
+            st.info("📸 [Aquí va el recorte de tus imágenes de la izquierda]")
+            
+    with col_der_menu:
+        # Agrupamos consecutivamente todo lo que me dijiste que va en esa hoja real (Página 2)
+        categorias_hoja = ["COMBOS", "REBOZADAS", "ESPECIALES", "BROASTER"]
+        df_hoja = df_carta[df_carta["Category"].isin(categorias_hoja)]
+        
+        for _, row in df_hoja.iterrows():
+            # Creamos 3 microcolumnas internas nativas: Botón (1.5) | Nombre (7.0) | Precio (1.5)
+            c_btn, c_name, c_price = st.columns([1.5, 7.0, 1.5])
+            
+            with c_btn:
+                # El botón "+" real de Streamlit, limpio y posicionado perfectamente a la izquierda
+                if st.button("＋", key=f"add_{row['ID']}"):
+                    modal_pedido(row["Name"], row["Price"])
+            
+            with c_name:
+                st.markdown(f"<span class='label-plato-blanco'>{row['Name']}</span>", unsafe_allow_html=True)
+                
+            with c_price:
+                st.markdown(f"<span class='label-precio-amarillo'>{int(row['Price'])}</span>", unsafe_allow_html=True)
 
 # =========================================================
-# 2. PESTAÑA: MENÚ DIARIO 
+# 2. PESTAÑA: MENÚ DIARIO
 # =========================================================
 with tab_menu:
-    for idx, data in df_menu_diario.iterrows():
-        col_btn, col_txt = st.columns([1.5, 8.5])
-        with col_btn:
-            if st.button("➕", key=f"btn_menu_{idx}"):
-                modal_agregar_con_detalles(data["Name"], data["Price"], categoria_plato="MENU DIARIO", es_menu=True)
-        with col_txt:
-            st.markdown(f"**{data['Name']}** — S/. {data['Price']:.2f}")
+    st.caption("Los menús diarios están disponibles en el local de lunes a viernes.")
+    for idx, row in df_menu_diario.iterrows():
+        c_btn, c_name = st.columns([1.5, 8.5])
+        with c_btn:
+            if st.button("＋", key=f"menu_{idx}"):
+                modal_pedido(row["Name"], row["Price"])
+        with c_name:
+            st.write(f"**{row['Name']}** — S/. {row['Price']:.2f}")
 
 # =========================================================
-# 3. PESTAÑA: MI PEDIDO / WHATSAPP
+# 3. PESTAÑA: MI PEDIDO / FINALIZAR POR WHATSAPP
 # =========================================================
 with tab_pedido:
     if not st.session_state.carrito:
-        st.info("Tu carrito está vacío")
+        st.info("Tu carrito está vacío. ¡Explora la carta para agregar deliciosos platos!")
     else:
-        st.subheader("📋 Resumen de tu pedido")
-        total_platos = 0
+        st.subheader("📋 Resumen de Compra")
+        total = 0
         for item in st.session_state.carrito:
             subtotal = item["precio"] * item["cant"]
-            total_platos += subtotal
-            st.markdown(f"🔹 **{item['cant']} x {item['nombre']}** — S/. {subtotal:.2f}")
-            if item["cremas"]: st.markdown(f"<span class='detalle-carrito'>↳ Cremas: {', '.join(item['cremas'])}</span>", unsafe_allow_html=True)
-            if item["nota"]: st.markdown(f"<span class='detalle-carrito'>↳ Nota: {item['nota']}</span>", unsafe_allow_html=True)
-
+            total += subtotal
+            st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
+            if item["nota"]:
+                st.caption(f"   ↳ Nota: {item['nota']}")
+        
         st.divider()
-        nombre = st.text_input("Tu nombre completo")
-        tipo_entrega = st.radio("Entrega", [" Delivery", " Recojo en Local"])
-        pago = st.radio("Método de pago", [" Efectivo", " Yape"])
-
-        # Generador de link de WhatsApp
-        texto = f"🍜 *CHIFA D' BELINDA*\nCliente: {nombre}\nEntrega: {tipo_entrega}\nPago: {pago}\nTotal Productos: S/. {total_platos:.2f}"
-        link = f"https://wa.me/51923860158?text={urllib.parse.quote(texto)}"
-        st.link_button("📲 ENVIAR PEDIDO POR WHATSAPP", link, use_container_width=True)
+        nombre_cliente = st.text_input("Ingresa tu Nombre")
+        metodo_pago = st.radio("Método de pago preferido", ["Yape", "Efectivo"])
+        
+        st.markdown(f"### Total a pagar: S/. {total:.2f}")
+        
+        # Formateo del mensaje automático para enviar directamente al dueño del Chifa
+        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
+        mensaje_wa += f"👤 *Cliente:* {nombre_cliente}\n"
+        mensaje_wa += f"💳 *Pago:* {metodo_pago}\n"
+        mensaje_wa += "-------------------------\n"
+        for item in st.session_state.carrito:
+            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+        mensaje_wa += "-------------------------\n"
+        mensaje_wa += f"💰 *TOTAL PRODUCTOS:* S/. {total:.2f}"
+        
+        link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+        
+        st.link_button("📲 ENVIAR MI PEDIDO POR WHATSAPP", link_final, use_container_width=True)
+        
+        if st.button("🧹 Vaciar Carrito", use_container_width=True):
+            st.session_state.carrito = []
+            st.rerun()
