@@ -131,30 +131,9 @@ div.stButton > button {{
     border: none !important;
     border-radius: 6px !important;
     font-weight: bold !important;
-    padding: 6px 10px !important;
-    font-size: 12px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
     width: 100% !important;
-}}
-
-/* BOTÓN DE ENVIAR WHATSAPP */
-div[data-testid="stLinkButton"] a {{
-    background-color: #25D366 !important;
-    color: white !important;
-    font-weight: bold !important;
-    font-size: 16px !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-    text-align: center !important;
-    text-decoration: none !important;
-    display: inline-block !important;
-    width: 100% !important;
-    box-shadow: 0px 4px 12px rgba(37, 211, 102, 0.4) !important;
-}}
-
-div[data-testid="stLinkButton"] a p, 
-div[data-testid="stLinkButton"] a span {{
-    color: white !important;
-    font-weight: bold !important;
 }}
 
 .detalle-carrito {{
@@ -176,13 +155,10 @@ div[data-testid="stHorizontalBlock"] {{
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-if "num_pagina" not in st.session_state:
-    st.session_state.num_pagina = 2
-
 if "mensaje_exito" not in st.session_state:
     st.session_state.mensaje_exito = None
 
-# SISTEMA ROBUSTO DE TOASTS ANTES DEL LOGUEO DE PÁGINA
+# MOSTRAR MENSAJE DE CONFIRMACIÓN SI EXISTE
 if st.session_state.mensaje_exito:
     st.toast(st.session_state.mensaje_exito)
     st.session_state.mensaje_exito = None
@@ -213,7 +189,7 @@ def modal_agregar_con_detalles(nombre_plato, precio_plato, categoria_plato="", e
         )
         st.markdown("<br>", unsafe_allow_html=True)
 
-    # Lógica de cremas filtrada según tus indicaciones
+    # Selección fija de cremas solicitada
     st.markdown("<p style='font-weight:bold; margin-bottom:2px; color:white !important;'>Selecciona tus cremas:</p>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
@@ -223,10 +199,10 @@ def modal_agregar_con_detalles(nombre_plato, precio_plato, categoria_plato="", e
         tamarindo = st.checkbox("Tamarindo")
         ketchup = st.checkbox("Ketchup")
         
-    # Condición especial: Solo si es de la categoría de Alitas Especiales se habilita el Limón
+    # Condición especial para Alitas Especiales: Se le suma el Limón
     limon = False
     if categoria_plato == "ALITAS ESPECIALES":
-        st.markdown("<p style='font-weight:bold; margin-bottom:2px; color:white !important;'>Opciones de Alitas:</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-weight:bold; margin-bottom:2px; color:white !important;'>Opciones adicionales:</p>", unsafe_allow_html=True)
         limon = st.checkbox("🍋 Agregar Limón")
         
     notas = st.text_input("Notas adicionales:", placeholder="Ej: Sin cebollita...")
@@ -251,33 +227,37 @@ def modal_agregar_con_detalles(nombre_plato, precio_plato, categoria_plato="", e
         st.session_state.mensaje_exito = f"¡{nombre_plato} añadido al carrito! 🛒✅"
         st.rerun()
 
-# ENCABEZADO
+# ENCABEZADO PRINCIPAL
 st.markdown("<h1 style='text-align:center; margin-bottom: 0px;'>🍜 CHIFA D' BELINDA</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; font-weight: bold; font-size: 14px; color: #d32f2f; margin-top: 0px;'>🕒 Pedidos rápidos directos a nuestro WhatsApp</p>", unsafe_allow_html=True)
 
 items_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# --- LAS 3 PESTAÑAS PRINCIPALES TOTALMENTE ESTÁTICAS ---
+# --- LAS 3 PESTAÑAS PRINCIPALES COMPLETAMENTE ESTÁTICAS ---
 tab_carta, tab_menu, tab_pedido = st.tabs([
     "📖 Platos a la Carta", "📋 Menú Diario", f"🛒 Mi Pedido ({items_carrito})"
 ])
 
-# FUNCIÓN AUXILIAR PARA MOSTRAR LA HOJA E INTERACTUAR
-def renderizar_hoja_carta(nombre_imagen, lista_categorias):
+# FUNCIÓN CORREGIDA: COLOCA LA FOTO COMO BANNER Y ABAJO LOS PLATOS CON BOTÓN A LA DERECHA
+def desplegar_seccion_con_foto(nombre_imagen, lista_categorias, titulo_seccion):
+    st.markdown(f"### 📌 {titulo_seccion}")
+    
+    # Renderiza la foto correspondiente arriba
     ruta_jpg = f"images/{nombre_imagen}.jpg"
     if os.path.exists(ruta_jpg):
         st.image(ruta_jpg, use_container_width=True)
     else:
-        st.info(f"📸 Vista de la carta física del PDF ({nombre_imagen}.jpg)")
+        st.info(f"📸 Foto de la sección ({nombre_imagen}.jpg)")
         
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # Carga y muestra los platos del Excel abajo con su respectivo botón "➕" a la derecha
     df_filtrado = df_productos[df_productos["Category"].isin(lista_categorias)] if not df_productos.empty else pd.DataFrame()
     if df_filtrado.empty:
-        st.warning("No hay productos cargados para esta página en el Excel.")
+        st.warning("No hay productos vinculados en el Excel para esta sección.")
     else:
         for idx, data in df_filtrado.iterrows():
-            col_izq, col_der = st.columns([4.2, 0.8])
+            col_izq, col_der = st.columns([4.0, 1.0])
             with col_izq:
                 st.markdown(f"""
                 <div class="tarjeta-menu-contenido">
@@ -287,7 +267,7 @@ def renderizar_hoja_carta(nombre_imagen, lista_categorias):
                 """, unsafe_allow_html=True)
             with col_der:
                 if st.button("➕", key=f"btn_lista_{data['ID']}"):
-                    # REGLA EXCEPCIONAL PARA BEBIDAS: Agregar directo sin abrir modal de cremas
+                    # REGLA EXCEPCIONAL PARA BEBIDAS: Sin abrir modal
                     if data["Category"] in ["BEBIDAS FRÍAS", "BEBIDAS CALIENTES"]:
                         st.session_state.carrito.append({
                             "nombre": data["Name"],
@@ -301,48 +281,29 @@ def renderizar_hoja_carta(nombre_imagen, lista_categorias):
                         st.rerun()
                     else:
                         modal_agregar_con_detalles(data["Name"], data["Price"], categoria_plato=data["Category"], es_menu=False)
+    st.divider()
 
 # =========================================================
-# 1. PESTAÑA: PLATOS A LA CARTA (CON CAMBIO DE HOJA TIPO PDF)
+# 1. PESTAÑA: PLATOS A LA CARTA (VISTA FLUIDA CONTINUA)
 # =========================================================
 with tab_carta:
-    st.markdown(f"<h4 style='text-align:center; color:#d32f2f;'>📖 Viendo Página {st.session_state.num_pagina} de 7</h4>", unsafe_allow_html=True)
+    # SECCIÓN 1: COMBOS, ALITAS Y BROASTER (PÁGINA 2)
+    desplegar_seccion_con_foto("pag2", ["COMBOS", "ALITAS REBOZADAS", "ALITAS ESPECIALES", "POLLO BROASTER"], "Combos, Alitas y Broaster")
     
-    col_prev, col_next = st.columns(2)
-    with col_prev:
-        if st.button("◀ Hoja Anterior", disabled=(st.session_state.num_pagina == 2), use_container_width=True):
-            st.session_state.num_pagina -= 1
-            st.rerun()
-    with col_next:
-        if st.button("Hoja Siguiente ▶", disabled=(st.session_state.num_pagina == 7), use_container_width=True):
-            st.session_state.num_pagina += 1
-            st.rerun()
-            
-    st.divider()
-
-    if st.session_state.num_pagina == 2:
-        renderizar_hoja_carta("pag2", ["COMBOS", "ALITAS REBOZADAS", "ALITAS ESPECIALES", "POLLO BROASTER"])
-    elif st.session_state.num_pagina == 3:
-        renderizar_hoja_carta("pag3", ["SOPAS", "CHAUFA"])
-    elif st.session_state.num_pagina == 4:
-        renderizar_hoja_carta("pag4", ["AEROPUERTO", "COMBINADOS", "LOMOS SALTADOS"])
-    elif st.session_state.num_pagina == 5:
-        renderizar_hoja_carta("pag5", ["TALLARINES SALTADOS", "PLATOS SALADOS", "PLATOS DULCE"])
-    elif st.session_state.num_pagina == 6:
-        renderizar_hoja_carta("pag6", ["TORTILLAS", "ENROLLADOS", "TAYPA", "RES", "LANGOSTINOS"])
-    elif st.session_state.num_pagina == 7:
-        renderizar_hoja_carta("pag7", ["PATO", "CHICHARRONES", "CHANCHO", "COSTILLAS", "PORCIONES", "BEBIDAS FRÍAS", "BEBIDAS CALIENTES"])
-
-    st.divider()
-    col_prev2, col_next2 = st.columns(2)
-    with col_prev2:
-        if st.button("◀ Anterior Hoja", key="prev_inf", disabled=(st.session_state.num_pagina == 2), use_container_width=True):
-            st.session_state.num_pagina -= 1
-            st.rerun()
-    with col_next2:
-        if st.button("Siguiente Hoja ▶", key="next_inf", disabled=(st.session_state.num_pagina == 7), use_container_width=True):
-            st.session_state.num_pagina += 1
-            st.rerun()
+    # SECCIÓN 2: SOPAS Y CHAUFAS (PÁGINA 3)
+    desplegar_seccion_con_foto("pag3", ["SOPAS", "CHAUFA"], "Sopas y Chaufas")
+    
+    # SECCIÓN 3: AEROPUERTOS, COMBINADOS Y LOMOS (PÁGINA 4)
+    desplegar_seccion_con_foto("pag4", ["AEROPUERTO", "COMBINADOS", "LOMOS SALTADOS"], "Aeropuertos y Combinados")
+    
+    # SECCIÓN 4: TALLARINES Y PLATOS AL WOK (PÁGINA 5)
+    desplegar_seccion_con_foto("pag5", ["TALLARINES SALTADOS", "PLATOS SALADOS", "PLATOS DULCE"], "Tallarines y Platos al Wok")
+    
+    # SECCIÓN 5: ESPECIALIDADES (PÁGINA 6)
+    desplegar_seccion_con_foto("pag6", ["TORTILLAS", "ENROLLADOS", "TAYPA", "RES", "LANGOSTINOS"], "Especialidades de la Casa")
+    
+    # SECCIÓN 6: PORCIONES Y BEBIDAS (PÁGINA 7)
+    desplegar_seccion_con_foto("pag7", ["PATO", "CHICHARRONES", "CHANCHO", "COSTILLAS", "PORCIONES", "BEBIDAS FRÍAS", "BEBIDAS CALIENTES"], "Pato, Chancho y Bebidas")
 
 # =========================================================
 # 2. PESTAÑA: MENÚ DIARIO (ESTÁTICA)
@@ -350,7 +311,7 @@ with tab_carta:
 with tab_menu:
     st.markdown("<p style='text-align:center; font-style: italic; color: #555555; margin-bottom:15px;'>Todos los menús incluyen refresco y entrada a elección al ordenar.</p>", unsafe_allow_html=True)
     for idx, data in df_menu_diario.iterrows():
-        col_izq, col_der = st.columns([4.2, 0.8])
+        col_izq, col_der = st.columns([4.0, 1.0])
         with col_izq:
             st.markdown(f"""
             <div class="tarjeta-menu-contenido">
@@ -360,7 +321,6 @@ with tab_menu:
             """, unsafe_allow_html=True)
         with col_der:
             if st.button("➕", key=f"btn_menu_lista_{idx}"):
-                # El menú diario abre el modal configurado como Menú para pedir entradas y cremas estándar
                 modal_agregar_con_detalles(data["Name"], data["Price"], categoria_plato="MENU DIARIO", es_menu=True)
 
 # =========================================================
@@ -398,7 +358,7 @@ with tab_pedido:
         direccion = ""
         if tipo_entrega == "🛵 Delivery":
             direccion = st.text_input("Dirección exacta")
-            st.warning("📍 *Nota sobre el Delivery:* El costo de envío no está sumado en el total actual de la pantalla. Se calculará y agregará manualmente al abrir tu WhatsApp. Por favor, comparte tu ubicación en tiempo real en el chat.")
+            st.warning("📍 *Nota sobre el Delivery:* El costo de envío no está sumado en el total actual de la pantalla. Se calculará y agregará manualmente al abrir tu WhatsApp.")
         elif tipo_entrega == "🏪 Recojo en Local":
             st.info("🏪 **Recojo listo:** Tu pedido se empezará a preparar de inmediato. Puedes pasar a recogerlo en aproximadamente **20 a 30 minutos**.")
 
@@ -410,7 +370,7 @@ with tab_pedido:
 
         pago = st.radio("Método de pago", ["💵 Efectivo", "📱 Yape"], horizontal=True)
 
-        # ARMADO EXACTO DEL TEXTO DE WHATSAPP
+        # ARMADO DEL TEXTO DE WHATSAPP
         lineas = [
             "🍜 *CHIFA D' BELINDA*",
             ""
