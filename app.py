@@ -107,7 +107,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
 
     st.write("")
-    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla, bien frito...")
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla, bien frito...")
 
     st.write("")
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
@@ -197,8 +197,7 @@ div.stButton > button {
     box-shadow: 0px 3px 6px rgba(0,0,0,0.2) !important;
 }
 
-/* CAPA DE PROTECCIÓN: Contenedor con fondo semitransparente oscuro 
-   para asegurar que las letras blancas SIEMPRE se lean, con o sin imagen trasera */
+/* Contenedor oscuro semitransparente para asegurar legibilidad */
 .contenedor-platos-fondo-seguro {
     background-color: rgba(0, 0, 0, 0.55) !important; 
     padding: 15px !important;
@@ -242,7 +241,6 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # El selector ahora se pinta impecable con fondo blanco y letras legibles
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -258,7 +256,6 @@ with tab_carta:
         # Obtener las categorías estrictas configuradas para esta página
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Contenedor seguro para que el texto blanco resalte perfectamente
         st.markdown('<div class="contenedor-platos-fondo-seguro">', unsafe_allow_html=True)
         
         for cat_name in categorias_permitidas:
@@ -273,7 +270,6 @@ with tab_carta:
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
                     with col_txt:
-                        # Texto blanco puro y precio amarillo con sombras reforzadas
                         st.markdown(f"""
                         <div class="fila-plato-limpia">
                             <span style="color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-align: left !important; font-family: sans-serif !important; text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;">
@@ -316,7 +312,8 @@ with tab_pedido:
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         telefono_cliente = st.text_input("Tu número de contacto:")
 
-        if nombre_cliente.strip() and phone := telefono_cliente.strip():
+        if nombre_cliente.strip() and telefono_cliente.strip():
+            phone = telefono_cliente.strip()
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n📞 *Contacto:* {phone}\n-------------------------\n"
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
