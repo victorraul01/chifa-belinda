@@ -8,27 +8,27 @@ st.set_page_config(
     layout="wide"
 )
 
-# -----------------------------
+# -------------------------
 # BASE64
-# -----------------------------
+# -------------------------
 def get_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-# -----------------------------
+# -------------------------
 # CARRITO
-# -----------------------------
+# -------------------------
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# -----------------------------
+# -------------------------
 # EXCEL
-# -----------------------------
+# -------------------------
 df = pd.read_excel("Catalogo_Productos.xlsx")
 
-# -----------------------------
+# -------------------------
 # PAGINAS
-# -----------------------------
+# -------------------------
 paginas = {
     "Página 1": {
         "imagen": "pag2.jpg",
@@ -60,9 +60,9 @@ st.title("🍜 Chifa D' Belinda")
 
 tabs = st.tabs(["📖 Carta", "🛒 Mi Pedido"])
 
-# -----------------------------
-# TAB CARTA
-# -----------------------------
+# -------------------------
+# CARTA
+# -------------------------
 with tabs[0]:
 
     pagina_actual = st.selectbox(
@@ -75,27 +75,22 @@ with tabs[0]:
 
     fondo = get_base64(config["imagen"])
 
+    # Fondo fijo completo
     st.markdown(f"""
     <style>
-    .contenedor-principal {{
-        position: relative;
-        width: 100%;
-        height: 85vh;
+    .stApp {{
         background-image: url("data:image/jpeg;base64,{fondo}");
         background-size: cover;
         background-position: center;
-        border-radius: 15px;
-        overflow: hidden;
+        background-attachment: fixed;
     }}
 
-    .panel-scroll {{
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 60%;
-        height: 100%;
+    .panel-derecho {{
+        margin-left: 42%;
+        width: 58%;
+        height: 75vh;
         overflow-y: auto;
-        padding: 15px;
+        padding: 10px;
     }}
 
     .categoria {{
@@ -103,7 +98,6 @@ with tabs[0]:
         font-size: 24px;
         font-weight: bold;
         margin-top: 15px;
-        margin-bottom: 10px;
     }}
 
     .plato {{
@@ -119,17 +113,8 @@ with tabs[0]:
     </style>
     """, unsafe_allow_html=True)
 
-    # Fondo completo
-    st.markdown(
-        '<div class="contenedor-principal">',
-        unsafe_allow_html=True
-    )
-
-    # Overlay derecho
-    st.markdown(
-        '<div class="panel-scroll">',
-        unsafe_allow_html=True
-    )
+    # Aquí empieza el panel que se posiciona justo sobre el rojo
+    st.markdown('<div class="panel-derecho">', unsafe_allow_html=True)
 
     for categoria in config["categorias"]:
 
@@ -144,19 +129,19 @@ with tabs[0]:
 
             for i, row in grupo.iterrows():
 
-                col1, col2, col3 = st.columns([0.55, 0.25, 0.20])
+                c1, c2, c3 = st.columns([0.55, 0.25, 0.20])
 
-                col1.markdown(
+                c1.markdown(
                     f"<div class='plato'>{row['Name']}</div>",
                     unsafe_allow_html=True
                 )
 
-                col2.markdown(
+                c2.markdown(
                     f"<div class='precio'>S/. {row['Price']}</div>",
                     unsafe_allow_html=True
                 )
 
-                if col3.button("➕", key=f"{pagina_actual}_{i}"):
+                if c3.button("➕", key=f"{pagina_actual}_{i}"):
 
                     st.session_state.carrito.append({
                         "nombre": row["Name"],
@@ -165,11 +150,11 @@ with tabs[0]:
 
                     st.toast(f"{row['Name']} agregado")
 
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# -----------------------------
-# TAB CARRITO
-# -----------------------------
+# -------------------------
+# CARRITO
+# -------------------------
 with tabs[1]:
 
     st.subheader("🛒 Mi Pedido")
@@ -182,17 +167,14 @@ with tabs[1]:
         total = 0
 
         for item in st.session_state.carrito:
-            st.write(
-                f"✅ {item['nombre']} - S/. {item['precio']}"
-            )
+            st.write(f"✅ {item['nombre']} - S/. {item['precio']}")
             total += item["precio"]
 
         st.markdown(f"### Total: S/. {total}")
 
-        detalle = "\n".join([
-            f"- {x['nombre']}: S/. {x['precio']}"
-            for x in st.session_state.carrito
-        ])
+        detalle = "\n".join(
+            [f"- {x['nombre']}: S/. {x['precio']}" for x in st.session_state.carrito]
+        )
 
         mensaje = f"Hola, quiero pedir:\n{detalle}\n\nTotal: S/. {total}"
 
