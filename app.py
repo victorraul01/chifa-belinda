@@ -274,20 +274,20 @@ def renderizar_pagina_pdf(ruta_imagen_pagina, lista_categorias):
 
 # --- CONTENIDO DE CADA PESTAÑA / PÁGINA DEL PDF ---
 
-with tab_pag1:
-    renderizar_pagina_pdf("images/pag1.jpeg", ["COMBOS", "ALITAS REBOZADAS", "ALITAS ESPECIALES", "POLLO BROASTER"])
-
 with tab_pag2:
-    renderizar_pagina_pdf("images/pag2.jpeg", ["SOPAS", "CHAUFA"])
+    renderizar_pagina_pdf("images/pag2.jpg", ["COMBOS", "ALITAS REBOZADAS", "ALITAS ESPECIALES", "POLLO BROASTER"])
 
 with tab_pag3:
-    renderizar_pagina_pdf("images/pag3.jpeg", ["AEROPUERTO", "COMBINADOS", "LOMOS SALTADOS"])
+    renderizar_pagina_pdf("images/pag3.jpg", ["SOPAS", "CHAUFA"])
 
 with tab_pag4:
-    renderizar_pagina_pdf("images/pag4.jpeg", ["TALLARINES SALTADOS", "PLATOS SALADOS", "PLATOS DULCE"])
+    renderizar_pagina_pdf("images/pag4.jpg", ["AEROPUERTO", "COMBINADOS", "LOMOS SALTADOS"])
 
 with tab_pag5:
-    renderizar_pagina_pdf("images/pag5.jpeg", [
+    renderizar_pagina_pdf("images/pag5.jpg", ["TALLARINES SALTADOS", "PLATOS SALADOS", "PLATOS DULCE"])
+
+with tab_pag6:
+    renderizar_pagina_pdf("images/pag6.jpg", [
         "TORTILLAS", "ENROLLADOS", "TAYPA", "RES", "LANGOSTINOS", 
         "PATO", "CHICHARRONES", "CHANCHO", "COSTILLAS", "PORCIONES", 
         "BEBIDAS FRÍAS", "BEBIDAS CALIENTES"
