@@ -38,54 +38,60 @@ if st.session_state.mensaje_exito:
     st.toast(st.session_state.mensaje_exito)
     st.session_state.mensaje_exito = None
 
-# BASE DE DATOS COMPLETA DE TODA LA CARTA (Páginas 2, 3, 4 y 5 de tu PDF)
+# BASE DE DATOS COMPLETA Y CORREGIDA (Evita errores de longitud despareja)
 def obtener_carta_completa_pdf():
-    datos = {
-        "ID": [f"P{i}" for i in range(1, 46)],
+    # PÁGINA 2: COMBOS, ALITAS Y BROASTER (21 platos)
+    p2 = pd.DataFrame({
         "Name": [
-            # --- PÁGINA 2: COMBOS, ALITAS Y BROASTER ---
             "COMBO 1 (Chi Jau Kay + Pollo)", "COMBO 2 (Tipa Kay + Pollo)", 
             "COMBO 3 (Enrollado + Pollo)", "COMBO 4 (Alitas + Chaufa/Papas)",
             "Alitas Rebozadas 3 Pzs", "Alitas Rebozadas 4 Pzs", "Alitas Rebozadas 5 Pzs", "Alitas Rebozadas 6 Pzs",
             "Alitas BBQ", "Alitas Bravas", "Alitas con Verduras", "Alitas con Tamarindo", 
             "Alitas con Piña", "Alitas Ostión", "Alitas Tausi", "Alitas con Durazno", 
             "Alitas Piña y Durazno", "Alitas Beli Beli", "Alitas Salsa Blanca",
-            "1/8 Pollo Broaster", "1/4 Pollo Broaster",
-            
-            # --- PÁGINA 3: SOPAS Y CHAUFAS ---
+            "1/8 Pollo Broaster", "1/4 Pollo Broaster"
+        ],
+        "Price": [37.00, 37.00, 37.00, 35.00, 14.00, 18.00, 20.00, 25.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 26.00, 25.00, 28.00, 13.00, 21.00],
+        "Page": 2
+    })
+    
+    # PÁGINA 3: SOPAS Y CHAUFAS (9 platos)
+    p3 = pd.DataFrame({
+        "Name": [
             "Sopa Wantán Especial", "Sopa Fuchifú", "Sopa de Wantán Simple",
             "Chaufa de Pollo", "Chaufa de Chancho", "Chaufa de Res", 
-            "Chaufa de Langostinos", "Chaufa Especial", "Chaufa Beli Beli (Salvaje)",
-            
-            # --- PÁGINA 4: AEROPUERTOS, COMBINADOS Y LOMOS ---
+            "Chaufa de Langostinos", "Chaufa Especial", "Chaufa Beli Beli (Salvaje)"
+        ],
+        "Price": [16.00, 16.00, 10.00, 14.00, 18.00, 18.00, 25.00, 22.00, 26.00],
+        "Page": 3
+    })
+    
+    # PÁGINA 4: AEROPUERTOS, COMBINADOS Y LOMOS (9 platos)
+    p4 = pd.DataFrame({
+        "Name": [
             "Aeropuerto de Pollo", "Aeropuerto de Carne / Chancho", "Aeropuerto Especial",
             "Combinado de Pollo", "Combinado de Carne / Chancho", "Combinado Especial",
-            "Lomo Saltado de Pollo", "Lomo Saltado de Res", "Lomo Saltado Especial Chifa",
-            
-            # --- PÁGINA 5: TALLARINES, WOK SALADO Y DULCE ---
+            "Lomo Saltado de Pollo", "Lomo Saltado de Res", "Lomo Saltado Especial Chifa"
+        ],
+        "Price": [16.00, 19.00, 22.00, 16.00, 19.00, 22.00, 17.00, 20.00, 24.00],
+        "Page": 4
+    })
+    
+    # PÁGINA 5: TALLARINES, WOK SALADO Y DULCE (8 platos)
+    p5 = pd.DataFrame({
+        "Name": [
             "Tallarín Saltado de Pollo", "Tallarín Saltado de Res / Chancho", "Tallarín Especial",
             "Pollo con Verduras (Wok)", "Chi Jau Kay (Plato)", "Tipa Kay (Plato)",
             "Pollo con Tamarindo", "Pollo con Piña"
         ],
-        "Price": [
-            # Precios Página 2
-            37.00, 37.00, 37.00, 35.00, 14.00, 18.00, 20.00, 25.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 22.00, 26.00, 25.00, 28.00, 13.00, 21.00,
-            # Precios Página 3
-            16.00, 16.00, 10.00, 14.00, 18.00, 18.00, 25.00, 22.00, 26.00,
-            # Precios Página 4
-            16.00, 19.00, 22.00, 16.00, 19.00, 22.00, 17.00, 20.00, 24.00,
-            # Precios Página 5
-            16.00, 19.00, 22.00, 18.00, 20.00, 20.00, 18.00, 19.00
-        ],
-        "Page": [
-            # Mapeo de páginas
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
-            3, 3, 3, 3, 3, 3, 3, 3, 3,                                     
-            4, 4, 4, 4, 4, 4, 4, 4, 4,                                     
-            5, 5, 5, 5, 5, 5, 5, 5                                         
-        ]
-    }
-    return pd.DataFrame(datos)
+        "Price": [16.00, 19.00, 22.00, 18.00, 20.00, 20.00, 18.00, 19.00],
+        "Page": 5
+    })
+    
+    # Fusionamos todas las páginas de forma segura y creamos IDs correlativos automáticos
+    df_unido = pd.concat([p2, p3, p4, p5], ignore_index=True)
+    df_unido["ID"] = [f"P{i+1}" for i in df_unido.index]
+    return df_unido
 
 df_carta = obtener_carta_completa_pdf()
 
@@ -172,7 +178,7 @@ div[data-testid="stHorizontalBlock"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ENCABEZADO PRINCIPAL (Línea corregida aquí)
+# ENCABEZADO PRINCIPAL
 st.markdown("<h2 style='text-align:center; color:#8B0000; margin-bottom:0;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
@@ -218,7 +224,7 @@ def renderizar_hoja_carta(numero_pagina, nombre_imagen):
         """, unsafe_allow_html=True)
 
 # =========================================================
-# 1. PESTAÑA: NUESTRA CARTA (TODAS LAS HOJAS)
+# 1. PESTAÑA: NUESTRA CARTA (TODAS LAS HOJAS MAPPED)
 # =========================================================
 with tab_carta:
     st.markdown('<div class="titulo-seccion-carta">🔥 COMBOS & ALITAS ESPECIALES</div>', unsafe_allow_html=True)
