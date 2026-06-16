@@ -109,10 +109,10 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-# 5. CONTROL CSS ESTRUCTURAL ABSOLUTO (Cabecera fija unificada + scroll interno forzado)
+# 5. CONTROL CSS DE BLOQUEO SUPERIOR (Cabecera, Tabs y Radios Fijos y unificados)
 st.markdown("""
 <style>
-/* Desactivar scroll exterior para que la cabecera NUNCA se mueva de su sitio */
+/* Bloqueo total del scroll nativo de la pantalla exterior */
 html, body, [data-testid="stApp"] {
     overflow: hidden !important;
     height: 100vh !important;
@@ -123,7 +123,7 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* ENCABEZADO FIJO */
+/* ENCABEZADO 100% FIJO ARRIBA */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -136,7 +136,7 @@ html, body, [data-testid="stApp"] {
     border-bottom: 2px solid #FFEB3B !important;
 }
 
-/* PESTAÑAS (CARTA Y PEDIDO) FIJAS */
+/* PESTAÑAS (CARTA Y PEDIDO) TOTALMENTE FIJAS */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
     top: 48px !important;
@@ -147,7 +147,7 @@ div[data-testid="stTabs"] > div:first-child {
     padding: 2px 10px !important;
 }
 
-/* Forzar colores de realce para las pestañas de Streamlit */
+/* Estilización de colores de pestañas activas */
 button[data-baseweb="tab"] {
     color: #FFAAAA !important;
     font-weight: bold !important;
@@ -157,7 +157,7 @@ button[aria-selected="true"] {
     border-bottom-color: #FFEB3B !important;
 }
 
-/* CONTENEDOR DE CONTROL SUPERIOR (Para agrupar y congelar los botones de cambio de página) */
+/* BLOQUE DE RADIOS (SELECTOR DE PÁGINAS) FIJO SUPERIOR */
 .bloque-paginas-estatico {
     position: fixed !important;
     top: 94px !important;
@@ -166,27 +166,22 @@ button[aria-selected="true"] {
     background-color: #8B0000 !important;
     z-index: 999997 !important;
     padding: 5px 14px 12px 14px !important;
-    box-shadow: 0px 6px 10px rgba(0,0,0,0.5) !important;
+    box-shadow: 0px 6px 12px rgba(0,0,0,0.6) !important;
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* ESPACIADOR OBLIGATORIO: Empuja los platos hacia abajo para que la cabecera gigante no los tape */
+/* ESPACIADOR AUTOMÁTICO: Evita que los platos queden tapados por el bloque fijo superior */
 .compensar-cabecera-bloqueada {
-    height: 235px !important;
+    height: 165px !important;
     width: 100% !important;
 }
 
-/* CAJA CON SCROLL SEGURO Y SUAVE PARA LOS PLATOS */
-.zona-scroll-platos {
-    width: 100% !important;
-    height: calc(100vh - 235px) !important; /* Ocupa exactamente el alto restante de la pantalla */
-    overflow-y: scroll !important; /* Fuerza la aparición del scroll vertical */
-    -webkit-overflow-scrolling: touch !important; /* Hace que el deslizamiento con el dedo en celular sea ultra fluido */
-    padding: 10px 14px 80px 14px !important;
-    box-sizing: border-box !important;
+/* Eliminar bordes feos por defecto de las cajas de scroll nativas de Streamlit */
+div[data-testid="stElementContainer"] > div {
+    border: none !important;
 }
 
-/* DISEÑO DE FILAS DE PLATOS Y CATEGORÍAS */
+/* DISEÑO DE FILAS INTERACTIVAS Y TEXTOS */
 .titulo-categoria-resaltado {
     background: linear-gradient(90deg, #8B0000 0%, rgba(140,7,18,0.95) 100%) !important;
     color: #FFEB3B !important;
@@ -234,7 +229,7 @@ button[aria-selected="true"] {
     white-space: nowrap !important;
 }
 
-/* Botones redondos de "＋" */
+/* Botones redondos amarillos de adición "＋" */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -269,7 +264,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Metemos el selector de radios dentro del bloque estático rojo superior
+        # Colocamos el selector de radios dentro del bloque estático fijado arriba
         st.markdown('<div class="bloque-paginas-estatico">', unsafe_allow_html=True)
         pag_seleccionada = st.radio(
             "Selecciona una Página:",
@@ -283,14 +278,14 @@ with tab_carta:
                 "Pág. 6"
             ),
             horizontal=True,
-            label_visibility="collapsed" # Esconde el texto de etiqueta para ganar espacio en pantalla
+            label_visibility="collapsed"
         )
         st.markdown('</div>', unsafe_allow_html=True)
         
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
         imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
         
-        # INYECCIÓN EXCLUSIVA DE FONDO FIJO QUE SÍ CAMBIA SEGÚN LA PÁGINA
+        # INYECCIÓN IMPLACABLE DEL FONDO FIJO COMPLETO DETRÁS DE TODO
         if imagen_b64:
             st.markdown(f"""
             <style>
@@ -304,79 +299,78 @@ with tab_carta:
             </style>
             """, unsafe_allow_html=True)
             
-        # 1. Creamos el espacio en blanco para que los platos bajen
+        # Creamos el espacio para que la lista de platos empiece abajo de la cabecera
         st.markdown('<div class="compensar-cabecera-bloqueada"></div>', unsafe_allow_html=True)
         
-        # 2. Abrimos la zona de scroll forzado exclusivo para la lista de productos
-        st.markdown('<div class="zona-scroll-platos">', unsafe_allow_html=True)
-        
-        categoria_actual = ""
-        for idx, row in df_filtrado.iterrows():
-            if str(row['Category']).strip() != categoria_actual:
-                categoria_actual = str(row['Category']).strip()
-                st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
-            
-            # Fila de plato interactiva
-            st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
-            col_btn, col_txt = st.columns([0.16, 0.84])
-            with col_btn:
-                if st.button("＋", key=f"btn_{row['ID']}_{idx}"):
-                    abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
-            with col_txt:
-                st.markdown(f"""
-                <div class="caja-texto-plato">
-                    <span class="nombre-plato-unificado">{row['Name']}</span>
-                    <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+        # SOLUCIÓN MAESTRA: Usamos el contenedor nativo con scroll asegurado de Streamlit
+        # Calculamos la altura perfecta restando el espacio de la cabecera móvil
+        with st.container(height=480, border=False):
+            categoria_actual = ""
+            for idx, row in df_filtrado.iterrows():
+                if str(row['Category']).strip() != categoria_actual:
+                    categoria_actual = str(row['Category']).strip()
+                    st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
                 
-        st.markdown('</div>', unsafe_allow_html=True) # Cierre de zona-scroll-platos
+                # Renderizado seguro de la fila del producto
+                st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
+                col_btn, col_txt = st.columns([0.16, 0.84])
+                with col_btn:
+                    if st.button("＋", key=f"btn_{row['ID']}_{idx}"):
+                        abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
+                with col_txt:
+                    st.markdown(f"""
+                    <div class="caja-texto-plato">
+                        <span class="nombre-plato-unificado">{row['Name']}</span>
+                        <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    # Quitamos el fondo para ver el resumen con comodidad en color oscuro sólido
+    # Removemos la imagen gráfica en el carrito para que se lea perfectamente sobre un fondo sólido
     st.markdown("""
     <style>
     .stApp { background-image: none !important; background-color: #111111 !important; }
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="compensar-cabecera-bloqueada" style="height:110px !important;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="zona-scroll-platos" style="height: calc(100vh - 110px) !important; color:#FFFFFF;">', unsafe_allow_html=True)
+    st.markdown('<div class="compensar-cabecera-bloqueada" style="height:100px !important;"></div>', unsafe_allow_html=True)
     
-    if not st.session_state.carrito:
-        st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
-    else:
-        st.subheader("📋 Resumen Total del Pedido")
-        total = 0
-        
-        for idx, item in enumerate(st.session_state.carrito):
-            subtotal = item["precio"] * item["cant"]
-            total += subtotal
+    with st.container(height=520, border=False):
+        st.markdown('<div style="color:#FFFFFF; padding: 0 5px;">', unsafe_allow_html=True)
+        if not st.session_state.carrito:
+            st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
+        else:
+            st.subheader("📋 Resumen Total del Pedido")
+            total = 0
             
-            st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
-            st.markdown(f"<span style='color:#FFEB3B; font-size:12px;'>└ 🧂 Cremas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
+            for idx, item in enumerate(st.session_state.carrito):
+                subtotal = item["precio"] * item["cant"]
+                total += subtotal
+                
+                st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
+                st.markdown(f"<span style='color:#FFEB3B; font-size:12px;'>└ 🧂 Cremas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
+                st.write("")
+                
+            st.divider()
+            nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
+            
+            mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
+            for item in st.session_state.carrito:
+                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+                if item['cremas'] != "Ninguna": mensaje_wa += f"  • Salsas: {item['cremas']}\n"
+                if item['notas'] != "Ninguna": mensaje_wa += f"  • Nota: {item['notas']}\n"
+            mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
+            
+            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
             st.write("")
+            st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
             
-        st.divider()
-        nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
-        
-        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
-        for item in st.session_state.carrito:
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
-            if item['cremas'] != "Ninguna": mensaje_wa += f"  • Salsas: {item['cremas']}\n"
-            if item['notas'] != "Ninguna": mensaje_wa += f"  • Nota: {item['notas']}\n"
-        mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
-        
-        link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-        st.write("")
-        st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
-        
-        st.write("")
-        if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
-            st.session_state.carrito = []
-            st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.write("")
+            if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
+                st.session_state.carrito = []
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
