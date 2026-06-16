@@ -101,77 +101,76 @@ df_menu_diario = pd.DataFrame({
     "Price": [14.00, 15.00, 14.00, 17.00, 17.00]
 })
 
-# ESTILOS CSS REVISADOS (Garantizan la correcta inyección visual en móviles)
+# ESTILOS CSS ULTRA-OPTIMIZADOS PARA MÓVILES (Previene desbordamientos de pantalla)
 st.markdown("""
 <style>
-div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: 4px !important;
-}
-
+/* Contenedor principal rojo */
 .contenedor-menu-rojo {
     background-color: #8B0000 !important;
-    padding: 6px 4px !important;
-    border-radius: 6px !important;
+    padding: 10px 8px !important;
+    border-radius: 0px 0px 8px 8px !important; /* Bordes inferiores redondeados para encajar con la foto */
     display: flex !important;
     flex-direction: column !important;
-    gap: 4px !important;
+    gap: 6px !important;
     width: 100% !important;
+    box-sizing: border-box !important;
 }
 
+/* Fila de cada plato */
 .fila-plato-unica-linea {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    padding: 3px 0px !important;
-    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 5px 0px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.15) !important;
+    box-sizing: border-box !important;
 }
 
+/* Botón Más (+) */
 .btn-agregar-inline {
     background-color: #FFFFFF !important;
     color: #8B0000 !important;
     text-decoration: none !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: bold !important;
     border-radius: 50% !important;
-    width: 18px !important;
-    height: 18px !important;
+    width: 22px !important;
+    height: 22px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     flex-shrink: 0 !important;
 }
 
+/* Texto del nombre del plato */
 .texto-plato-inline {
     color: #FFFFFF !important;
-    font-size: 9px !important;
+    font-size: 11px !important;
     font-weight: bold !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    margin-left: 4px !important;
+    margin-left: 8px !important;
     margin-right: auto !important;
     text-align: left !important;
+    word-break: break-word !important; /* Permite saltar de línea si el nombre es largo en celulares */
 }
 
+/* Texto del precio */
 .precio-plato-inline {
     color: #FFEB3B !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    margin-left: 3px !important;
+    margin-left: 6px !important;
 }
 
+/* Títulos de secciones */
 .titulo-seccion-carta {
     color: #8B0000;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
-    margin-top: 12px;
+    margin-top: 18px;
     margin-bottom: 4px;
     border-bottom: 2px solid #8B0000;
 }
@@ -186,43 +185,41 @@ tab_carta, tab_menu, tab_pedido = st.tabs([
     "📖 Nuestra Carta", "📋 Menú Diario", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
-# FUNCIÓN DE RENDERIZADO CORREGIDA DE FORMA ABSOLUTA
+# NUEVA FUNCIÓN DE RENDERIZADO VERTICAL (Ideal para celulares)
 def renderizar_hoja_carta(numero_pagina, nombre_imagen):
-    col_izq, col_der = st.columns([4.5, 5.5])
-    
-    with col_izq:
-        ruta_foto = f"images/{nombre_imagen}"
-        if os.path.exists(ruta_foto):
-            st.image(ruta_foto, use_container_width=True)
-        else:
-            st.info(f"📸 [Falta {ruta_foto}]")
-            
-    with col_der:
-        html_filas = ""
-        df_filtrado = df_carta[df_carta["Page"] == numero_pagina]
+    # 1. Mostrar la imagen arriba ocupando todo el ancho disponible
+    ruta_foto = f"images/{nombre_imagen}"
+    if os.path.exists(ruta_foto):
+        st.image(ruta_foto, use_container_width=True)
+    else:
+        st.info(f"📸 [Falta {ruta_foto}]")
         
-        for _, row in df_filtrado.iterrows():
-            p_id = row['ID']
-            p_name = row['Name']
-            p_price = row['Price']
-            
-            # Codificar la URL de forma segura sin romper strings internos
-            params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
-            link_url = f"?{params}"
-            
-            html_filas += f"""
-            <div class="fila-plato-unica-linea">
-                <a class="btn-agregar-inline" href="{link_url}" target="_self">＋</a>
-                <span class="texto-plato-inline">{p_name}</span>
-                <span class="precio-plato-inline">{int(p_price)}</span>
-            </div>
-            """
-            
-        # Bloque contenedor inyectado directamente de manera estricta
-        st.markdown(f'<div class="contenedor-menu-rojo">{html_filas}</div>', unsafe_allow_html=True)
+    # 2. Renderizar la lista de platos inmediatamente abajo
+    html_filas = ""
+    df_filtrado = df_carta[df_carta["Page"] == numero_pagina]
+    
+    for _, row in df_filtrado.iterrows():
+        p_id = row['ID']
+        p_name = row['Name']
+        p_price = row['Price']
+        
+        # Codificación segura de parámetros URL
+        params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
+        link_url = f"?{params}"
+        
+        html_filas += f"""
+        <div class="fila-plato-unica-linea">
+            <a class="btn-agregar-inline" href="{link_url}" target="_self">＋</a>
+            <span class="texto-plato-inline">{p_name}</span>
+            <span class="precio-plato-inline">S/. {int(p_price)}</span>
+        </div>
+        """
+        
+    # Inyección directa del contenedor rojo debajo de la imagen
+    st.markdown(f'<div class="contenedor-menu-rojo">{html_filas}</div>', unsafe_allow_html=True)
 
 # =========================================================
-# 1. PESTAÑA: NUESTRA CARTA (Mapeo de todas tus hojas físicas)
+# 1. PESTAÑA: NUESTRA CARTA
 # =========================================================
 with tab_carta:
     st.markdown('<div class="titulo-seccion-carta">🔥 COMBOS & ALITAS ESPECIALES</div>', unsafe_allow_html=True)
@@ -246,10 +243,10 @@ with tab_menu:
         params_menu = urllib.parse.urlencode({"add_id": f"M{idx}", "add_name": f"Menú: {row['Name']}", "add_price": row['Price']})
         
         st.markdown(f"""
-        <div style="background-color:#8B0000; padding:6px; margin-bottom:4px; border-radius:4px; display:flex; align-items:center;">
+        <div style="background-color:#8B0000; padding:8px; margin-bottom:5px; border-radius:6px; display:flex; align-items:center;">
             <a class="btn-agregar-inline" href="?{params_menu}" target="_self">＋</a>
-            <span style="color:white; font-size:12px; font-weight:bold; margin-left:8px; flex-grow:1;">{row['Name']}</span>
-            <span style="color:#FFEB3B; font-size:12px; font-weight:bold;">S/. {row['Price']:.2f}</span>
+            <span style="color:white; font-size:13px; font-weight:bold; margin-left:10px; flex-grow:1;">{row['Name']}</span>
+            <span style="color:#FFEB3B; font-size:13px; font-weight:bold;">S/. {row['Price']:.2f}</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -270,7 +267,6 @@ with tab_pedido:
         st.divider()
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         
-        # Estructura limpia para tu despacho de WhatsApp
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
         for item in st.session_state.carrito:
             mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
