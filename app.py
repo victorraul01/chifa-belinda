@@ -13,7 +13,6 @@ st.set_page_config(
 
 # Función para cargar la imagen de fondo según la página seleccionada
 def cargar_imagen_fondo_pagina(numero_pagina):
-    # Mapeo exacto solicitado: Página 1 -> pag2.jpg, Página 2 -> pag3.jpg, etc.
     mapeo_archivos = {1: "pag2.jpg", 2: "pag3.jpg", 3: "pag4.jpg", 4: "pag5.jpg", 5: "pag6.jpg", 6: "pag7.jpg"}
     nombre_imagen = mapeo_archivos.get(numero_pagina, "pag2.jpg")
     
@@ -110,7 +109,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-# 5. CSS REESTRUCTURADO PARA CAMBIO DE FONDO FÍSICO Y SCROLL SEGURO
+# 5. CSS REESTRUCTURADO PARA HACER VISIBLES LOS PLATOS Y PERMITIR SCROLL NATURAL
 st.markdown("""
 <style>
 /* Reset completo de contenedores de Streamlit */
@@ -150,17 +149,9 @@ div[data-testid="stTabs"] > div:first-child {
     margin-top: 105px !important;
 }
 
-/* CONTENEDOR SEGURO CON SCROLL INDEPENDIENTE PARA CELULARES */
-.scroller-carta-con-fondo {
-    width: 100% !important;
-    height: calc(100vh - 220px) !important;
-    min-height: 460px !important;
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch !important; /* Habilita scroll fluido en iOS/Android */
-    background-size: cover !important;
-    background-repeat: no-repeat !important;
-    background-position: center center !important;
-    padding: 15px 12px 60px 12px !important;
+/* CONTENEDOR ESPECÍFICO DE LA CARTA (Evita conflictos con inputs del pedido) */
+.contenedor-menu-platos {
+    padding: 10px 14px 80px 14px !important;
     box-sizing: border-box !important;
 }
 
@@ -185,7 +176,7 @@ div[data-testid="stTabs"] > div:first-child {
     padding: 6px 10px !important;
     margin-bottom: 8px !important;
     border-radius: 8px !important;
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.15) !important;
 }
 
 .caja-texto-plato {
@@ -212,15 +203,15 @@ div[data-testid="stTabs"] > div:first-child {
     white-space: nowrap !important;
 }
 
-/* Forzar que los botones de Streamlit se vean esféricos y estilizados */
+/* Estilo para los botones redondos "＋" de Streamlit */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 16px !important;
     font-weight: bold !important;
     border-radius: 50% !important;
-    width: 32px !important;
-    height: 32px !important;
+    width: 34px !important;
+    height: 34px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -242,7 +233,7 @@ tab_carta, tab_pedido = st.tabs([
 ])
 
 # =========================================================
-# PESTAÑA 1: NUESTRA CARTA (CON FONDO EN LÍNEA Y SCROLL SEGURO)
+# PESTAÑA 1: NUESTRA CARTA
 # =========================================================
 with tab_carta:
     if df_carta.empty:
@@ -265,11 +256,23 @@ with tab_carta:
         df_filtrado = df_carta[df_carta["Page_Num"] == pag_seleccionada]
         imagen_b64 = cargar_imagen_fondo_pagina(pag_seleccionada)
         
-        # Construimos el estilo de fondo dinámico directo en línea para asegurar su carga
-        style_background = f"background-image: url('data:image/jpeg;base64,{imagen_b64}');" if imagen_b64 else "background-color: #8C0712;"
+        # Inyectamos el fondo dinámico directamente al bloque contenedor de Streamlit mediante CSS 
+        # Esto soluciona de raíz el scroll y hace que los platos queden siempre al frente.
+        if imagen_b64:
+            st.markdown(f"""
+            <style>
+            div[data-testid="stVerticalBlock"] {{
+                background-image: url('data:image/jpeg;base64,{imagen_b64}') !important;
+                background-size: cover !important;
+                background-repeat: no-repeat !important;
+                background-position: center top !important;
+                background-attachment: scroll !important;
+            }}
+            </style>
+            """, unsafe_allow_html=True)
         
-        # Iniciamos el contenedor HTML con Scroll e imagen fija integrada
-        st.markdown(f'<div class="scroller-carta-con-fondo" style="{style_background}">', unsafe_allow_html=True)
+        # Contenedor seguro para pintar los platos
+        st.markdown('<div class="contenedor-menu-platos">', unsafe_allow_html=True)
         
         categoria_actual = ""
         for idx, row in df_filtrado.iterrows():
@@ -277,21 +280,20 @@ with tab_carta:
                 categoria_actual = str(row['Category']).strip()
                 st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
             
-            # Dibujamos cada item acoplando el botón interactivo de Streamlit de manera limpia
-            with st.container():
-                st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
-                col_btn, col_txt = st.columns([0.15, 0.85])
-                with col_btn:
-                    if st.button("＋", key=f"btn_{row['ID']}_{idx}"):
-                        abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
-                with col_txt:
-                    st.markdown(f"""
-                    <div class="caja-texto-plato">
-                        <span class="nombre-plato-unificado">{row['Name']}</span>
-                        <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
+            # Dibujamos cada item acoplando el botón de manera segura
+            st.markdown('<div class="bloque-fila-interactiva">', unsafe_allow_html=True)
+            col_btn, col_txt = st.columns([0.16, 0.84])
+            with col_btn:
+                if st.button("＋", key=f"btn_{row['ID']}_{idx}"):
+                    abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
+            with col_txt:
+                st.markdown(f"""
+                <div class="caja-texto-plato">
+                    <span class="nombre-plato-unificado">{row['Name']}</span>
+                    <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
                 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -299,6 +301,9 @@ with tab_carta:
 # PESTAÑA 2: MI PEDIDO
 # =========================================================
 with tab_pedido:
+    # Removemos el fondo para la pestaña del carrito y que sea legible en blanco/negro
+    st.markdown("""<style>div[data-testid="stVerticalBlock"] { background-image: none !important; }</style>""", unsafe_allow_html=True)
+    
     st.markdown("<div style='padding: 12px;'>", unsafe_allow_html=True)
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
@@ -317,7 +322,6 @@ with tab_pedido:
         st.divider()
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         
-        # Estructura del mensaje de WhatsApp incluyendo las especificaciones completas
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
         for item in st.session_state.carrito:
             mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
