@@ -38,7 +38,7 @@ if st.session_state.mensaje_exito:
     st.toast(st.session_state.mensaje_exito)
     st.session_state.mensaje_exito = None
 
-# BASE DE DATOS COMPLETA Y CORREGIDA (Evita errores de longitud despareja)
+# BASE DE DATOS COMPLETA DE TODA LA CARTA (Páginas 2, 3, 4 y 5 de tu PDF)
 def obtener_carta_completa_pdf():
     # PÁGINA 2: COMBOS, ALITAS Y BROASTER (21 platos)
     p2 = pd.DataFrame({
@@ -88,7 +88,7 @@ def obtener_carta_completa_pdf():
         "Page": 5
     })
     
-    # Fusionamos todas las páginas de forma segura y creamos IDs correlativos automáticos
+    # Combinación robusta e indexación automática
     df_unido = pd.concat([p2, p3, p4, p5], ignore_index=True)
     df_unido["ID"] = [f"P{i+1}" for i in df_unido.index]
     return df_unido
@@ -101,24 +101,24 @@ df_menu_diario = pd.DataFrame({
     "Price": [14.00, 15.00, 14.00, 17.00, 17.00]
 })
 
-# ESTILOS CSS (Garantiza una sola línea compacta por plato)
+# ESTILOS CSS REVISADOS (Garantizan la correcta inyección visual en móviles)
 st.markdown("""
 <style>
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    gap: 5px !important;
+    gap: 4px !important;
 }
 
 .contenedor-menu-rojo {
     background-color: #8B0000 !important;
-    padding: 8px 5px !important;
-    border-radius: 6px;
+    padding: 6px 4px !important;
+    border-radius: 6px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 5px !important;
-    width: 100%;
+    gap: 4px !important;
+    width: 100% !important;
 }
 
 .fila-plato-unica-linea {
@@ -128,7 +128,7 @@ div[data-testid="stHorizontalBlock"] {
     justify-content: space-between !important;
     width: 100% !important;
     padding: 3px 0px !important;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
 }
 
 .btn-agregar-inline {
@@ -148,12 +148,12 @@ div[data-testid="stHorizontalBlock"] {
 
 .texto-plato-inline {
     color: #FFFFFF !important;
-    font-size: 10px !important;
+    font-size: 9px !important;
     font-weight: bold !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
     margin-right: auto !important;
     text-align: left !important;
 }
@@ -164,21 +164,21 @@ div[data-testid="stHorizontalBlock"] {
     font-weight: bold !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    margin-left: 4px !important;
+    margin-left: 3px !important;
 }
 
 .titulo-seccion-carta {
     color: #8B0000;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 2px;
+    margin-top: 12px;
+    margin-bottom: 4px;
     border-bottom: 2px solid #8B0000;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ENCABEZADO PRINCIPAL
+# ENCABEZADO DE LA APLICACIÓN
 st.markdown("<h2 style='text-align:center; color:#8B0000; margin-bottom:0;'>🍜 CHIFA D' BELINDA</h2>", unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
@@ -186,7 +186,7 @@ tab_carta, tab_menu, tab_pedido = st.tabs([
     "📖 Nuestra Carta", "📋 Menú Diario", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
-# FUNCIÓN REUTILIZABLE PARA GENERAR PÁGINAS DE LA CARTA
+# FUNCIÓN DE RENDERIZADO CORREGIDA DE FORMA ABSOLUTA
 def renderizar_hoja_carta(numero_pagina, nombre_imagen):
     col_izq, col_der = st.columns([4.5, 5.5])
     
@@ -206,6 +206,7 @@ def renderizar_hoja_carta(numero_pagina, nombre_imagen):
             p_name = row['Name']
             p_price = row['Price']
             
+            # Codificar la URL de forma segura sin romper strings internos
             params = urllib.parse.urlencode({"add_id": p_id, "add_name": p_name, "add_price": p_price})
             link_url = f"?{params}"
             
@@ -217,14 +218,11 @@ def renderizar_hoja_carta(numero_pagina, nombre_imagen):
             </div>
             """
             
-        st.markdown(f"""
-        <div class="contenedor-menu-rojo">
-            {html_filas}
-        </div>
-        """, unsafe_allow_html=True)
+        # Bloque contenedor inyectado directamente de manera estricta
+        st.markdown(f'<div class="contenedor-menu-rojo">{html_filas}</div>', unsafe_allow_html=True)
 
 # =========================================================
-# 1. PESTAÑA: NUESTRA CARTA (TODAS LAS HOJAS MAPPED)
+# 1. PESTAÑA: NUESTRA CARTA (Mapeo de todas tus hojas físicas)
 # =========================================================
 with tab_carta:
     st.markdown('<div class="titulo-seccion-carta">🔥 COMBOS & ALITAS ESPECIALES</div>', unsafe_allow_html=True)
@@ -256,7 +254,7 @@ with tab_menu:
         """, unsafe_allow_html=True)
 
 # =========================================================
-# 3. PESTAÑA: MI PEDIDO / WHATSAPP
+# 3. PESTAÑA: MI PEDIDO / COMPRA FINAL
 # =========================================================
 with tab_pedido:
     if not st.session_state.carrito:
@@ -272,6 +270,7 @@ with tab_pedido:
         st.divider()
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         
+        # Estructura limpia para tu despacho de WhatsApp
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
         for item in st.session_state.carrito:
             mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
