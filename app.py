@@ -27,7 +27,6 @@ def cargar_imagen_b64(nombre_imagen):
                 return base64.b64encode(image_file.read()).decode()
     return None
 
-# Mapeo de páginas a tus archivos reales .jpeg
 IMAGENES_POR_PAGINA = {
     1: "pag1.jpeg",
     2: "pag2.jpeg",
@@ -42,8 +41,8 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
-        /* Imagen de fondo principal fija */
-        .stApp, [data-testid="stAppViewContainer"] {{
+        /* Imagen de fondo en la raíz absoluta de la app */
+        .stApp, [data-testid="stAppViewContainer"], [data-testid="stMainSpace"] {{
             background-image: url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
             background-repeat: no-repeat !important;
@@ -52,15 +51,18 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-color: transparent !important;
         }}
         
-        /* ELIMINACIÓN DE FONDO ROJO EN PESTAÑAS Y CONTENEDORES INTERNOS */
+        /* TRANSPARENCIA RADICAL EN CUALQUIER CAPA INTERMEDIA DE STREAMLIT */
         .main, 
         [data-testid="stCanvas"],
         [data-testid="stTabs"],
         [data-testid="stTabPanel"],
         div[role="tabpanel"],
-        div[data-testid="stVerticalBlock"] {{
+        div[data-testid="stVerticalBlock"],
+        div[data-testid="stVerticalBlockBorderWrapper"],
+        [data-testid="element-container"] {{
             background-color: transparent !important;
             background: transparent !important;
+            border-color: transparent !important;
         }}
         </style>
         """, unsafe_allow_html=True)
@@ -152,11 +154,10 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS GLOBAL MAESTRO (TRANSPARENCIAS + FIJADO MÓVIL)
+# 5. CSS GLOBAL MAESTRO (FIJADO MÓVIL Y ESTILOS)
 # =========================================================
 st.markdown("""
 <style>
-/* Bloquear scroll exterior */
 html, body, [data-testid="stApp"] {
     overflow: hidden !important;
     height: 100vh !important;
@@ -220,7 +221,7 @@ button[aria-selected="true"] {
     font-weight: bold !important;
 }
 
-/* SCROLL INDEPENDIENTE PARA LOS PLATOS */
+/* SCROLL INTERNO */
 div[data-testid="stTabs"] [data-testid="stVerticalBlock"] {
     max-height: calc(100vh - 190px) !important;
     overflow-y: auto !important;
@@ -252,20 +253,6 @@ div[data-testid="stTabs"] > div:nth-child(2) {
     border-left: 5px solid #FFEB3B !important;
 }
 
-/* FILA DE PLATO (Transparencia ligera para respetar tu fondo) */
-div[class*="st-key-fila_"] {
-    background: rgba(0, 0, 0, 0.4) !important; 
-    padding: 10px 12px !important;
-    margin-bottom: 12px !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(255,255,255,0.25) !important;
-}
-
-div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
-    align-items: center !important;
-    gap: 0px !important;
-}
-
 /* Botón redondo amarillo "＋" */
 div.stButton > button {
     background-color: #FFEB3B !important;
@@ -273,8 +260,8 @@ div.stButton > button {
     font-size: 20px !important;
     font-weight: bold !important;
     border-radius: 50% !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -319,7 +306,7 @@ with tab_carta:
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Cargar dinámicamente tu fondo .jpeg
+        # Cargar el fondo dinámico de la página seleccionada
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
@@ -332,16 +319,18 @@ with tab_carta:
                 categoria_actual = str(row['Category']).strip()
                 st.markdown(f'<div class="titulo-categoria-resaltado">📂 {categoria_actual}</div>', unsafe_allow_html=True)
 
-            fila = st.container(border=True, key=f"fila_{row['ID']}")
+            # 🌟 CAMBIO CLAVE: Usamos st.container sin bordes nativos para evitar cajas rojas del sistema
+            fila = st.container()
             with fila:
                 col_btn, col_txt = st.columns([0.18, 0.82])
                 with col_btn:
                     if st.button("＋", key=f"btn_{row['ID']}"):
                         abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
                 with col_txt:
-                    # 🌟 TEXTOS CON FORCE TOTAL EN LÍNEA (Resuelve la invisibilidad de letras)
+                    # Contenedor HTML personalizado estilizado con un fondo sutil semitransparente oscuro (0.65)
+                    # para asegurar la legibilidad sin tapar tu imagen de fondo original
                     st.markdown(f"""
-                    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; padding-left: 8px;">
+                    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; padding: 10px 14px; background: rgba(0, 0, 0, 0.65) !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 12px !important; box-sizing: border-box;">
                         <span style="color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; text-align: left !important; line-height: 1.3 !important; font-family: sans-serif !important;">
                             {row['Name']}
                         </span>
@@ -390,7 +379,7 @@ with tab_pedido:
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         telefono_cliente = st.text_input("Tu número de contacto:")
 
-        if nombre_cliente.strip() and telefono_cliente.strip():
+        if nombre_cliente.strip() and telephone_cliente.strip():
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n📞 *Contacto:* {telefono_cliente}\n-------------------------\n"
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
