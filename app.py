@@ -42,21 +42,25 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
-        /* Imagen de fondo principal fija en el fondo */
-        .stApp {{
+        /* Imagen de fondo principal fija */
+        .stApp, [data-testid="stAppViewContainer"] {{
             background-image: url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
             background-repeat: no-repeat !important;
             background-position: center center !important;
             background-attachment: fixed !important;
+            background-color: transparent !important;
         }}
-        /* 🚨 DESACTIVAMOS CUALQUIER COLOR DE RESPALDO O CAPA DE STREAMLIT */
+        
+        /* ELIMINACIÓN DE FONDO ROJO EN PESTAÑAS Y CONTENEDORES INTERNOS */
         .main, 
-        [data-testid="stAppViewContainer"], 
         [data-testid="stCanvas"],
         [data-testid="stTabs"],
-        div[data-testid="stTabs"] > div:nth-child(2) {{
+        [data-testid="stTabPanel"],
+        div[role="tabpanel"],
+        div[data-testid="stVerticalBlock"] {{
             background-color: transparent !important;
+            background: transparent !important;
         }}
         </style>
         """, unsafe_allow_html=True)
@@ -152,21 +156,20 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
 # =========================================================
 st.markdown("""
 <style>
-/* Bloquear scroll molesto de la pantalla exterior en celulares */
+/* Bloquear scroll exterior */
 html, body, [data-testid="stApp"] {
     overflow: hidden !important;
     height: 100vh !important;
     position: relative;
 }
 
-/* Limpieza de márgenes estructurales */
 .main .block-container {
     padding: 0px !important;
     max-width: 100% !important;
     height: 100vh !important;
 }
 
-/* ENCABEZADO SUPERIOR FIJO (Rojo Chifa) */
+/* ENCABEZADO SUPERIOR FIJO */
 .encabezado-fijo-global {
     position: fixed !important;
     top: 0 !important;
@@ -179,7 +182,7 @@ html, body, [data-testid="stApp"] {
     border-bottom: 2px solid #FFEB3B !important;
 }
 
-/* PESTAÑAS (CARTA / PEDIDO) FIJAS */
+/* PESTAÑAS FIJAS */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
     top: 48px !important;
@@ -199,7 +202,7 @@ button[aria-selected="true"] {
     border-bottom-color: #FFEB3B !important;
 }
 
-/* SELECTOR DE PÁGINAS (Pág 1, Pág 2...) FIJO */
+/* SELECTOR DE PÁGINAS FIJO */
 .bloque-paginas-estatico {
     position: fixed !important;
     top: 94px !important;
@@ -212,18 +215,16 @@ button[aria-selected="true"] {
     border-bottom: 3px solid #FFEB3B !important;
 }
 
-/* Forzar que los textos del selector de páginas se lean en blanco */
 .bloque-paginas-estatico label div[data-testid="stMarkdownContainer"] p {
     color: #FFFFFF !important;
     font-weight: bold !important;
 }
 
-/* ACTIVACIÓN DE SCROLL TÁCTIL EXCLUSIVO PARA LOS PLATOS */
+/* SCROLL INDEPENDIENTE PARA LOS PLATOS */
 div[data-testid="stTabs"] [data-testid="stVerticalBlock"] {
     max-height: calc(100vh - 190px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    background-color: transparent !important;
 }
 
 div[data-testid="stTabs"] > div:nth-child(2) {
@@ -231,13 +232,11 @@ div[data-testid="stTabs"] > div:nth-child(2) {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     margin-top: 190px !important;
-    background-color: transparent !important;
 }
 
 .contenedor-menu-platos {
     padding: 10px 14px 140px 14px !important; 
     box-sizing: border-box !important;
-    background-color: transparent !important;
 }
 
 /* TÍTULOS DE CATEGORÍAS */
@@ -253,44 +252,18 @@ div[data-testid="stTabs"] > div:nth-child(2) {
     border-left: 5px solid #FFEB3B !important;
 }
 
-/* FILA DE CADA PLATO (Ahora con fondo transparente o sutil para ver tu diseño de fondo) */
+/* FILA DE PLATO (Transparencia ligera para respetar tu fondo) */
 div[class*="st-key-fila_"] {
-    background: rgba(0, 0, 0, 0.4) !important; /* Bajado a 0.4 para ver más tu imagen detrás */
+    background: rgba(0, 0, 0, 0.4) !important; 
     padding: 10px 12px !important;
     margin-bottom: 12px !important;
     border-radius: 12px !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
 }
 
 div[class*="st-key-fila_"] div[data-testid="stHorizontalBlock"] {
     align-items: center !important;
     gap: 0px !important;
-}
-
-.caja-texto-plato {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    padding-left: 8px !important;
-}
-
-/* Forzar color de texto de los platos en Blanco */
-.nombre-plato-unificado {
-    color: #FFFFFF !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    text-align: left !important;
-    line-height: 1.3 !important;
-}
-
-/* Forzar color de los precios en Amarillo */
-.precio-plato-unificado {
-    color: #FFEB3B !important;
-    font-size: 15px !important;
-    font-weight: bold !important;
-    white-space: nowrap !important;
 }
 
 /* Botón redondo amarillo "＋" */
@@ -346,7 +319,7 @@ with tab_carta:
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Cargar dinámicamente tu fondo .jpeg respectivo
+        # Cargar dinámicamente tu fondo .jpeg
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
@@ -366,10 +339,15 @@ with tab_carta:
                     if st.button("＋", key=f"btn_{row['ID']}"):
                         abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
                 with col_txt:
+                    # 🌟 TEXTOS CON FORCE TOTAL EN LÍNEA (Resuelve la invisibilidad de letras)
                     st.markdown(f"""
-                    <div class="caja-texto-plato">
-                        <span class="nombre-plato-unificado">{row['Name']}</span>
-                        <span class="precio-plato-unificado">S/. {float(row['Price']):.2f}</span>
+                    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; padding-left: 8px;">
+                        <span style="color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; text-align: left !important; line-height: 1.3 !important; font-family: sans-serif !important;">
+                            {row['Name']}
+                        </span>
+                        <span style="color: #FFEB3B !important; font-size: 15px !important; font-weight: bold !important; white-space: nowrap !important; font-family: sans-serif !important; padding-left: 10px;">
+                            S/. {float(row['Price']):.2f}
+                        </span>
                     </div>
                     """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
