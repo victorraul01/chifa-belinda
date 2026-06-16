@@ -48,8 +48,13 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* Forzar transparencia total para eliminar bloques o parches blancos */
-        .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"] {{
+        /* ELIMINACIÓN RADICAL DE FONDOS BLANCOS NATIVOS */
+        .main, 
+        [data-testid="stCanvas"], 
+        [data-testid="stTabPanel"], 
+        div[role="tabpanel"], 
+        div[data-testid="stVerticalBlock"],
+        [data-testid="stApp"] {{
             background-color: transparent !important;
             background: transparent !important;
         }}
@@ -61,7 +66,7 @@ if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
 # =========================================================
-# 3. DICCIONARIO MAESTRO DE DISTRIBUCIÓN DE PÁGINAS
+# 3. DICCIONARIO MAESTRO DE DISTRIBUCIÓN DE PÁGINAS (ESTRICTO)
 # =========================================================
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
@@ -127,86 +132,60 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
             "precio": float(precio_plato),
             "cant": int(cantidad),
             "cremas": cremas_texto,
-            "notas": notas if notas.strip() != "" else "Ninguna"
+            "notes": notas if notas.strip() != "" else "Ninguna"
         })
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO SIN PARCHES BLANCOS
+# 5. CSS MAESTRO: CONTROL DE ELEMENTOS Y ENCABEZADO FIJO
 # =========================================================
 st.markdown("""
 <style>
-/* 1. Congelar la pantalla exterior para controlar el scroll interno */
+/* Controlar scroll general */
 html, body, [data-testid="stApp"] {
-    overflow: hidden !important;
-    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-/* Eliminar márgenes por defecto de Streamlit arriba */
+/* Reducir espacios superiores nativos */
 .main .block-container {
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-    padding-left: 0px !important;
-    padding-right: 0px !important;
+    padding-top: 10px !important;
     max-width: 100% !important;
 }
 
-/* 2. ENCABEZADO FIJO BLANCO DE TU DISEÑO ORIGINAL */
-.encabezado-fijo-contenedor {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    background-color: #FFFDF9 !important; /* Beige/Blanco claro original */
-    z-index: 999999 !important;
-    padding: 14px 16px 6px 16px !important;
-    border-bottom: 2px solid #8B0000 !important;
-    box-shadow: 0px 3px 10px rgba(0,0,0,0.15) !important;
-    text-align: center;
-}
-
-/* 3. FORZAR QUE LAS PESTAÑAS NATIVAS SE QUEDEN FIJAS JUSTO ABAJO */
+/* ENCABEZADO FIJO SUPERIOR ESTÁTICO DE FORMA LIMPIA */
 div[data-testid="stTabs"] > div:first-child {
-    position: fixed !important;
-    top: 72px !important;
-    left: 0 !important;
-    width: 100% !important;
-    background-color: #FFFDF9 !important;
-    z-index: 999998 !important;
-    padding: 0px 16px !important;
-    border-bottom: 1px solid #E0E0E0 !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0px !important;
+    background-color: rgba(139, 0, 0, 0.95) !important; /* Rojo Chifa sutil para el menú pegajoso */
+    z-index: 99999 !important;
+    padding: 6px 10px !important;
+    border-bottom: 2px solid #FFEB3B !important;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3) !important;
 }
 
-/* Ajustar los textos de las pestañas nativas */
+/* Forzar color legible en las pestañas */
 div[data-testid="stTabs"] button p {
-    font-size: 14px !important;
+    color: #FFFFFF !important;
+    font-size: 15px !important;
     font-weight: bold !important;
 }
 
-/* 4. CREAR ÁREA DE SCROLL SÓLO PARA LOS PLATOS (Evita que el menú se mueva) */
-div[data-testid="stTabs"] > div:nth-child(2) {
-    height: calc(100vh - 125px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    margin-top: 125px !important;
-    padding: 10px 16px 120px 16px !important;
-}
-
-/* Estilo limpio para el Radio Horizontal (Botones de Página flotando) */
+/* Hacer que las opciones del Radio (Páginas) se vean impecables sin fondo blanco masivo */
 div[data-testid="stRadio"] div[role="radiogroup"] {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    padding: 8px !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    padding: 10px !important;
     border-radius: 8px !important;
-    border: 1px solid #8B0000 !important;
-    margin-bottom: 15px !important;
+    border: 1px solid #FFEB3B !important;
 }
 div[data-testid="stRadio"] label {
-    color: #222222 !important;
+    color: #FFFFFF !important;
     font-weight: bold !important;
 }
 
-/* Botón redondo amarillo "＋" */
+/* Botón redondo amarillo "＋" original */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -218,24 +197,24 @@ div.stButton > button {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border: 2px solid #8B0000 !important;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.4) !important;
+    border: none !important;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
 }
 
-/* Categorías */
+/* Títulos de Categorías */
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 16px !important;
     font-weight: bold !important;
-    background-color: #8B0000 !important;
+    background-color: rgba(139, 0, 0, 0.85) !important;
     padding: 10px 14px !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     margin-top: 15px !important;
     margin-bottom: 12px !important;
     border-left: 5px solid #FFEB3B !important;
 }
 
-/* Filas transparentes directamente sobre la imagen roja */
+/* Filas transparentes de platos que van encima de tu imagen roja */
 .fila-plato-limpia {
     display: flex !important;
     flex-direction: row !important;
@@ -249,12 +228,12 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ESTRUCTURA FIJA REAL EN LA PARTE SUPERIOR
+# 6. TITULO ENCABEZADO PRINCIPAL (FIJO NATURAL AL PRINCIPIO)
 # =========================================================
 st.markdown("""
-<div class="encabezado-fijo-contenedor">
-    <h3 style="margin: 0; padding: 0; font-size: 22px; color: #8B0000; font-family: sans-serif; font-weight: bold;">🍜 CHIFA D' BELINDA</h3>
-    <p style="margin: 3px 0 0 0; padding: 0; font-size: 13px; color: #444444; font-family: sans-serif;"> pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+<div style="text-align: center; padding: 10px 0;">
+    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 4px 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -271,22 +250,22 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de cambio de página
+        # Selector de páginas
         pag_seleccionada = st.radio(
-            "Selecciona una Página:",
+            "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
             format_func=lambda x: f"Pág. {x}",
             horizontal=True,
             key="pagina_actual"
         )
 
-        # Cargar el fondo correspondiente de forma limpia detrás de los platos
+        # Aplicar el fondo exacto correspondiente
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Lista de platos fluyendo directamente sobre tu imagen
+        # Mostrar los platos de forma transparente sobre la imagen
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
@@ -299,13 +278,13 @@ with tab_carta:
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
                     with col_txt:
-                        # 🌟 MÁXIMA VISIBILIDAD: Letras blancas, precios amarillos, con sombra negra fuerte para resaltar en tu fondo
+                        # Letras blancas y precios amarillos con sombras negras para resaltar perfecto en tu fondo
                         st.markdown(f"""
                         <div class="fila-plato-limpia">
-                            <span style="color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-align: left !important; font-family: sans-serif !important; text-shadow: 2px 2px 5px rgba(0,0,0,1), -1px -1px 3px rgba(0,0,0,1) !important;">
+                            <span style="color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-align: left !important; font-family: sans-serif !important; text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;">
                                 {row['Name']}
                             </span>
-                            <span style="color: #FFEB3B !important; font-size: 17px !important; font-weight: bold !important; white-space: nowrap !important; font-family: sans-serif !important; text-shadow: 2px 2px 5px rgba(0,0,0,1) !important; padding-left: 10px;">
+                            <span style="color: #FFEB3B !important; font-size: 16px !important; font-weight: bold !important; white-space: nowrap !important; font-family: sans-serif !important; text-shadow: 2px 2px 4px rgba(0,0,0,1) !important; padding-left: 10px;">
                                 S/. {float(row['Price']):.2f}
                             </span>
                         </div>
@@ -315,7 +294,7 @@ with tab_carta:
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 10px; border: 1px solid #E0E0E0;">', unsafe_allow_html=True)
+    st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 15px; border: 1px solid #E0E0E0;">', unsafe_allow_html=True)
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
