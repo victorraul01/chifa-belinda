@@ -134,10 +134,10 @@ def abrir_modal_dinamico():
 
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     st.markdown("*Selecciona tus Cremas / Salsas:*")
-    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+    c_aji = st.checkbox("Ají  🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Tamarindo 🍯")
     
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
@@ -359,7 +359,7 @@ with tab_pedido:
         if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
         mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
         for item in st.session_state.carrito:
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+            mensaje_wa += f"✅ {item['cant']}   {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
         mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
 
