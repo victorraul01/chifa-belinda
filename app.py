@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # =========================================================
-# Opciones del Menú del Día (Limpios, sin texto repetitivo)
+# Opciones del Menú del Día
 # =========================================================
 PLATOS_MENU_INTERNO = [
     # --- Platos de la primera sección de la imagen ---
@@ -69,7 +69,7 @@ def cargar_imagen_b64(nombre_imagen):
 
 IMAGENES_POR_PAGINA = {
     1: "pag1.jpeg", 2: "pag2.jpeg", 3: "pag3.jpeg",
-    4: "pag4.jpeg", 5: "pag5.jpeg", 6: "pag6.jpeg",
+    4: "pag5.jpeg", 5: "pag5.jpeg", 6: "pag6.jpeg",
     "menu": "pag1.jpeg"
 }
 
@@ -137,7 +137,6 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
     st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
     st.write("---")
     
-    # Selector de entrada exclusivo para Menú del Día
     entrada_seleccionada = ""
     if tipo_origen == "Menú del Día":
         st.markdown("**Elige tu Entrada (Incluida):**")
@@ -147,10 +146,10 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     
     st.markdown("**Selecciona tus Cremas / Salsas:**")
-    c_aji = st.checkbox("Ají 🌶️")
+    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
     
     mostrar_limon = any(keyword in categoria_plato for keyword in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
@@ -186,13 +185,13 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
             "cremas": cremas_texto, 
             "notas": notas.strip(),
             "tipo": tipo_origen,
-            "entrada": entrada_seleccionada # Guardamos la entrada elegida
+            "entrada": entrada_seleccionada
         })
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO GLOBAL
+# 5. CSS MAESTRO GLOBAL (Línea corregida)
 # =========================================================
 st.markdown("""
 <style>
@@ -219,10 +218,9 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
 
 .contenedor-plato-unico {
     display: flex !important; flex-direction: row !important; justify-content: space-between !important;
-    align-items: center !important; width: 100% !important; padding: 10px 0px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+    align-items: center !important; width: 100% !important; padding: 5px 0px !important;
 }
-.texto-nombre-plato { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; flex-grow: 1 !important; text-align: left !important; }
+.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; flex-grow: 1 !important; text-align: left !important; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; padding-right: 15px !important; }
 
 .fila-carrito-ordenada {
@@ -244,7 +242,7 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
 
 div.boton-agregar-carta button {
     background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 20px !important; font-weight: bold !important;
-    border-radius: 50% !important; width: 38px !important; height: 38px !important; min-width: 38px !important;
+    border-radius: 8px !important; width: 44px !important; height: 40px !important; min-width: 44px !important;
     border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important; padding: 0px !important;
 }
 
@@ -298,12 +296,10 @@ with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     aplicar_fondo("pag1.jpeg", "menu")
     
-    # Texto movido al encabezado de la sección de manera vistosa
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
     
-    # Renderizado directo de los platos limpios
     for plato in PLATOS_MENU_INTERNO:
-        col_info, col_btn = st.columns([0.84, 0.16])
+        col_info, col_btn = st.columns([0.80, 0.20])
         with col_info:
             st.markdown(f"""
             <div class="contenedor-plato-unico">
@@ -316,6 +312,9 @@ with tab_menu:
             if st.button("＋", key=f"btn_menu_{plato['ID']}"):
                 abrir_modal_agregar_plato(plato['ID'], plato['Name'], plato['Price'], "MENÚ", tipo_origen="Menú del Día")
             st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Línea divisoria colocada al final absoluto de la fila del plato
+        st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.22); margin: 5px 0 12px 0;">', unsafe_allow_html=True)
             
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -336,7 +335,7 @@ with tab_carta:
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
-                    col_info, col_btn = st.columns([0.84, 0.16])
+                    col_info, col_btn = st.columns([0.80, 0.20])
                     with col_info:
                         st.markdown(f"""
                         <div class="contenedor-plato-unico">
@@ -349,6 +348,9 @@ with tab_carta:
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name, tipo_origen="Carta")
                         st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Línea divisoria colocada al final absoluto de la fila de la carta también
+                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.22); margin: 5px 0 12px 0;">', unsafe_allow_html=True)
 
 # =========================================================
 # PESTAÑA: 🛒 MI PEDIDO
@@ -368,7 +370,6 @@ with tab_pedido:
             origen_tipo = item.get("tipo", "Carta")
             detalles_lista = [f"📌 Tipo: {origen_tipo}"]
             
-            # Si el plato tiene entrada seleccionada, la mostramos en la lista de detalles
             if item.get("entrada"):
                 detalles_lista.append(f"🍲 Entrada: {item['entrada']}")
                 
@@ -431,14 +432,12 @@ with tab_pedido:
 
         st.write("")
         
-        # 🛡️ VALIDACIÓN EN TIEMPO REAL
         error_validacion = None
         if not nombre_cliente.strip():
             error_validacion = "Completa tu nombre completo para poder enviar el pedido."
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
             error_validacion = "Seleccionaste Delivery Moto, debes escribir una Dirección de Envío."
 
-        # Construcción dinámica del mensaje de WhatsApp
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
         mensaje_wa += f"👤 *Cliente:* {nombre_cliente.strip()}\n"
         mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
@@ -449,11 +448,11 @@ with tab_pedido:
         
         for item in st.session_state.carrito:
             tipo_item = item.get("tipo", "Carta")
-            mensaje_wa += f"✅ {item['cant']}  {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
+            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
             detalles_wa = []
             if item.get("entrada"): detalles_wa.append(f"Entrada: {item['entrada']}")
             if item['cremas']: detalles_wa.append(f"{item['cremas']}")
-            if item['notes' if 'notes' in item else 'notas']: detalles_wa.append(f"{item['notas']}")
+            if item['notas']: detalles_wa.append(f"{item['notas']}")
             if detalles_wa:
                 mensaje_wa += f"  • {" | ".join(detalles_wa)}\n"
         
@@ -464,7 +463,6 @@ with tab_pedido:
 
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
 
-        # 🟢 MOSTRAR EL BOTÓN VERDE DIRECTO
         if error_validacion:
             st.warning(f"⚠️ {error_validacion}")
             st.markdown(f"""
