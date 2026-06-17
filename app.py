@@ -136,7 +136,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ESTILOS LIMPIOS RESALTADOS
+# 5. CSS MAESTRO: ESTILOS CORREGIDOS (FUERZA COLOR VERDE)
 # =========================================================
 st.markdown("""
 <style>
@@ -180,7 +180,6 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
     display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important;
     width: 100% !important; margin-bottom: 4px !important;
 }
-/* BOTÓN TACHITO MINIATURA EN LINEA */
 .btn-tacho-mini {
     background-color: #FFEB3B !important; color: #8B0000 !important; text-decoration: none !important;
     font-size: 11px !important; padding: 3px 5px !important; border-radius: 4px !important;
@@ -190,7 +189,6 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
 .texto-plato-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; flex-grow: 1 !important; text-align: left !important; }
 .texto-precio-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* DETALLES DE SALSAS Y NOTAS LIMPIOS */
 .texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; text-shadow: 1px 1px 2px #000000 !important; display: block; margin-left: 30px; opacity: 0.95; }
 
 div.boton-agregar-carta button {
@@ -199,19 +197,25 @@ div.boton-agregar-carta button {
     border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important; padding: 0px !important;
 }
 
-/* FORZAR COLOR VERDE CLÁSICO WHATSAPP EN EL BOTÓN DE ENLACE */
-a[data-testid="stLinkButton"] {
+/* AQUÍ SE FUERZA EL VERDE WHATSAPP ORIGINAL EN EL ELEMENTO INTERNO DEL BOTÓN NATIVO */
+div.btn-pedido-whatsapp button {
     background-color: #25D366 !important; 
     color: #FFFFFF !important; 
-    border: none !important;
-    border-radius: 8px !important;
-    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
-}
-a[data-testid="stLinkButton"] p {
-    color: #FFFFFF !important;
     font-size: 16px !important; 
     font-weight: bold !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
+    border-radius: 8px !important; 
+    width: 100% !important; 
+    height: 48px !important; 
+    border: none !important; 
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
+}
+div.btn-pedido-whatsapp button p {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+}
+div.btn-pedido-whatsapp button:hover, div.btn-pedido-whatsapp button:active, div.btn-pedido-whatsapp button:focus {
+    background-color: #128C7E !important;
+    color: #FFFFFF !important;
 }
 
 div.boton-normal-ancho button {
@@ -274,7 +278,7 @@ with tab_carta:
                         st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA 2: MI PEDIDO (CARRITO CORREGIDO)
+# PESTAÑA 2: MI PEDIDO (CARRITO SIN TEXTOS REPETIDOS)
 # =========================================================
 with tab_pedido:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -288,7 +292,7 @@ with tab_pedido:
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            # Construcción dinámica sin textos repetitivos ni etiquetas estáticas
+            # Construcción dinámica sin etiquetas fijas (Salsas: / Nota:)
             detalles_lista = []
             if item['cremas']:
                 detalles_lista.append(f"🧂 {item['cremas']}")
@@ -354,44 +358,51 @@ with tab_pedido:
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Pago:</span>', unsafe_allow_html=True)
         metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], horizontal=True, label_visibility="collapsed", key="met_pag")
 
-        # El botón siempre se arma apuntando al link dinámico o se intercepta el aviso de error
-        datos_completos = False
-        if nombre_cliente.strip() and (metodo_entrega == "Recojo en Local 🏪" or direccion_cliente.strip()):
-            datos_completos = True
-
-        if datos_completos:
-            mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
-            mensaje_wa += f"👤 *Cliente:* {nombre_cliente}\n"
-            mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
-            if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 *Dirección:* {direccion_cliente.strip()}\n"
-            mensaje_wa += f"💳 *Pago:* {metodo_pago}\n"
-            mensaje_wa += f"-------------------------\n"
-            
-            for item in st.session_state.carrito:
-                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
-                detalles_wa = []
-                if item['cremas']: detalles_wa.append(f"Salsas: {item['cremas']}")
-                if item['notas']: detalles_wa.append(f"Nota: {item['notas']}")
-                if detalles_wa:
-                    mensaje_wa += f"  • {" | ".join(detalles_wa)}\n"
-            
-            mensaje_wa += f"-------------------------\n"
-            mensaje_wa += f"💰 *TOTAL A PAGAR:* S/. {total:.2f}\n"
-            if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"ℹ️ _El costo de delivery se sumará en breve._"
-
-            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-        else:
-            # Si no completó datos, apunta a una recarga de anclaje de la app para no disparar WhatsApp erróneo
-            link_final = "?error=campos_incompletos"
-
         st.write("")
-        # El botón de WhatsApp se renderiza visible de forma ininterrumpida
-        st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
+        
+        # EL BOTÓN VERDE CLÁSICO SIEMPRE SE RENDERIZA
+        st.markdown('<div class="btn-pedido-whatsapp">', unsafe_allow_html=True)
+        click_enviar = st.button("📲 ENVIAR PEDIDO A WHATSAPP", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # Mostrar aviso en pantalla en lugar de esconder el botón
-        if "error" in st.query_params and st.query_params["error"] == "campos_incompletos":
-            st.error("⚠️ No se puede enviar el pedido por WhatsApp: Por favor, escribe tu Nombre Completo (y la dirección en caso de ser Delivery Moto) antes de proceder.")
-            st.query_params.clear()
+        # EVALUACIÓN INTERACTIVA AL HACER CLIC
+        if click_enviar:
+            # Comprobación estricta de campos obligatorios
+            if not nombre_cliente.strip():
+                st.error("⚠️ No se puede enviar el pedido: Por favor, ingresa tu Nombre Completo.")
+            elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
+                st.error("⚠️ No se puede enviar el pedido: Seleccionaste Delivery Moto, debes ingresar una Dirección de Envío.")
+            else:
+                # Si todo está bien, generamos el texto limpio y disparamos la ventana de WhatsApp usando JS nativo seguro
+                mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
+                mensaje_wa += f"👤 *Cliente:* {nombre_cliente}\n"
+                mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
+                if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 *Dirección:* {direccion_cliente.strip()}\n"
+                mensaje_wa += f"💳 *Pago:* {metodo_pago}\n"
+                mensaje_wa += f"-------------------------\n"
+                
+                for item in st.session_state.carrito:
+                    mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+                    detalles_wa = []
+                    if item['cremas']: detalles_wa.append(f"{item['cremas']}")
+                    if item['notas']: detalles_wa.append(f"{item['notas']}")
+                    if detalles_wa:
+                        mensaje_wa += f"  • {" | ".join(detalles_wa)}\n"
+                
+                mensaje_wa += f"-------------------------\n"
+                mensaje_wa += f"💰 *TOTAL A PAGAR:* S/. {total:.2f}\n"
+                if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"ℹ️ _El costo de delivery se sumará en breve._"
+
+                link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+                
+                # Script limpio que abre el WhatsApp de forma segura sin romper la interfaz
+                js_redirect = f"""
+                <script>
+                    window.open("{link_final}", "_blank");
+                </script>
+                """
+                st.markdown(js_redirect, unsafe_allow_html=True)
+                st.success("🎉 ¡Abriendo WhatsApp con tu pedido!")
 
         st.write("")
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
