@@ -80,10 +80,12 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
+# Mapeo exacto de las categorías según tu Excel
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
-    2: ['SOPAS', 'CHAUFA'], 3: ['AEROPUERTO', 'COMBINADOS', 'LOMOS SALTADOS'],
-    4: ['TALLARINES SALTADOS', 'PLATOS SALADOS', 'PLATOS DULCES', 'TORTILLAS'],
+    2: ['SOPAS', 'CHAUFA'], 
+    3: ['AEROPUERTO', 'COMBINADOS', 'LOMOS SALTADOS'],
+    4: ['TALLARINES SALTADOS', 'PLATOS SALADOS', 'PLATOS DULCES', 'TORTILLAS'], 
     5: ['ENROLLADOS', 'TAYPA', 'RES', 'LANGOSTINOS', 'PATO', 'CHICHARRONES'],
     6: ['CHANCHO', 'COSTILLAS', 'PORCIONES', 'BEBIDAS FRÍAS', 'BEBIDAS CALIENTES']
 }
@@ -95,13 +97,18 @@ def cargar_catalogo_limpio():
     if os.path.exists(nombre_archivo): df = pd.read_excel(nombre_archivo)
     elif os.path.exists(nombre_csv): df = pd.read_csv(nombre_csv)
     else: return pd.DataFrame()
+    
     df.columns = df.columns.str.strip()
-    df['Category'] = df['Category'].astype(str).str.strip().str.upper()
-    # Nos aseguramos de que Description exista y no tenga valores nulos
+    
+    # Conservamos mayúsculas limpias sin alterar el texto original de tu Excel
+    if 'Category' in df.columns:
+        df['Category'] = df['Category'].astype(str).str.strip().str.upper()
+    
     if 'Description' not in df.columns:
         df['Description'] = ""
     else:
         df['Description'] = df['Description'].fillna("").astype(str).str.strip()
+        
     return df
 
 df_carta = cargar_catalogo_limpio()
@@ -169,7 +176,6 @@ div[data-testid="stTabs"] { margin-top: 95px !important; }
 div[data-testid="stTabs"] > div:first-child { background-color: transparent !important; padding: 4px 10px !important; border-bottom: 2px solid #FFEB3B !important; }
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
-/* Ajustes de filas para soportar nombres y descripciones descritos */
 .fila-plato-flex {
     display: flex !important; justify-content: space-between !important; align-items: flex-start !important;
     width: 100% !important; padding: 2px 0px !important; box-sizing: border-box !important;
@@ -179,7 +185,6 @@ div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px 
 .texto-descripcion-plato { color: #E0E0E0 !important; font-size: 12.5px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* 1. MEJORA DE CATEGORÍAS: MÁS GRANDES Y NOTORIAS */
 .titulo-categoria-chifa { 
     color: #FFEB3B !important; 
     font-size: 21px !important; 
@@ -194,7 +199,6 @@ div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px 
     letter-spacing: 0.5px;
 }
 
-/* BOTONES DE AGREGAR (+) */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
     background-color: #FFEB3B !important; color: #8B0000 !important;
     font-size: 22px !important; font-weight: bold !important;
@@ -204,7 +208,6 @@ div[data-testid="stHorizontalBlock"] div.stButton > button {
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
 
-/* IMPEDIR DEFORMACIÓN EN MODALES / VACIAR */
 div[data-testid="stDialog"] div.stButton > button, 
 div.boton-vaciar-pedido div.stButton > button {
     width: 100% !important; height: 45px !important;
@@ -284,7 +287,6 @@ with tab_carta:
                 for idx, row in df_filtrado_cat.iterrows():
                     col_txt, col_btn = st.columns([0.82, 0.18])
                     
-                    # 2. AGREGA DESCRIPCIÓN AUTOMÁTICA DE CADA PLATO DE LA CARTA
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     
                     with col_txt:
