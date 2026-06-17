@@ -49,7 +49,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* Transparencia absoluta para evitar bloques sólidos sobre el fondo */
+        /* Transparencia absoluta para evitar bloques de color sobre el fondo */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO DIVIDIDO COMO UN CUADRO ESTÁTICO
+# 5. CSS MAESTRO: ENCABEZADO FIJO SÓLO PARA EL NOMBRE
 # =========================================================
 st.markdown("""
 <style>
@@ -152,68 +152,43 @@ html, body, [data-testid="stApp"] {
 }
 
 .main .block-container {
-    padding-top: 10px !important;
+    padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* CONTENEDOR MAESTRO DEL ENCABEZADO: Hace que todo el bloque actúe como un único cuadro estático */
-div[data-testid="stVerticalBlock"] > div:has(.cabecera-estatica-chifa),
-div[data-testid="stVerticalBlock"] > div:has(div[data-testid="stTabs"]) {
-    /* Mantenemos el comportamiento pegajoso en la parte superior */
+/* ÚNICAMENTE EL NOMBRE DEL CHIFA QUEDA TOTALMENTE ESTÁTICO EN LA PARTE SUPERIOR */
+.cabecera-estatica-chifa {
     position: -webkit-sticky !important;
     position: sticky !important;
-    z-index: 999999 !important;
-}
-
-/* Posicionamiento por niveles para que se acoplen perfectamente sin superponerse */
-div[data-testid="stVerticalBlock"] > div:has(.cabecera-estatica-chifa) {
     top: 0px !important;
-}
-
-/* El cuadro del encabezado de texto */
-.cabecera-estatica-chifa {
-    background-color: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-bottom: none;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    padding: 15px 10px 5px 10px !important;
+    z-index: 999999 !important;
+    background-color: rgba(0, 0, 0, 0.3) !important; /* Ligero sombreado detrás del nombre para lectura perfecta */
+    backdrop-filter: blur(3px);
+    padding: 12px 0px 8px 0px !important;
     text-align: center;
     width: 100%;
-    backdrop-filter: blur(5px);
 }
 
-/* PESTAÑAS PRINCIPALES (Carta / Pedido) acopladas como la base del cuadro */
+/* LAS PESTAÑAS (TABS) SE MUEVEN NORMALMENTE CON EL SCROLL */
 div[data-testid="stTabs"] > div:first-child {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 78px !important;
-    z-index: 999995 !important;
-    background-color: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(5px);
+    background-color: transparent !important;
     padding: 4px 10px !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
     border-bottom: 2px solid #FFEB3B !important;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    /* Margen inferior marcado para SEPARAR este cuadro del contenido de los platos */
-    margin-bottom: 20px !important; 
-    box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.3) !important;
+    margin-top: 10px !important;
 }
 
 div[data-testid="stTabs"] button p {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
+    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000, 2px -2px 3px #000000, -2px 2px 3px #000000 !important;
 }
 
-/* SELECTOR DE PÁGINAS (Radio) dentro del flujo - mantiene la transparencia actual */
+/* EL SELECTOR DE PÁGINAS SE MUEVE NORMALMENTE CON EL SCROLL */
 div[data-testid="stRadio"] {
     background-color: rgba(0, 0, 0, 0.2) !important;
     backdrop-filter: blur(2px);
-    padding: 10px !important;
+    padding: 8px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
     margin-bottom: 20px !important;
@@ -241,6 +216,7 @@ div[data-testid="stRadio"] label {
     border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
+/* Nombre del plato con borde negro de alta visibilidad */
 .texto-nombre-plato {
     color: #FFFFFF !important;
     font-size: 15px !important;
@@ -252,6 +228,7 @@ div[data-testid="stRadio"] label {
     text-align: left !important;
 }
 
+/* Precio destacado en amarillo brillante */
 .texto-precio-plato {
     color: #FFEB3B !important;
     font-size: 16px !important;
@@ -262,6 +239,7 @@ div[data-testid="stRadio"] label {
     padding-right: 15px !important;
 }
 
+/* Forzar tamaño redondo del botón "+" a la derecha */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -277,8 +255,11 @@ div.stButton > button {
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
+/* Títulos de Categorías */
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 17px !important;
@@ -294,7 +275,7 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO PRINCIPAL ESTÁTICO (CUADRO SUPERIOR)
+# 6. ENCABEZADO PRINCIPAL ESTÁTICO (SOLO ESTO SE QUEDA FIJO)
 # =========================================================
 st.markdown("""
 <div class="cabecera-estatica-chifa">
@@ -316,7 +297,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas independiente debajo del cuadro separado
+        # Selector de páginas (se desliza con el scroll)
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -331,7 +312,7 @@ with tab_carta:
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Despliegue de los platos
+        # Despliegue de los platos ordenados
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
