@@ -100,7 +100,7 @@ if "eliminar_idx" in query_params:
     if 0 <= idx_eliminar < len(st.session_state.carrito):
         st.session_state.carrito.pop(idx_eliminar)
     st.query_params.clear()
-    # st.rerun()
+    st.rerun()
 
 # 3. DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
 DISTRIBUCION_PAGINAS = {
@@ -124,13 +124,51 @@ def cargar_catalogo_limpio():
 
 df_carta = cargar_catalogo_limpio()
 
+# =========================================================
+# DEFINICIÓN DEL MODAL (CORREGIDO: Ahora está a nivel global)
+# =========================================================
+@st.dialog("Configura tu Plato 🍜")
+def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
+    st.markdown(f"### {p_info['Name']}")
+    st.markdown(f"*Tipo:* {p_orig} | *Precio Unitario:* S/. {p_info['Price']:.2f}")
+    st.write("---")
+    
+    entrada_sel = ""
+    if p_orig == "Menú del Día":
+        st.markdown("*Elige tu Entrada (Incluida):*")
+        entrada_sel = st.radio("", ["Sopa Wantán 🥣", "Wantán Frito 🥟"], horizontal=True, label_visibility="collapsed")
+        st.write("---")
+
+    cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
+    st.markdown("*Selecciona tus Cremas / Salsas:*")
+    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+    c_mayo = st.checkbox("Mayonesa ⚪")
+    c_ketchup = st.checkbox("Ketchup 🍅")
+    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    
+    mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
+    c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
+
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+
+    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
+        cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
+        if mostrar_limon and c_limon: cremas_list.append("Limón")
+        
+        st.session_state.carrito.append({
+            "id": p_info["ID"], "nombre": p_info["Name"], "precio": p_info["Price"],
+            "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(),
+            "tipo": p_orig, "entrada": entrada_sel
+        })
+        st.toast("¡Agregado exitosamente!")
+        st.rerun()
+
 # Interceptamos clics de agregar mediante query params para disparar el modal limpiamente
 if "add_id" in query_params:
     p_id = query_params["add_id"]
     p_tipo = query_params.get("origin", "Carta")
     p_cat = query_params.get("cat", "GENERAL")
     
-    # Buscar datos del plato seleccionado
     plato_encontrado = None
     if p_tipo == "Menú del Día":
         plato_encontrado = next((p for p in PLATOS_MENU_INTERNO if p["ID"] == p_id), None)
@@ -142,41 +180,6 @@ if "add_id" in query_params:
                 
     if plato_encontrado:
         st.query_params.clear()
-        @st.dialog("Configura tu Plato 🍜")
-        def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
-            st.markdown(f"### {p_info['Name']}")
-            st.markdown(f"*Tipo:* {p_orig} | *Precio Unitario:* S/. {p_info['Price']:.2f}")
-            st.write("---")
-            
-            entrada_sel = ""
-            if p_orig == "Menú del Día":
-                st.markdown("*Elige tu Entrada (Incluida):*")
-                entrada_sel = st.radio("", ["Sopa Wantán 🥣", "Wantán Frito 🥟"], horizontal=True, label_visibility="collapsed")
-                st.write("---")
-
-            cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
-            st.markdown("*Selecciona tus Cremas / Salsas:*")
-            c_aji = st.checkbox("Ají Chi Chon San 🌶️")
-            c_mayo = st.checkbox("Mayonesa ⚪")
-            c_ketchup = st.checkbox("Ketchup 🍅")
-            c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
-            
-            mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
-            c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
-
-            notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
-
-            if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
-                cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
-                if mostrar_limon and c_limon: cremas_list.append("Limón")
-                
-                st.session_state.carrito.append({
-                    "id": p_info["ID"], "nombre": p_info["Name"], "precio": p_info["Price"],
-                    "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(),
-                    "tipo": p_orig, "entrada": entrada_sel
-                })
-                st.toast("¡Agregado exitosamente!")
-                st.rerun()
         abrir_modal_dinamico(plato_encontrado, p_cat, p_tipo)
 
 # =========================================================
@@ -349,8 +352,8 @@ with tab_pedido:
             origen_tipo = item.get("tipo", "Carta")
             detalles_lista = [f"📌 Tipo: {origen_tipo}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 Entrada: {item['entrada']}")
-            if item['cremas']: detalles_lista.append(f"🧂 {item['cremas']}")
-            if item['notes' if 'notes' in item else 'notas']: detalles_lista.append(f"📝 {item.get('notas', '')}")
+            if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
+            if item.get('notas'): detalles_lista.append(f"📝 {item['notas']}")
             
             detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
 
