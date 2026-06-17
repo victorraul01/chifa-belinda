@@ -141,7 +141,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: CONTROLES ESTÁTICOS Y FILAS EN UNA LÍNEA
+# 5. CSS MAESTRO: ENCABEZADOS TOTALMENTE ESTÁTICOS (STICKY)
 # =========================================================
 st.markdown("""
 <style>
@@ -151,18 +151,32 @@ html, body, [data-testid="stApp"] {
 }
 
 .main .block-container {
-    padding-top: 10px !important;
+    padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* Forzar que las pestañas principales sean estáticas */
-div[data-testid="stTabs"] > div:first-child {
+/* ENCABEZADO FIJO: Nombre del chifa y frase fija arriba */
+.cabecera-estatica-chifa {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 0px !important;
-    background-color: transparent !important;
-    z-index: 99999 !important;
-    padding: 6px 10px !important;
+    z-index: 999999 !important;
+    background-color: rgba(0, 0, 0, 0.4) !important; /* Capa ultra ligera para leer sobre el fondo en movimiento */
+    backdrop-filter: blur(3px);
+    padding: 10px 0px 5px 0px !important;
+    text-align: center;
+    width: 100%;
+}
+
+/* PESTAÑAS PRINCIPALES ESTÁTICAS (Carta / Pedido) */
+div[data-testid="stTabs"] > div:first-child {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 74px !important; /* Se posiciona justo abajo del nombre */
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(3px);
+    z-index: 999995 !important;
+    padding: 4px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
 }
 
@@ -173,17 +187,18 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000, 2px -2px 3px #000000, -2px 2px 3px #000000 !important;
 }
 
-/* Selector de páginas estático */
+/* SELECTOR DE PÁGINAS ESTÁTICO (Radio) */
 div[data-testid="stRadio"] {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 55px !important;
-    z-index: 99998 !important;
-    background-color: transparent !important;
+    top: 124px !important; /* Se acomoda debajo de las pestañas principales */
+    z-index: 999990 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(3px);
     padding: 8px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
-    margin-bottom: 15px !important;
+    margin-bottom: 20px !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
@@ -231,7 +246,7 @@ div[data-testid="stRadio"] label {
     padding-right: 15px !important;
 }
 
-/* Forzar que el botón nativo mantenga tamaño pequeño redondo a la derecha */
+/* Forzar tamaño redondo del botón "+" a la derecha */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -251,14 +266,14 @@ div.stButton > button {
     margin: 0 !important;
 }
 
-/* Títulos de Categorías sin bloque gris */
+/* Títulos de Categorías */
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 17px !important;
     font-weight: bold !important;
     background-color: transparent !important;
     padding: 10px 4px !important;
-    margin-top: 20px !important;
+    margin-top: 15px !important;
     margin-bottom: 5px !important;
     border-left: 5px solid #FFEB3B !important;
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
@@ -267,10 +282,10 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO PRINCIPAL (NOMBRE DEL CHIFA)
+# 6. ENCABEZADO PRINCIPAL ESTÁTICO FIXED
 # =========================================================
 st.markdown("""
-<div style="text-align: center; padding: 10px 0;">
+<div class="cabecera-estatica-chifa">
     <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
     <p style="margin: 4px 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
@@ -289,7 +304,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas estático
+        # Selector de páginas estático pegado debajo de los tabs
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -298,13 +313,13 @@ with tab_carta:
             key="pagina_actual"
         )
 
-        # Aplicar el fondo exacto correspondiente a la página
+        # Aplicar el fondo exacto correspondiente a la página seleccionada
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Despliegue de los platos ordenados en línea única
+        # Despliegue de los platos ordenados en línea única scrollable
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
@@ -312,7 +327,6 @@ with tab_carta:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 
                 for idx, row in df_filtrado_cat.iterrows():
-                    # Usamos st.columns para renderizar todo horizontalmente en una sola fila nativa
                     col_info, col_btn = st.columns([0.84, 0.16])
                     
                     with col_info:
@@ -324,7 +338,6 @@ with tab_carta:
                         """, unsafe_allow_html=True)
                         
                     with col_btn:
-                        # El botón se alinea perfectamente a la derecha del precio
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
 
