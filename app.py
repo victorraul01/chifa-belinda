@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
+# 5. CSS MAESTRO: ENCABEZADO OPTIMIZADO PARA ELIMINAR ESPACIOS
 # =========================================================
 st.markdown("""
 <style>
@@ -151,28 +151,32 @@ html, body, [data-testid="stApp"] {
     padding: 0 !important;
 }
 
+/* Ocultar el header nativo vacío de Streamlit para liberar espacio superior */
+[data-testid="stHeader"] {
+    display: none !important;
+}
+
+/* Reducir el padding superior por defecto del contenedor principal de Streamlit */
 .main .block-container {
     padding-top: 0px !important;
+    margin-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+/* Cabecera integrada al flujo superior para que todo suba dinámicamente */
 .cabecera-fija-chifa {
-    position: fixed !important;
-    top: 0px !important;
-    left: 0px !important;
-    right: 0px !important;
-    z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    width: 100% !important;
+    background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
     padding: 15px 10px !important;
     text-align: center;
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
+    margin-top: 0px !important;
 }
 
-/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
+/* Ajuste de pestañas pegadas al encabezado sin espacios muertos */
 div[data-testid="stTabs"] {
-    margin-top: 95px !important; 
+    margin-top: 10px !important; 
 }
 
 /* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
