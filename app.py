@@ -166,7 +166,7 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO GLOBAL
+# 5. CSS MAESTRO GLOBAL (DISEÑO UNIFICADO FILA COMPLETA)
 # =========================================================
 st.markdown("""
 <style>
@@ -191,42 +191,47 @@ div[data-testid="stRadio"] {
 }
 div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 
-.fila-plato-flex {
+/* Flexbox integrado para alinear perfectamente todo en una sola línea */
+.contenedor-fila-completa {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding: 2px 0px !important;
-    box-sizing: border-box !important;
+    height: 38px !important;
 }
-.bloque-izq-nombre {
+.seccion-izquierda-datos {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     flex-grow: 1 !important;
-    text-align: left !important;
-    padding-right: 10px !important;
+    padding-right: 5px !important;
 }
-.bloque-der-precio-accion {
+
+.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; text-align: left; }
+.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; text-align: right; }
+
+/* Fuerza al contenedor nativo del botón de Streamlit a centrarse en la línea */
+div[data-testid="stColumn"] {
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 12px !important;
-    flex-shrink: 0 !important;
+    justify-content: center !important;
 }
 
-.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
-
-/* Estilo personalizado para el botón nativo de Streamlit */
+/* Estilo personalizado del botón "+" */
 div[data-testid="stColumn"] button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 18px !important;
     font-weight: bold !important;
     border-radius: 6px !important;
-    height: 36px !important;
-    width: 36px !important;
+    height: 34px !important;
+    width: 34px !important;
     padding: 0px !important;
     border: none !important;
     box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .fila-carrito-ordenada { padding: 12px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%; }
@@ -258,7 +263,7 @@ st.markdown("""
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# 7. INICIALIZACIÓN COMPATIBLE DE PESTAÑAS (CORRECCIÓN PYTHON 3.14)
+# 7. INICIALIZACIÓN COMPATIBLE DE PESTAÑAS (COMPATIBLE CON PYTHON 3.14)
 # =========================================================
 tab_menu, tab_carta, tab_pedido = st.tabs([
     "🍱 Menú del Día", 
@@ -275,14 +280,12 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        col_txt, col_btn = st.columns([0.85, 0.15])
+        col_txt, col_btn = st.columns([0.88, 0.12])
         with col_txt:
             st.markdown(f"""
-            <div class="fila-plato-flex">
-                <div class="bloque-izq-nombre">
+            <div class="contenedor-fila-completa">
+                <div class="seccion-izquierda-datos">
                     <span class="texto-nombre-plato">{plato['Name']}</span>
-                </div>
-                <div class="bloque-der-precio-accion" style="padding-right:15px;">
                     <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
                 </div>
             </div>
@@ -312,16 +315,14 @@ with tab_carta:
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
-                    col_txt_c, col_btn_c = st.columns([0.85, 0.15])
+                    col_txt_c, col_btn_c = st.columns([0.88, 0.12])
                     plato_dict = {"ID": row['ID'], "Name": row['Name'], "Price": float(row['Price'])}
                     
                     with col_txt_c:
                         st.markdown(f"""
-                        <div class="fila-plato-flex">
-                            <div class="bloque-izq-nombre">
+                        <div class="contenedor-fila-completa">
+                            <div class="seccion-izquierda-datos">
                                 <span class="texto-nombre-plato">{row['Name']}</span>
-                            </div>
-                            <div class="bloque-der-precio-accion" style="padding-right:15px;">
                                 <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
                             </div>
                         </div>
