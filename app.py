@@ -41,7 +41,6 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
-        /* Capa combinada: Imagen de fondo + Capa oscura semitransparente total de extremo a extremo */
         [data-testid="stAppViewContainer"] {{
             background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
@@ -49,7 +48,6 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* Transparencia absoluta para evitar bloques de color sobre el fondo */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
@@ -125,7 +123,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
 
     st.write("")
     
-    # CSS Inyectado localmente para reparar el diseño de ESTE botón en específico dentro del diálogo
+    # CSS interno exclusivo del botón del modal para que se vea impecable
     st.markdown(f"""
     <style>
     div[data-testid="stDialog"] div.stButton > button {{
@@ -167,7 +165,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
+# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE Y BOTONES
 # =========================================================
 st.markdown("""
 <style>
@@ -186,26 +184,24 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE QUETA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+/* NOMBRE DEL CHIFA ESTÁTICO ORIGINAL ARRIBA */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
     left: 0px !important;
     right: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
     padding: 15px 10px !important;
     text-align: center;
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
 div[data-testid="stTabs"] {
     margin-top: 95px !important; 
 }
 
-/* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
 div[data-testid="stTabs"] > div:first-child {
     background-color: transparent !important;
     padding: 4px 10px !important;
@@ -239,7 +235,7 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* FILA UNIFICADA DE PLATOS */
+/* CONTENEDOR Y BOTÓN REUTILIZABLE PARA LOS BOTONES "+" DE LA CARTA */
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -269,8 +265,8 @@ div[data-testid="stRadio"] label {
     padding-right: 15px !important;
 }
 
-/* Regla apuntando únicamente a la vista principal para evitar romper los diálogos */
-[data-testid="stAppViewContainer"] div.stButton > button {
+/* CLASE ESPECÍFICA PARA LOS BOTONES REDONDOS "+" DE LA CARTA */
+div.boton-agregar-carta button {{
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 20px !important;
@@ -284,6 +280,49 @@ div[data-testid="stRadio"] label {
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
+    padding: 0px !important;
+}}
+
+/* REPARACIÓN DEL BOTÓN VACIAR CARRITO Y OTROS BOTONES RECTANGULARES */
+div.boton-normal-ancho button {{
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    height: 45px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
+}}
+
+/* REPARACIÓN DEL TACHITO DE BASURA */
+div.boton-eliminar-carrito button {{
+    background-color: #FFEB3B !important;
+    font-size: 16px !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    padding: 0px !important;
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.4) !important;
+}}
+
+/* DISEÑO DE NOTAS Y SALSAS MÁS BONITO Y LEGIBlE EN EL CARRITO */
+.texto-detalles-carrito {
+    color: #FFFFFF !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000 !important;
+    display: block;
+    margin-top: 2px;
 }
 
 .titulo-categoria-chifa {
@@ -322,7 +361,6 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -331,13 +369,11 @@ with tab_carta:
             key="pagina_actual"
         )
 
-        # Aplicar el fondo exacto correspondiente a la página seleccionada
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Despliegue de los platos
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
@@ -356,37 +392,49 @@ with tab_carta:
                         """, unsafe_allow_html=True)
                         
                     with col_btn:
+                        # Ponemos el botón más dentro de un contenedor dedicado para aislar su estilo redondo
+                        st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name)
+                        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 15px; border: 1px solid #E0E0E0;">', unsafe_allow_html=True)
+    # Ajustamos el fondo transparente del contenedor para que use el fondo general de la página de forma limpia
+    st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     if not st.session_state.carrito:
-        st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
+        st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">Tu carrito está vacío. ¡Explora la carta!</h3>', unsafe_allow_html=True)
     else:
-        st.subheader("📋 Resumen Total del Pedido")
+        st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
         for idx, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            col_a, col_b = st.columns([0.85, 0.15])
+            col_a, col_b = st.columns([0.84, 0.16])
             with col_a:
-                st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
-                st.markdown(f"<span style='color: #8B0000; font-size: 13px;'>└ 🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color: #FFFFFF; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 2px #000000;'>💥 {item['cant']}x {item['nombre']} — S/. {subtotal:.2f}</span>", unsafe_allow_html=True)
+                # Removida la 'L' rota y cambiado a un hermoso estilo blanco legible con íconos limpios
+                st.markdown(f"<span class='texto-detalles-carrito'>🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
             with col_b:
+                st.markdown('<div class="boton-eliminar-carrito">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{idx}"):
                     st.session_state.carrito.pop(idx)
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
             st.write("")
 
         st.divider()
-        nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
-        telefono_cliente = st.text_input("Tu número de contacto:")
+        
+        # Textos de inputs estilizados para que contrasten
+        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Ingresa tu Nombre Completo:</span>', unsafe_allow_html=True)
+        nombre_cliente = st.text_input("", label_visibility="collapsed", key="nom_cli")
+        
+        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Tu número de contacto:</span>', unsafe_allow_html=True)
+        telefono_cliente = st.text_input("", label_visibility="collapsed", key="tel_cli")
 
         if nombre_cliente.strip() and telefono_cliente.strip():
             phone = telefono_cliente.strip()
@@ -401,13 +449,18 @@ with tab_pedido:
 
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
             st.write("")
+            st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
             st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.write("")
             st.warning("⚠️ Completa tu nombre y número de contacto para poder enviar el pedido.")
 
         st.write("")
+        # Envolvemos el botón de vaciar carrito en su clase correspondiente para heredar el diseño correcto
+        st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
