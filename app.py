@@ -80,7 +80,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
-# Mapeo exacto de las categorías según tu Excel
+# Distribución estructural
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
     2: ['SOPAS', 'CHAUFA'], 
@@ -90,7 +90,7 @@ DISTRIBUCION_PAGINAS = {
     6: ['CHANCHO', 'COSTILLAS', 'PORCIONES', 'BEBIDAS FRÍAS', 'BEBIDAS CALIENTES']
 }
 
-@st.cache_data
+@st.cache_data(ttl=10) # TTL bajo para evitar que se quede pegada la caché vieja del excel
 def cargar_catalogo_limpio():
     nombre_archivo = "Catalogo_Productos.xlsx"
     nombre_csv = "Catalogo_Productos.xlsx - in.csv"
@@ -100,8 +100,8 @@ def cargar_catalogo_limpio():
     
     df.columns = df.columns.str.strip()
     
-    # Conservamos mayúsculas limpias sin alterar el texto original de tu Excel
     if 'Category' in df.columns:
+        # Forzar limpieza absoluta por si acaso
         df['Category'] = df['Category'].astype(str).str.strip().str.upper()
     
     if 'Description' not in df.columns:
@@ -142,7 +142,7 @@ def abrir_modal_dinamico():
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
 
-    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key="btn_guardar_modal_real"):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
@@ -280,8 +280,11 @@ with tab_carta:
         pag_seleccionada = st.radio("Selecciona una Página:", options=[1, 2, 3, 4, 5, 6], format_func=lambda x: f"Pág. {x}", horizontal=True, key="pagina_actual")
         aplicar_fondo(IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg"), pag_seleccionada)
 
+        # Usamos una comparación robusta contra el DataFrame directamente en el loop
         for cat_name in DISTRIBUCION_PAGINAS.get(pag_seleccionada, []):
-            df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
+            # Filtro exacto ignorando diferencias sutiles
+            df_filtrado_cat = df_carta[df_carta["Category"].str.upper().str.strip() == cat_name.upper().strip()]
+            
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
