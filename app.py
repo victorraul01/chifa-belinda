@@ -123,7 +123,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
 
     st.write("")
     
-    # CSS interno exclusivo del botón del modal para que se vea impecable
+    # CSS interno exclusivo del botón del modal
     st.markdown(f"""
     <style>
     div[data-testid="stDialog"] div.stButton > button {{
@@ -235,7 +235,7 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* CONTENEDOR Y BOTÓN REUTILIZABLE PARA LOS BOTONES "+" DE LA CARTA */
+/* FILA UNIFICADA EN LA CARTA */
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -266,7 +266,7 @@ div[data-testid="stRadio"] label {
 }
 
 /* CLASE ESPECÍFICA PARA LOS BOTONES REDONDOS "+" DE LA CARTA */
-div.boton-agregar-carta button {{
+div.boton-agregar-carta button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 20px !important;
@@ -281,10 +281,10 @@ div.boton-agregar-carta button {{
     border: none !important;
     box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
     padding: 0px !important;
-}}
+}
 
-/* REPARACIÓN DEL BOTÓN VACIAR CARRITO Y OTROS BOTONES RECTANGULARES */
-div.boton-normal-ancho button {{
+/* REPARACIÓN DEL BOTÓN VACIAR CARRITO Y ENVIAR */
+div.boton-normal-ancho button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 15px !important;
@@ -297,25 +297,25 @@ div.boton-normal-ancho button {{
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
-}}
+}
 
-/* REPARACIÓN DEL TACHITO DE BASURA */
-div.boton-eliminar-carrito button {{
-    background-color: #FFEB3B !important;
-    font-size: 16px !important;
-    border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
+/* REPARACIÓN DEL TACHITO DE BASURA UBICADO A LA DERECHA */
+div.boton-eliminar-carrito button {
+    background-color: rgba(255, 235, 59, 0.9) !important;
+    font-size: 15px !important;
+    border-radius: 6px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     padding: 0px !important;
-    box-shadow: 0px 2px 4px rgba(0,0,0,0.4) !important;
-}}
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.3) !important;
+}
 
-/* DISEÑO DE NOTAS Y SALSAS MÁS BONITO Y LEGIBlE EN EL CARRITO */
+/* DISEÑO DE NOTAS Y SALSAS EN EL CARRITO */
 .texto-detalles-carrito {
     color: #FFFFFF !important;
     font-size: 13px !important;
@@ -392,7 +392,6 @@ with tab_carta:
                         """, unsafe_allow_html=True)
                         
                     with col_btn:
-                        # Ponemos el botón más dentro de un contenedor dedicado para aislar su estilo redondo
                         st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name)
@@ -402,7 +401,6 @@ with tab_carta:
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    # Ajustamos el fondo transparente del contenedor para que use el fondo general de la página de forma limpia
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     if not st.session_state.carrito:
         st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">Tu carrito está vacío. ¡Explora la carta!</h3>', unsafe_allow_html=True)
@@ -414,12 +412,14 @@ with tab_pedido:
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            col_a, col_b = st.columns([0.84, 0.16])
-            with col_a:
+            # Estructura limpia alineada: Nombre y precio ocupan la izquierda, y el tachito se ubica exactamente a la derecha
+            col_resumen, col_accion = st.columns([0.84, 0.16])
+            
+            with col_resumen:
                 st.markdown(f"<span style='color: #FFFFFF; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 2px #000000;'>💥 {item['cant']}x {item['nombre']} — S/. {subtotal:.2f}</span>", unsafe_allow_html=True)
-                # Removida la 'L' rota y cambiado a un hermoso estilo blanco legible con íconos limpios
                 st.markdown(f"<span class='texto-detalles-carrito'>🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
-            with col_b:
+                
+            with col_accion:
                 st.markdown('<div class="boton-eliminar-carrito">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{idx}"):
                     st.session_state.carrito.pop(idx)
@@ -429,7 +429,6 @@ with tab_pedido:
 
         st.divider()
         
-        # Textos de inputs estilizados para que contrasten
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Ingresa tu Nombre Completo:</span>', unsafe_allow_html=True)
         nombre_cliente = st.text_input("", label_visibility="collapsed", key="nom_cli")
         
@@ -457,7 +456,6 @@ with tab_pedido:
             st.warning("⚠️ Completa tu nombre y número de contacto para poder enviar el pedido.")
 
         st.write("")
-        # Envolvemos el botón de vaciar carrito en su clase correspondiente para heredar el diseño correcto
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
