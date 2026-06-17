@@ -97,6 +97,11 @@ def cargar_catalogo_limpio():
     else: return pd.DataFrame()
     df.columns = df.columns.str.strip()
     df['Category'] = df['Category'].astype(str).str.strip().str.upper()
+    # Nos aseguramos de que Description exista y no tenga valores nulos
+    if 'Description' not in df.columns:
+        df['Description'] = ""
+    else:
+        df['Description'] = df['Description'].fillna("").astype(str).str.strip()
     return df
 
 df_carta = cargar_catalogo_limpio()
@@ -132,7 +137,6 @@ def abrir_modal_dinamico():
 
     notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
-    # Botón de Guardar limpio y ancho completo nativo sin verse afectado
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key="btn_guardar_modal_real"):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
         if mostrar_limon and c_limon: cremas_list.append("Limón")
@@ -146,7 +150,7 @@ def abrir_modal_dinamico():
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO DEFINITIVO (FILTRADO POR CONTENEDORES)
+# CSS MAESTRO DEFINITIVO
 # =========================================================
 st.markdown("""
 <style>
@@ -165,15 +169,32 @@ div[data-testid="stTabs"] { margin-top: 95px !important; }
 div[data-testid="stTabs"] > div:first-child { background-color: transparent !important; padding: 4px 10px !important; border-bottom: 2px solid #FFEB3B !important; }
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
+/* Ajustes de filas para soportar nombres y descripciones descritos */
 .fila-plato-flex {
-    display: flex !important; justify-content: space-between !important; align-items: center !important;
+    display: flex !important; justify-content: space-between !important; align-items: flex-start !important;
     width: 100% !important; padding: 2px 0px !important; box-sizing: border-box !important;
 }
 .bloque-izq-nombre { flex-grow: 1 !important; text-align: left !important; padding-right: 10px !important; }
-.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
+.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; display: block; }
+.texto-descripcion-plato { color: #E0E0E0 !important; font-size: 12.5px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* 🎯 CORRECCIÓN CLAVE: SELECCIONAR SÓLO LOS BOTONES "＋" DE LAS LISTAS */
+/* 1. MEJORA DE CATEGORÍAS: MÁS GRANDES Y NOTORIAS */
+.titulo-categoria-chifa { 
+    color: #FFEB3B !important; 
+    font-size: 21px !important; 
+    font-weight: 900 !important; 
+    padding: 12px 10px !important; 
+    margin-top: 25px !important; 
+    margin-bottom: 12px !important;
+    border-left: 6px solid #FFEB3B !important; 
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border-radius: 0 8px 8px 0;
+    text-shadow: 2px 2px 4px #000000 !important; 
+    letter-spacing: 0.5px;
+}
+
+/* BOTONES DE AGREGAR (+) */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
     background-color: #FFEB3B !important; color: #8B0000 !important;
     font-size: 22px !important; font-weight: bold !important;
@@ -183,7 +204,7 @@ div[data-testid="stHorizontalBlock"] div.stButton > button {
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
 
-/* 🎯 IMPEDIR QUE EL MODAL Y EL BOTÓN VACIAR SE VUELVAN CHICOS */
+/* IMPEDIR DEFORMACIÓN EN MODALES / VACIAR */
 div[data-testid="stDialog"] div.stButton > button, 
 div.boton-vaciar-pedido div.stButton > button {
     width: 100% !important; height: 45px !important;
@@ -192,7 +213,6 @@ div.boton-vaciar-pedido div.stButton > button {
     border-radius: 8px !important; display: block !important; border: none !important;
 }
 
-/* Botón tacho rojo/amarillo pequeño del carrito */
 div.boton-tacho-contenedor div.stButton > button {
     background-color: #FFEB3B !important; color: #8B0000 !important;
     font-size: 14px !important; width: 32px !important; height: 32px !important;
@@ -205,14 +225,12 @@ div.boton-tacho-contenedor div.stButton > button {
 .texto-precio-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; }
 
-/* ESTILO DEL BOTÓN DE WHATSAPP SIEMPRE FIJO Y ACTIVO */
 .enlace-wa-directo-siempre { 
     display: block !important; background-color: #25D366 !important; color: white !important; 
     text-align: center !important; font-weight: bold !important; font-size: 16px !important; 
     padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; 
     box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; 
 }
-.titulo-categoria-chifa { color: #FFEB3B !important; font-size: 17px !important; font-weight: bold !important; padding: 10px 4px !important; margin-top: 15px !important; border-left: 5px solid #FFEB3B !important; text-shadow: 2px 2px 3px #000000 !important; }
 .alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; margin-bottom: 15px; }
 .recuadro-total-final { background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 </style>
@@ -235,7 +253,7 @@ tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     aplicar_fondo("pag1.jpeg", "menu")
-    st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE ENTRADA + REFRESCO)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
         col_txt, col_btn = st.columns([0.82, 0.18])
@@ -265,8 +283,22 @@ with tab_carta:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
                     col_txt, col_btn = st.columns([0.82, 0.18])
+                    
+                    # 2. AGREGA DESCRIPCIÓN AUTOMÁTICA DE CADA PLATO DE LA CARTA
+                    desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
+                    
                     with col_txt:
-                        st.markdown(f'<div class="fila-plato-flex"><div class="bloque-izq-nombre"><span class="texto-nombre-plato">{row["Name"]}</span></div><div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div></div>', unsafe_allow_html=True)
+                        st.markdown(f"""
+                        <div class="fila-plato-flex">
+                            <div class="bloque-izq-nombre">
+                                <span class="texto-nombre-plato">{row["Name"]}</span>
+                                {desc_html}
+                            </div>
+                            <div>
+                                <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                     with col_btn:
                         if st.button("＋", key=f"btn_carta_{row['ID']}_{idx}"):
                             st.session_state["modal_plato_info"] = {"ID": row['ID'], "Name": row['Name'], "Price": row['Price']}
@@ -274,7 +306,7 @@ with tab_carta:
                             st.session_state["modal_categoria"] = cat_name
                             st.session_state["mostrar_modal"] = True
                             st.rerun()
-                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 2px 0 4px 0;">', unsafe_allow_html=True)
+                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
 
 # PESTAÑA: 🛒 MI PEDIDO
 with tab_pedido:
@@ -318,7 +350,6 @@ with tab_pedido:
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
-        # Mensaje compilado para WhatsApp
         mensaje_wa = f"🍜 CHIFA D' BELINDA\n\n👤 Cliente: {nombre_cliente.strip()}\n♻️ Entrega: {metodo_entrega}\n"
         if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
         mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
@@ -327,14 +358,12 @@ with tab_pedido:
         mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
 
-        # Validaciones interactivas al dar clic al enlace
         error_msg = ""
         if not nombre_cliente.strip():
             error_msg = "Por favor ingrese su Nombre."
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
             error_msg = "Por favor ingrese su Dirección."
 
-        # El botón verde ahora se renderiza SIEMPRE sin condiciones
         if error_msg:
             st.markdown(f'<a href="#" onclick="alert(\'{error_msg}\'); return false;" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
         else:
