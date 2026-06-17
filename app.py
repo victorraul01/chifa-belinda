@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: CABECERA Y PESTAÑAS DOBLEMENTE ESTÁTICAS
+# 5. CSS MAESTRO: ESTRUCTURA FLUIDA CON MARGENES LIMPIOS
 # =========================================================
 st.markdown("""
 <style>
@@ -152,39 +152,26 @@ html, body, [data-testid="stApp"] {
 }
 
 .main .block-container {
-    padding-top: 0px !important;
+    padding-top: 10px !important;
     max-width: 100% !important;
 }
 
-/* EL CUADRO DEL TITULO: Fijo arriba con su fondo oscuro intacto */
+/* CABECERA PRINCIPAL */
 .cabecera-fija-chifa {
-    position: fixed !important;
-    top: 0px !important;
-    left: 0px !important;
-    right: 0px !important;
-    z-index: 999999 !important;
     background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
-    padding: 15px 10px 5px 10px !important;
+    padding: 15px 10px !important;
     text-align: center;
+    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
-/* LAS PESTAÑAS (TABS): Fijas justo debajo del título, completamente transparentes (sin fondos ni cuadros oscuros) */
+/* PESTAÑAS (TABS) COMPLETAMENTE TRANSPARENTES */
 div[data-testid="stTabs"] > div:first-child {
-    position: fixed !important;
-    top: 78px !important; /* Posicionado exactamente abajo del bloque de título */
-    left: 0px !important;
-    right: 0px !important;
-    z-index: 999998 !important;
-    background-color: transparent !important; /* Sin cuadro oscuro ni fondos adicionales */
-    background: transparent !important;
-    padding: 2px 10px !important;
+    background-color: transparent !important;
+    padding: 4px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
-}
-
-/* COMPENSACIÓN INTERNA: Deja el espacio necesario arriba para que las categorías y platos no queden tapados */
-div[data-testid="stTabPanel"] {
-    padding-top: 135px !important;
 }
 
 div[data-testid="stTabs"] button p {
@@ -194,14 +181,15 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* SELECTOR DE PÁGINAS */
+/* SELECTOR DE PÁGINAS AGRUPADO */
 div[data-testid="stRadio"] {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(2px);
-    padding: 8px !important;
-    border: 1px solid #FFEB3B !important;
+    background-color: rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(4px);
+    padding: 10px !important;
+    border: 1px solid rgba(255, 235, 59, 0.4) !important;
     border-radius: 8px !important;
-    margin-bottom: 20px !important;
+    margin-top: 10px !important;
+    margin-bottom: 25px !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
@@ -214,7 +202,7 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* FILA UNIFICADA DE PLATOS */
+/* FILA DE PRODUCTOS */
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -274,10 +262,10 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO FIJO
+# 6. ENCABEZADO PRINCIPAL
 # =========================================================
 st.markdown("""
-<div class="cabecera-fija-chifa">
+<div class="cabecera-fifa-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
     <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
@@ -285,18 +273,19 @@ st.markdown("""
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
+# Contenedor global de navegación superior fluido
 tab_carta, tab_pedido = st.tabs([
     "📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
 # =========================================================
-# PESTAÑA 1: NUESTRA CARTA
+# PESTAÑA 1: NUESTRA CARTA (CON CONTENEDOR DE PÁGINAS INTERNO)
 # =========================================================
 with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas
+        # Selector de páginas agrupado de forma natural dentro de la pestaña
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -311,7 +300,7 @@ with tab_carta:
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Despliegue de los platos
+        # Despliegue de los platos con scroll natural e ininterrumpido
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
