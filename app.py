@@ -147,10 +147,10 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     
     st.markdown("**Selecciona tus Cremas / Salsas:**")
-    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+    c_aji = st.checkbox("Ají 🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Tamarindo 🍯")
     
     mostrar_limon = any(keyword in categoria_plato for keyword in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
@@ -449,7 +449,7 @@ with tab_pedido:
         
         for item in st.session_state.carrito:
             tipo_item = item.get("tipo", "Carta")
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
+            mensaje_wa += f"✅ {item['cant']}  {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
             detalles_wa = []
             if item.get("entrada"): detalles_wa.append(f"Entrada: {item['entrada']}")
             if item['cremas']: detalles_wa.append(f"{item['cremas']}")
