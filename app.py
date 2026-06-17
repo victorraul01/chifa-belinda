@@ -89,13 +89,10 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
-# 2. INICIALIZACIÓN DEL CARRITO Y ESTADOS de control alternativo seguro
+# 2. INICIALIZACIÓN DEL CARRITO Y MANEJO DE QUERY PARAMS
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
-if "tab_activa" not in st.session_state:
-    st.session_state.tab_activa = 0
 
-# Manejo seguro de query params para eliminar ítems
 query_params = st.query_params
 if "eliminar_idx" in query_params:
     try:
@@ -105,7 +102,6 @@ if "eliminar_idx" in query_params:
     except ValueError:
         pass
     st.query_params.clear()
-    st.session_state.tab_activa = 2
     st.rerun()
 
 # 3. DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
@@ -131,10 +127,10 @@ def cargar_catalogo_limpio():
 df_carta = cargar_catalogo_limpio()
 
 # =========================================================
-# MODAL DE CONFIGURACIÓN SEGURO (Mantiene estado de pestañas)
+# MODAL DE CONFIGURACIÓN SEGURO 
 # =========================================================
 @st.dialog("Configura tu Plato 🍜")
-def abrir_modal_dinamico(p_info, p_cat_name, p_orig, destino_tab_idx):
+def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
     st.markdown(f"### {p_info['Name']}")
     st.markdown(f"**Tipo:** {p_orig} | **Precio Unitario:** S/. {p_info['Price']:.2f}")
     st.write("---")
@@ -155,7 +151,7 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig, destino_tab_idx):
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
 
-    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+    notes = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
@@ -163,11 +159,10 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig, destino_tab_idx):
         
         st.session_state.carrito.append({
             "id": p_info["ID"], "nombre": p_info["Name"], "precio": p_info["Price"],
-            "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(),
+            "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notes.strip(),
             "tipo": p_orig, "entrada": entrada_sel
         })
         st.toast("¡Agregado exitosamente!")
-        st.session_state.tab_activa = destino_tab_idx
         st.rerun()
 
 # =========================================================
@@ -263,18 +258,16 @@ st.markdown("""
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# 7. MANEJO SEGURO DE PESTAÑAS (Previene TypeError de enteros)
+# 7. INICIALIZACIÓN COMPATIBLE DE PESTAÑAS (CORRECCIÓN PYTHON 3.14)
 # =========================================================
-indice_seguro = int(st.session_state.tab_activa) if int(st.session_state.tab_activa) in [0, 1, 2] else 0
-
 tab_menu, tab_carta, tab_pedido = st.tabs([
     "🍱 Menú del Día", 
     "📖 Platos a la Carta", 
     f"🛒 Mi Pedido ({items_en_carrito})"
-], value=indice_seguro)
+])
 
 # =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA (Nativo e Integrado)
+# PESTAÑA: 🍱 MENÚ DEL DÍA
 # =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -282,7 +275,6 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        # Usamos columnas nativas con tamaños controlados para el Flexbox visual
         col_txt, col_btn = st.columns([0.85, 0.15])
         with col_txt:
             st.markdown(f"""
@@ -297,7 +289,7 @@ with tab_menu:
             """, unsafe_allow_html=True)
         with col_btn:
             if st.button("＋", key=f"btn_m_{plato['ID']}"):
-                abrir_modal_dinamico(plato, "MENÚ", "Menú del Día", 0)
+                abrir_modal_dinamico(plato, "MENÚ", "Menú del Día")
         
         st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
             
@@ -308,7 +300,7 @@ with tab_menu:
 # =========================================================
 with tab_carta:
     if df_carta.empty:
-        st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
+        st.warning("⚠️ Por favor, carga tu archivo del catálogo ('Catalogo_Productos.xlsx').")
     else:
         pag_seleccionada = st.radio("Selecciona una Página de la Carta:", options=[1, 2, 3, 4, 5, 6], format_func=lambda x: f"Pág. {x}", horizontal=True, key="pagina_actual")
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
@@ -336,7 +328,7 @@ with tab_carta:
                         """, unsafe_allow_html=True)
                     with col_btn_c:
                         if st.button("＋", key=f"btn_c_{row['ID']}"):
-                            abrir_modal_dinamico(plato_dict, cat_name, "Carta", 1)
+                            abrir_modal_dinamico(plato_dict, cat_name, "Carta")
                             
                     st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
 
@@ -440,7 +432,6 @@ with tab_pedido:
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
-            st.session_state.tab_activa = 0
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
