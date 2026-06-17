@@ -3,6 +3,7 @@ import pandas as pd
 import urllib.parse
 import base64
 import os
+import time  # <--- Necesario para generar identificadores únicos en el carrito
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
@@ -89,24 +90,24 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
-# 2. INICIALIZACIÓN CRÍTICA DEL CARRITO
+# 2. INICIALIZACIÓN DEL CARRITO (Asegurando Persistencia Global)
 if "carrito" not in st.session_state:
-    st.session_state.carrito = []
+    st.session_state["carrito"] = []
 
 # =========================================================
-# MANEJO INMEDIATO DE QUERY PARAMS (Antes del renderizado)
+# MANEJO INMEDIATO DE QUERY PARAMS
 # =========================================================
 query_params = dict(st.query_params)
 
-# Acción Eliminar
-if "eliminar_idx" in query_params:
-    idx_eliminar = int(query_params["eliminar_idx"])
-    if 0 <= idx_eliminar < len(st.session_state.carrito):
-        st.session_state.carrito.pop(idx_eliminar)
+# Acción Eliminar usando identificador único de tiempo
+if "eliminar_uid" in query_params:
+    uid_eliminar = float(query_params["eliminar_uid"])
+    # Filtramos el carrito manteniendo todos los que NO coincidan con el UID seleccionado
+    st.session_state.carrito = [item for item in st.session_state.carrito if item.get("uid") != uid_eliminar]
     st.query_params.clear()
     st.rerun()
 
-# Preparación para abrir el modal guardando variables temporales en session_state
+# Preparación segura del diálogo
 if "add_id" in query_params:
     st.session_state["modal_add_id"] = query_params["add_id"]
     st.session_state["modal_origin"] = query_params.get("origin", "Carta")
@@ -137,7 +138,7 @@ def cargar_catalogo_limpio():
 df_carta = cargar_catalogo_limpio()
 
 # =========================================================
-# DEFINICIÓN DEL MODAL DINÁMICO REESTRUCTURADO
+# DEFINICIÓN DEL MODAL DINÁMICO CORREGIDO
 # =========================================================
 @st.dialog("Configura tu Plato 🍜")
 def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
@@ -167,8 +168,12 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
         if mostrar_limon and c_limon: cremas_list.append("Limón")
         
-        # Guardamos de forma persistente en la lista sin alterar referencias
+        # Clonamos la lista actual explícitamente para forzar a Streamlit a actualizar la UI
+        carrito_actual = list(st.session_state["carrito"])
+        
+        # Le asignamos un "uid" único basado en el tiempo exacto en microsegundos
         nuevo_item = {
+            "uid": time.time(),
             "id": p_info["ID"], 
             "nombre": p_info["Name"], 
             "precio": float(p_info["Price"]),
@@ -178,15 +183,15 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
             "tipo": p_orig, 
             "entrada": entrada_sel
         }
-        st.session_state.carrito.append(nuevo_item)
         
-        # Limpieza de flags temporales del modal
+        carrito_actual.append(nuevo_item)
+        st.session_state["carrito"] = carrito_actual # Guardado persistente forzado
+        
         if "modal_add_id" in st.session_state: del st.session_state["modal_add_id"]
         
-        st.toast("¡Agregado exitosamente!")
         st.rerun()
 
-# Disparo controlado del diálogo desde estados internos seguros
+# Lanzamiento controlado del modal
 if "modal_add_id" in st.session_state:
     p_id = st.session_state["modal_add_id"]
     p_tipo = st.session_state.get("modal_origin", "Carta")
@@ -273,6 +278,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Contador dinámico basado en cantidades reales de la lista
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # 7. CREACIÓN DE PESTAÑAS
@@ -337,7 +343,7 @@ with tab_carta:
                     """, unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA: 🛒 MI PEDIDO
+# PESTAÑA: 🛒 MI PEDIDO (Muestra la lista completa acumulada)
 # =========================================================
 with tab_pedido:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -347,7 +353,7 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
-        for idx, item in enumerate(st.session_state.carrito):
+        for item in st.session_state.carrito:
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
@@ -359,11 +365,12 @@ with tab_pedido:
             
             detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
 
+            # El tacho ahora apunta a "?eliminar_uid" usando el identificador único del plato
             st.markdown(f"""
             <div class="fila-carrito-ordenada">
                 <div class="linea-principal-carrito">
                     <span style="display: flex; align-items: center;">
-                        <a href="?eliminar_idx={idx}" target="_self" class="btn-tacho-mini">🗑️</a>
+                        <a href="?eliminar_uid={item['uid']}" target="_self" class="btn-tacho-mini">🗑️</a>
                         <span class="texto-plato-carrito">💥 {item['cant']}x {item['nombre']}</span>
                     </span>
                     <span class="texto-precio-carrito">S/. {subtotal:.2f}</span>
