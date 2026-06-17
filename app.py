@@ -122,15 +122,15 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key=f"modal_add_{id_plato}"):
         cremas_list = []
         if c_aji: cremas_list.append("Ají")
-        if c_mayo: cremas_list.append("Mayo")
+        if c_mayo: cremas_list.append("Mayonesa")
         if c_ketchup: cremas_list.append("Ketchup")
         if c_tamarindo: cremas_list.append("Tamarindo")
         if mostrar_limon and c_limon: cremas_list.append("Limón")
-        cremas_texto = ", ".join(cremas_list) if cremas_list else "Ninguna"
+        cremas_texto = ", ".join(cremas_list) if cremas_list else ""
 
         st.session_state.carrito.append({
             "id": id_plato, "nombre": nombre_plato, "precio": float(precio_plato),
-            "cant": int(cantidad), "cremas": cremas_texto, "notas": notas if notas.strip() != "" else "Ninguna"
+            "cant": int(cantidad), "cremas": cremas_texto, "notas": notas.strip()
         })
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
@@ -183,15 +183,15 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
 /* BOTÓN TACHITO MINIATURA EN LINEA */
 .btn-tacho-mini {
     background-color: #FFEB3B !important; color: #8B0000 !important; text-decoration: none !important;
-    font-size: 12px !important; padding: 3px 6px !important; border-radius: 4px !important;
+    font-size: 11px !important; padding: 3px 5px !important; border-radius: 4px !important;
     font-weight: bold !important; margin-right: 8px !important; display: inline-block !important;
     box-shadow: 0px 1px 3px rgba(0,0,0,0.5) !important;
 }
 .texto-plato-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; flex-grow: 1 !important; text-align: left !important; }
 .texto-precio-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* DETALLES DE SALSAS Y NOTAS RESALTADOS */
-.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; text-shadow: 1px 1px 2px #000000 !important; display: block; margin-left: 32px; opacity: 0.95; }
+/* DETALLES DE SALSAS Y NOTAS LIMPIOS */
+.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; text-shadow: 1px 1px 2px #000000 !important; display: block; margin-left: 30px; opacity: 0.95; }
 
 div.boton-agregar-carta button {
     background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 20px !important; font-weight: bold !important;
@@ -199,15 +199,21 @@ div.boton-agregar-carta button {
     border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important; padding: 0px !important;
 }
 
+/* BOTÓN DE WHATSAPP VERDE ESTILIZADO */
+div.boton-whatsapp-verde button {
+    background-color: #25D366 !important; color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important;
+    border-radius: 8px !important; width: 100% !important; height: 48px !important; border: none !important; 
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+}
+
 div.boton-normal-ancho button {
     background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 15px !important; font-weight: bold !important;
-    border-radius: 8px !important; width: 100% !important; height: 45px !important; border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
+    border-radius: 8px !important; width: 100% !important; height: 42px !important; border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
 }
 
 .titulo-categoria-chifa { color: #FFEB3B !important; font-size: 17px !important; font-weight: bold !important; padding: 10px 4px !important; margin-top: 15px !important; margin-bottom: 5px !important; border-left: 5px solid #FFEB3B !important; text-shadow: 2px 2px 3px #000000 !important; }
 .alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; font-size: 14px !important; line-height: 1.5 !important; text-shadow: 1px 1px 2px #000000 !important; margin-top: 10px; margin-bottom: 15px; box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important; }
 
-/* DISEÑO DE TOTAL REFINADO */
 .recuadro-total-final {
     background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important;
     padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; align-items: center !important;
@@ -270,10 +276,21 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
-        # Lista de Platos en una sola línea indestructible
         for idx, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
+
+            # Construcción dinámica de la línea de detalles (salsas y notas)
+            detalles_lista = []
+            if item['cremas']:
+                detalles_lista.append(f"🧂 {item['cremas']}")
+            if item['notas']:
+                detalles_lista.append(f"📝 {item['notas']}")
+            
+            detalles_html = ""
+            if detalles_lista:
+                texto_detalles = " | ".join(detalles_lista)
+                detalles_html = f'<span class="texto-detalles-resaltados">{texto_detalles}</span>'
 
             st.markdown(f"""
             <div class="fila-carrito-ordenada">
@@ -284,11 +301,11 @@ with tab_pedido:
                     </span>
                     <span class="texto-precio-carrito">S/. {subtotal:.2f}</span>
                 </div>
-                <span class="texto-detalles-resaltados">🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>
+                {detalles_html}
             </div>
             """, unsafe_allow_html=True)
 
-        # TOTAL DEL PEDIDO UBICADO ABAJO DE LOS PLATOS
+        # TOTAL DEL PEDIDO
         st.markdown(f"""
         <div class="recuadro-total-final">
             <span style="color: #FFFFFF; font-size: 17px; font-weight: bold; text-shadow: 1px 1px 2px #000000;">💵 TOTAL DEL PEDIDO:</span>
@@ -339,8 +356,11 @@ with tab_pedido:
             
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
-                if item['cremas'] != "Ninguna": mensaje_wa += f"  • Salsas: {item['cremas']}\n"
-                if item['notas'] != "Ninguna": mensaje_wa += f"  • Nota: {item['notas']}\n"
+                detalles_wa = []
+                if item['cremas']: detalles_wa.append(f"Salsas: {item['cremas']}")
+                if item['notas']: detalles_wa.append(f"Nota: {item['notas']}")
+                if detalles_wa:
+                    mensaje_wa += f"  • {" | ".join(detalles_wa)}\n"
             
             mensaje_wa += f"-------------------------\n"
             mensaje_wa += f"💰 *TOTAL A PAGAR:* S/. {total:.2f}\n"
@@ -348,7 +368,7 @@ with tab_pedido:
 
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
             st.write("")
-            st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
+            st.markdown('<div class="boton-whatsapp-verde">', unsafe_allow_html=True)
             st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
         else:
