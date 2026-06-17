@@ -48,7 +48,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* TRANSPARENCIA TOTAL ABSOLUTA: Elimina cualquier fondo gris, negro o blanco */
+        /* Transparencia total garantizada */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
@@ -120,7 +120,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
     notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla, bien frito...")
 
     st.write("")
-    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
+    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key=f"modal_add_{id_plato}"):
         cremas_list = []
         if c_aji: cremas_list.append("Ají")
         if c_mayo: cremas_list.append("Mayo")
@@ -141,7 +141,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: TRANSPARENCIA TOTAL Y CONTROLES ESTÁTICOS
+# 5. CSS MAESTRO: CONTROLES ESTÁTICOS Y FILAS EN UNA LÍNEA
 # =========================================================
 st.markdown("""
 <style>
@@ -155,13 +155,12 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* Forzar que las pestañas principales sean estáticas y transparentes */
+/* Forzar que las pestañas principales sean estáticas */
 div[data-testid="stTabs"] > div:first-child {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 0px !important;
     background-color: transparent !important;
-    background: transparent !important;
     z-index: 99999 !important;
     padding: 6px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
@@ -171,17 +170,16 @@ div[data-testid="stTabs"] button p {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 4px #000000 !important;
+    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000, 2px -2px 3px #000000, -2px 2px 3px #000000 !important;
 }
 
-/* Forzar que el selector de páginas sea estático y transparente */
+/* Selector de páginas estático */
 div[data-testid="stRadio"] {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 55px !important;
     z-index: 99998 !important;
     background-color: transparent !important;
-    background: transparent !important;
     padding: 8px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
@@ -190,55 +188,80 @@ div[data-testid="stRadio"] {
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
     background-color: transparent !important;
-    background: transparent !important;
     border: none !important;
 }
 
 div[data-testid="stRadio"] label {
     color: #FFFFFF !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 4px #000000 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* Botón redondo amarillo "＋" */
-div.stButton > button {
-    background-color: #FFEB3B !important;
-    color: #8B0000 !important;
-    font-size: 22px !important;
-    font-weight: bold !important;
-    border-radius: 50% !important;
-    width: 44px !important;
-    height: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
-}
-
-/* Títulos de Categorías Transparentes */
-.titulo-categoria-chifa {
-    color: #FFEB3B !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    background-color: transparent !important;
-    background: transparent !important;
-    padding: 10px 4px !important;
-    margin-top: 15px !important;
-    margin-bottom: 12px !important;
-    border-left: 5px solid #FFEB3B !important;
-    text-shadow: 2px 2px 4px #000000 !important;
-}
-
-/* Filas de platos 100% transparentes sobre tu imagen */
-.fila-plato-limpia {
+/* DISEÑO DE FILA UNIFICADA: Nombre - Precio - Botón (+) */
+.contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding: 12px 4px !important;
+    padding: 10px 0px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Nombre del plato con borde negro de alta visibilidad */
+.texto-nombre-plato {
+    color: #FFFFFF !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    font-family: sans-serif !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000, 2px -2px 2px #000000, -2px 2px 2px #000000 !important;
+    flex-grow: 1 !important;
+    padding-right: 10px !important;
+    text-align: left !important;
+}
+
+/* Precio destacado en amarillo brillante */
+.texto-precio-plato {
+    color: #FFEB3B !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    font-family: sans-serif !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000, 2px -2px 2px #000000, -2px 2px 2px #000000 !important;
+    white-space: nowrap !important;
+    padding-right: 15px !important;
+}
+
+/* Forzar que el botón nativo mantenga tamaño pequeño redondo a la derecha */
+div.stButton > button {
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    border-radius: 50% !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Títulos de Categorías sin bloque gris */
+.titulo-categoria-chifa {
+    color: #FFEB3B !important;
+    font-size: 17px !important;
+    font-weight: bold !important;
+    background-color: transparent !important;
+    padding: 10px 4px !important;
+    margin-top: 20px !important;
+    margin-bottom: 5px !important;
+    border-left: 5px solid #FFEB3B !important;
+    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -248,8 +271,8 @@ div.stButton > button {
 # =========================================================
 st.markdown("""
 <div style="text-align: center; padding: 10px 0;">
-    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 4px 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 4px 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -281,7 +304,7 @@ with tab_carta:
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Lista de platos limpios y translúcidos
+        # Despliegue de los platos ordenados en línea única
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
@@ -289,21 +312,21 @@ with tab_carta:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 
                 for idx, row in df_filtrado_cat.iterrows():
-                    col_btn, col_txt = st.columns([0.18, 0.82])
-                    with col_btn:
-                        if st.button("＋", key=f"btn_{row['ID']}"):
-                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
-                    with col_txt:
+                    # Usamos st.columns para renderizar todo horizontalmente en una sola fila nativa
+                    col_info, col_btn = st.columns([0.84, 0.16])
+                    
+                    with col_info:
                         st.markdown(f"""
-                        <div class="fila-plato-limpia">
-                            <span style="color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-align: left !important; font-family: sans-serif !important; text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;">
-                                {row['Name']}
-                            </span>
-                            <span style="color: #FFEB3B !important; font-size: 16px !important; font-weight: bold !important; white-space: nowrap !important; font-family: sans-serif !important; text-shadow: 2px 2px 4px rgba(0,0,0,1) !important; padding-left: 10px;">
-                                S/. {float(row['Price']):.2f}
-                            </span>
+                        <div class="contenedor-plato-unico">
+                            <span class="texto-nombre-plato">{row['Name']}</span>
+                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                    with col_btn:
+                        # El botón se alinea perfectamente a la derecha del precio
+                        if st.button("＋", key=f"btn_{row['ID']}"):
+                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
 
 # =========================================================
 # PESTAÑA 2: MI PEDIDO (CARRITO)
@@ -334,8 +357,7 @@ with tab_pedido:
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         telefono_cliente = st.text_input("Tu número de contacto:")
 
-        if nombre_cliente.strip() and telefono_cliente.strip():
-            phone = telefono_cliente.strip()
+        if nombre_cliente.strip() and phone := telefono_cliente.strip():
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n📞 *Contacto:* {phone}\n-------------------------\n"
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
