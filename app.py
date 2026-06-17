@@ -89,16 +89,28 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
-# 2. INICIALIZACIÓN DEL CARRITO
+# 2. INICIALIZACIÓN CRÍTICA DEL CARRITO
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# Manejo de la acción de eliminar o agregar mediante query params estables
+# =========================================================
+# MANEJO INMEDIATO DE QUERY PARAMS (Antes del renderizado)
+# =========================================================
 query_params = dict(st.query_params)
+
+# Acción Eliminar
 if "eliminar_idx" in query_params:
     idx_eliminar = int(query_params["eliminar_idx"])
     if 0 <= idx_eliminar < len(st.session_state.carrito):
         st.session_state.carrito.pop(idx_eliminar)
+    st.query_params.clear()
+    st.rerun()
+
+# Preparación para abrir el modal guardando variables temporales en session_state
+if "add_id" in query_params:
+    st.session_state["modal_add_id"] = query_params["add_id"]
+    st.session_state["modal_origin"] = query_params.get("origin", "Carta")
+    st.session_state["modal_cat"] = query_params.get("cat", "GENERAL")
     st.query_params.clear()
     st.rerun()
 
@@ -125,7 +137,7 @@ def cargar_catalogo_limpio():
 df_carta = cargar_catalogo_limpio()
 
 # =========================================================
-# DEFINICIÓN DEL MODAL (CORREGIDO: Ahora está a nivel global)
+# DEFINICIÓN DEL MODAL DINÁMICO REESTRUCTURADO
 # =========================================================
 @st.dialog("Configura tu Plato 🍜")
 def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
@@ -155,19 +167,30 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
         if mostrar_limon and c_limon: cremas_list.append("Limón")
         
-        st.session_state.carrito.append({
-            "id": p_info["ID"], "nombre": p_info["Name"], "precio": p_info["Price"],
-            "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(),
-            "tipo": p_orig, "entrada": entrada_sel
-        })
+        # Guardamos de forma persistente en la lista sin alterar referencias
+        nuevo_item = {
+            "id": p_info["ID"], 
+            "nombre": p_info["Name"], 
+            "precio": float(p_info["Price"]),
+            "cant": int(cantidad), 
+            "cremas": ", ".join(cremas_list), 
+            "notas": notas.strip(),
+            "tipo": p_orig, 
+            "entrada": entrada_sel
+        }
+        st.session_state.carrito.append(nuevo_item)
+        
+        # Limpieza de flags temporales del modal
+        if "modal_add_id" in st.session_state: del st.session_state["modal_add_id"]
+        
         st.toast("¡Agregado exitosamente!")
         st.rerun()
 
-# Interceptamos clics de agregar mediante query params para disparar el modal limpiamente
-if "add_id" in query_params:
-    p_id = query_params["add_id"]
-    p_tipo = query_params.get("origin", "Carta")
-    p_cat = query_params.get("cat", "GENERAL")
+# Disparo controlado del diálogo desde estados internos seguros
+if "modal_add_id" in st.session_state:
+    p_id = st.session_state["modal_add_id"]
+    p_tipo = st.session_state.get("modal_origin", "Carta")
+    p_cat = st.session_state.get("modal_cat", "GENERAL")
     
     plato_encontrado = None
     if p_tipo == "Menú del Día":
@@ -179,11 +202,10 @@ if "add_id" in query_params:
                 plato_encontrado = {"ID": p_id, "Name": match.iloc[0]["Name"], "Price": float(match.iloc[0]["Price"])}
                 
     if plato_encontrado:
-        st.query_params.clear()
         abrir_modal_dinamico(plato_encontrado, p_cat, p_tipo)
 
 # =========================================================
-# 5. CSS MAESTRO GLOBAL (Flexbox super robusto para móviles)
+# CSS MAESTRO GLOBAL (Optimizado)
 # =========================================================
 st.markdown("""
 <style>
@@ -208,32 +230,16 @@ div[data-testid="stRadio"] {
 }
 div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 
-/* Contenedor de Fila Unificada Flexbox */
 .fila-plato-flex {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    padding: 6px 0px !important;
-    box-sizing: border-box !important;
+    display: flex !important; justify-content: space-between !important; align-items: center !important;
+    width: 100% !important; padding: 6px 0px !important; box-sizing: border-box !important;
 }
-.bloque-izq-nombre {
-    flex-grow: 1 !important;
-    text-align: left !important;
-    padding-right: 10px !important;
-}
-.bloque-der-precio-accion {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 12px !important;
-    flex-shrink: 0 !important;
-}
+.bloque-izq-nombre { flex-grow: 1 !important; text-align: left !important; padding-right: 10px !important; }
+.bloque-der-precio-accion { display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 12px !important; flex-shrink: 0 !important; }
 
 .texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* Botón HTML + estilizado como app nativa */
 .btn-agregar-nativo {
     background-color: #FFEB3B !important; color: #8B0000 !important;
     font-size: 20px !important; font-weight: bold !important;
@@ -259,9 +265,7 @@ div.boton-normal-ancho button { background-color: #FFEB3B !important; color: #8B
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================
 # 6. ENCABEZADO FIJO
-# =========================================================
 st.markdown("""
 <div class="cabecera-fija-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
@@ -271,9 +275,7 @@ st.markdown("""
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# =========================================================
 # 7. CREACIÓN DE PESTAÑAS
-# =========================================================
 tab_menu, tab_carta, tab_pedido = st.tabs([
     "🍱 Menú del Día", 
     "📖 Platos a la Carta", 
@@ -281,7 +283,7 @@ tab_menu, tab_carta, tab_pedido = st.tabs([
 ])
 
 # =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA (Estructura Unificada)
+# PESTAÑA: 🍱 MENÚ DEL DÍA
 # =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -305,7 +307,7 @@ with tab_menu:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA: 📖 PLATOS A LA CARTA (Estructura Unificada)
+# PESTAÑA: 📖 PLATOS A LA CARTA
 # =========================================================
 with tab_carta:
     if df_carta.empty:
@@ -434,6 +436,7 @@ with tab_pedido:
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
+            if "modal_add_id" in st.session_state: del st.session_state["modal_add_id"]
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
