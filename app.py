@@ -41,14 +41,15 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
+        /* Capa combinada: Imagen de fondo + Capa oscura semitransparente total de extremo a extremo */
         [data-testid="stAppViewContainer"] {{
-            background-image: url('data:image/jpeg;base64,{img_b64}') !important;
+            background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
             background-repeat: no-repeat !important;
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* Transparencia total garantizada */
+        /* Transparencia absoluta para evitar bloques de color sobre el fondo */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
@@ -141,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADOS TOTALMENTE ESTÁTICOS (STICKY)
+# 5. CSS MAESTRO: ENCABEZADOS ESTÁTICOS Y FILAS DE CONTRASTE
 # =========================================================
 st.markdown("""
 <style>
@@ -155,14 +156,13 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* ENCABEZADO FIJO: Nombre del chifa y frase fija arriba */
+/* ENCABEZADO FIJO: Nombre del chifa y frase superior fija */
 .cabecera-estatica-chifa {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.4) !important; /* Capa ultra ligera para leer sobre el fondo en movimiento */
-    backdrop-filter: blur(3px);
+    background-color: transparent !important;
     padding: 10px 0px 5px 0px !important;
     text-align: center;
     width: 100%;
@@ -172,9 +172,8 @@ html, body, [data-testid="stApp"] {
 div[data-testid="stTabs"] > div:first-child {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 74px !important; /* Se posiciona justo abajo del nombre */
-    background-color: rgba(0, 0, 0, 0.4) !important;
-    backdrop-filter: blur(3px);
+    top: 74px !important;
+    background-color: transparent !important;
     z-index: 999995 !important;
     padding: 4px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
@@ -191,10 +190,10 @@ div[data-testid="stTabs"] button p {
 div[data-testid="stRadio"] {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 124px !important; /* Se acomoda debajo de las pestañas principales */
+    top: 124px !important;
     z-index: 999990 !important;
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(3px);
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(2px);
     padding: 8px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
