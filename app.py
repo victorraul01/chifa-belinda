@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO ORIGINAL CON CONTENEDORES LIMPIOS
+# 5. CSS MAESTRO: CONTROL FIJO SUPERIOR UNIFICADO
 # =========================================================
 st.markdown("""
 <style>
@@ -151,37 +151,40 @@ html, body, [data-testid="stApp"] {
     padding: 0 !important;
 }
 
+/* Ocultar encabezado por defecto de Streamlit para ganar espacio limpio */
+[data-testid="stHeader"] {
+    display: none !important;
+}
+
 .main .block-container {
-    padding-top: 15px !important;
+    padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* MARCO O CUADRO COMPACTO DE CABECERA */
-.cabecera-bloque-chifa {
-    background-color: rgba(0, 0, 0, 0.6) !important;
-    backdrop-filter: blur(6px) !important;
-    padding: 18px 12px !important;
+/* =========================================================
+   CUADRO INDEPENDIENTE SUPERIOR FIJO (CONGELA TODO ARRIBA)
+   ========================================================= */
+.cuadro-superior-fijo {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 999999 !important;
+    background-color: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(8px) !important;
+    padding: 15px 12px 5px 12px !important;
+    border-bottom: 2px solid rgba(255, 235, 59, 0.4) !important;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.6) !important;
     text-align: center;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 235, 59, 0.25);
-    margin-bottom: 15px;
 }
 
-/* GRUPO INDEPENDIENTE PARA PESTAÑAS Y CONTROLADORES SUPERIORES */
-.cuadro-navegacion-unificado {
-    background-color: rgba(0, 0, 0, 0.35) !important;
-    backdrop-filter: blur(4px) !important;
-    padding: 12px !important;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 20px;
-}
-
-/* PESTAÑAS DE STREAMLIT */
+/* PESTAÑAS (TABS) DENTRO DEL CUADRO FIJO */
 div[data-testid="stTabs"] > div:first-child {
     background-color: transparent !important;
     border-bottom: 2px solid #FFEB3B !important;
     padding: 2px 4px !important;
+    margin-top: 10px !important;
 }
 
 div[data-testid="stTabs"] button p {
@@ -191,14 +194,16 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000 !important;
 }
 
-/* SELECTOR DE PAGINAS (RADIO) */
+/* SELECTOR DE PÁGINAS (RADIO) DENTRO DEL CUADRO FIJO */
 div[data-testid="stRadio"] {
-    margin-top: 12px !important;
+    margin-top: 8px !important;
+    margin-bottom: 5px !important;
     background-color: transparent !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
     background-color: transparent !important;
+    justify-content: center !important;
 }
 
 div[data-testid="stRadio"] label {
@@ -207,7 +212,14 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000 !important;
 }
 
-/* DISEÑO DEL DISEÑO DE PLATOS */
+/* =========================================================
+   ZONA DE PLATOS Y CONTENIDO (SCROLL CRÍTICO)
+   ========================================================= */
+.espaciador-contenido-scroll {
+    margin-top: 215px !important; /* Espacio exacto para que el primer plato no se oculte tras el bloque fijo */
+    padding: 0 10px 40px 10px !important;
+}
+
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -265,20 +277,20 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO PRINCIPAL
+# 6. ENCAPSULACIÓN COMPLETA EN EL CUADRO FIJO SUPERIOR
 # =========================================================
+# Abrimos el contenedor HTML independiente que congela la pantalla arriba
+st.markdown('<div class="cuadro-superior-fijo">', unsafe_allow_html=True)
+
+# Título de la cabecera (Inmóvil)
 st.markdown("""
-<div class="cabecera-bloque-chifa">
-    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 4px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000;">Pide al instante y recibe directo en tu WhatsApp</p>
-</div>
+    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000;">Pide al instante y recibe directo en tu WhatsApp</p>
 """, unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# --- INICIO DEL CUADRO INDEPENDIENTE DE NAVEGACIÓN ---
-st.markdown('<div class="cuadro-navegacion-unificado">', unsafe_allow_html=True)
-
+# Pestañas y selector integrados físicamente en el bloque inmóvil superior
 tab_carta, tab_pedido = st.tabs([
     "📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
@@ -293,52 +305,50 @@ with tab_carta:
             options=[1, 2, 3, 4, 5, 6],
             format_func=lambda x: f"Pág. {x}",
             horizontal=True,
+            label_visibility="collapsed", # Oculta el texto redundante para un look más limpio
             key="pagina_actual"
         )
+
+# Cerramos el contenedor estático superior
 st.markdown('</div>', unsafe_allow_html=True)
-# --- FIN DEL CUADRO INDEPENDIENTE DE NAVEGACIÓN ---
 
 
 # =========================================================
-# DESPLIEGUE FLUIDO DE PLATOS Y CATEGORÍAS
+# 7. RENDERIZADO FLUIDO POR DEBAJO (ZONA DE SCROLL)
 # =========================================================
+# Abrimos el div encargado de empujar los platos por debajo del bloque fijo
+st.markdown('<div class="espaciador-contenido-scroll">', unsafe_allow_html=True)
+
 if not df_carta.empty:
-    # Aplicamos el fondo dinámico según la página activa elegida dentro del cuadro
+    # Cambia el fondo automáticamente dependiendo de la página activa dentro del bloque fijo
     imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
     aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
-    # Renderizado en la pestaña activa
-    if st.session_state.get("pagina_actual") or True: 
-        # Determinamos qué renderizar dependiendo de qué Tab externa o lógica se maneje
-        # Para mantener el flujo limpio, los platos se imprimen fuera del div contenedor superior
-        categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
+    # Imprimir platos de la página activa
+    categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        for cat_name in categorias_permitidas:
-            df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
+    for cat_name in categorias_permitidas:
+        df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
+        
+        if not df_filtrado_cat.empty:
+            st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
             
-            if not df_filtrado_cat.empty:
-                st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
+            for idx, row in df_filtrado_cat.iterrows():
+                col_info, col_btn = st.columns([0.84, 0.16])
                 
-                for idx, row in df_filtrado_cat.iterrows():
-                    col_info, col_btn = st.columns([0.84, 0.16])
+                with col_info:
+                    st.markdown(f"""
+                    <div class="contenedor-plato-unico">
+                        <span class="texto-nombre-plato">{row['Name']}</span>
+                        <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    with col_info:
-                        st.markdown(f"""
-                        <div class="contenedor-plato-unico">
-                            <span class="texto-nombre-plato">{row['Name']}</span>
-                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                    with col_btn:
-                        if st.button("＋", key=f"btn_{row['ID']}"):
-                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
+                with col_btn:
+                    if st.button("＋", key=f"btn_{row['ID']}"):
+                        abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
 
-# =========================================================
-# SECCIÓN INFERIOR: DETALLES DEL CARRITO (OCULTO EN LA PESTAÑA ORIGINAL)
-# =========================================================
-# NOTA: Para no romper el comportamiento clásico del carrito de tu código,
-# si deseas visualizar el resumen total cuando cambies de vista, renderizamos aquí abajo de manera condicional.
+# Lógica del Carrito integrada para cuando se presione la pestaña correspondiente arriba
 if items_en_carrito > 0:
     with st.expander(f"🛒 Ver mi Pedido Actual ({items_en_carrito} ítems)"):
         st.markdown('<div style="background-color: #FFFFFF; padding: 15px; border-radius: 10px; color: #222222;">', unsafe_allow_html=True)
@@ -360,6 +370,7 @@ if items_en_carrito > 0:
         telefono_cliente = st.text_input("Tu Teléfono:")
 
         if nombre_cliente.strip() and telefono_cliente.strip():
+            phone = telefono_cliente.strip()
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n-------------------------\n"
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
@@ -367,3 +378,5 @@ if items_en_carrito > 0:
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
             st.link_button("📲 ENVIAR PEDIDO", link_final, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
