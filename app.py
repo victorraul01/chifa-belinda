@@ -12,43 +12,43 @@ st.set_page_config(
 )
 
 # =========================================================
-# Opciones del Menú del Día (Actualizado desde 1000051619.jpg)
+# Opciones del Menú del Día (Limpios, sin texto repetitivo)
 # =========================================================
 PLATOS_MENU_INTERNO = [
     # --- Platos de la primera sección de la imagen ---
-    {"ID": "M01", "Name": "Chaufa de Pollo + Entrada y Refresco", "Price": 14.00},
-    {"ID": "M02", "Name": "Alita Rebozada + Entrada y Refresco", "Price": 15.00},
-    {"ID": "M03", "Name": "1/8 Broaster + Entrada y Refresco", "Price": 14.00},
-    {"ID": "M04", "Name": "Aeropuerto de Pollo + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M05", "Name": "Combinado de Pollo + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M06", "Name": "Pollo con Verdura + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M07", "Name": "Tallarín Saltado de Pollo + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M08", "Name": "Pollo con Tamarindo + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M09", "Name": "Alita con Tamarindo + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M10", "Name": "Lomo Saltado de Pollo + Entrada y Refresco", "Price": 17.00},
-    {"ID": "M11", "Name": "Alitas 4 Pzs + Entrada y Refresco", "Price": 18.00},
-    {"ID": "M12", "Name": "Tortilla de Verdura + Entrada y Refresco", "Price": 19.00},
-    {"ID": "M13", "Name": "Alitas con Piña + Entrada y Refresco", "Price": 18.00},
-    {"ID": "M14", "Name": "Pollo con Piña + Entrada y Refresco", "Price": 19.00},
-    {"ID": "M15", "Name": "Chaufa de Chancho + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M16", "Name": "Chaufa de Res + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M17", "Name": "Chaufa de Molleja + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M18", "Name": "Chicharrón de Pollo + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M19", "Name": "Chi Jau Kay + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M20", "Name": "Kam Lu Wantan + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M21", "Name": "Enrollado de Pollo + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M22", "Name": "Tipa Kay + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M01", "Name": "Chaufa de Pollo", "Price": 14.00},
+    {"ID": "M02", "Name": "Alita Rebozada", "Price": 15.00},
+    {"ID": "M03", "Name": "1/8 Broaster", "Price": 14.00},
+    {"ID": "M04", "Name": "Aeropuerto de Pollo", "Price": 17.00},
+    {"ID": "M05", "Name": "Combinado de Pollo", "Price": 17.00},
+    {"ID": "M06", "Name": "Pollo con Verdura", "Price": 17.00},
+    {"ID": "M07", "Name": "Tallarín Saltado de Pollo", "Price": 17.00},
+    {"ID": "M08", "Name": "Pollo con Tamarindo", "Price": 17.00},
+    {"ID": "M09", "Name": "Alita con Tamarindo", "Price": 17.00},
+    {"ID": "M10", "Name": "Lomo Saltado de Pollo", "Price": 17.00},
+    {"ID": "M11", "Name": "Alitas 4 Pzs", "Price": 18.00},
+    {"ID": "M12", "Name": "Tortilla de Verdura", "Price": 19.00},
+    {"ID": "M13", "Name": "Alitas con Piña", "Price": 18.00},
+    {"ID": "M14", "Name": "Pollo con Piña", "Price": 19.00},
+    {"ID": "M15", "Name": "Chaufa de Chancho", "Price": 20.00},
+    {"ID": "M16", "Name": "Chaufa de Res", "Price": 20.00},
+    {"ID": "M17", "Name": "Chaufa de Molleja", "Price": 20.00},
+    {"ID": "M18", "Name": "Chicharrón de Pollo", "Price": 20.00},
+    {"ID": "M19", "Name": "Chi Jau Kay", "Price": 20.00},
+    {"ID": "M20", "Name": "Kam Lu Wantan", "Price": 20.00},
+    {"ID": "M21", "Name": "Enrollado de Pollo", "Price": 20.00},
+    {"ID": "M22", "Name": "Tipa Kay", "Price": 20.00},
     
     # --- Platos de la segunda sección de la imagen ---
-    {"ID": "M23", "Name": "Tallarín de Res + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M24", "Name": "Combinado de Res + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M25", "Name": "Chancho con Piña + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M26", "Name": "Chancho con Tamarindo + Entrada y Refresco", "Price": 20.00},
-    {"ID": "M27", "Name": "¼ Broaster + Entrada y Refresco", "Price": 22.00},
+    {"ID": "M23", "Name": "Tallarín de Res", "Price": 20.00},
+    {"ID": "M24", "Name": "Combinado de Res", "Price": 20.00},
+    {"ID": "M25", "Name": "Chancho con Piña", "Price": 20.00},
+    {"ID": "M26", "Name": "Chancho con Tamarindo", "Price": 20.00},
+    {"ID": "M27", "Name": "¼ Broaster", "Price": 22.00},
     
     # --- Nuevos platos agregados ---
-    {"ID": "M28", "Name": "Alitas a la BBQ (3 piezas) + Entrada y Refresco", "Price": 18.00},
-    {"ID": "M29", "Name": "Alitas Acevichadas (3 piezas) + Entrada y Refresco", "Price": 18.00}
+    {"ID": "M28", "Name": "Alitas a la BBQ (3 piezas)", "Price": 18.00},
+    {"ID": "M29", "Name": "Alitas Acevichadas (3 piezas)", "Price": 18.00}
 ]
 
 # =========================================================
@@ -136,6 +136,14 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
     st.markdown(f"**Tipo:** {tipo_origen}")
     st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
     st.write("---")
+    
+    # Selector de entrada exclusivo para Menú del Día
+    entrada_seleccionada = ""
+    if tipo_origen == "Menú del Día":
+        st.markdown("**Elige tu Entrada (Incluida):**")
+        entrada_seleccionada = st.radio("", ["Sopa Wantán 🥣", "Wantán Frito 🥟"], horizontal=True, label_visibility="collapsed")
+        st.write("---")
+
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     
     st.markdown("**Selecciona tus Cremas / Salsas:**")
@@ -171,9 +179,14 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
         cremas_texto = ", ".join(cremas_list) if cremas_list else ""
 
         st.session_state.carrito.append({
-            "id": id_plato, "nombre": nombre_plato, "precio": float(precio_plato),
-            "cant": int(cantidad), "cremas": cremas_texto, "notas": notas.strip(),
-            "tipo": tipo_origen
+            "id": id_plato, 
+            "nombre": nombre_plato, 
+            "precio": float(precio_plato),
+            "cant": int(cantidad), 
+            "cremas": cremas_texto, 
+            "notas": notas.strip(),
+            "tipo": tipo_origen,
+            "entrada": entrada_seleccionada # Guardamos la entrada elegida
         })
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
@@ -270,7 +283,7 @@ st.markdown("""
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# 7. CREACIÓN DE PESTAÑAS (SIEMPRE VISIBLE PARA PRUEBAS)
+# 7. CREACIÓN DE PESTAÑAS
 # =========================================================
 tab_menu, tab_carta, tab_pedido = st.tabs([
     "🍱 Menú del Día", 
@@ -279,15 +292,16 @@ tab_menu, tab_carta, tab_pedido = st.tabs([
 ])
 
 # =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA (USANDO LISTA INTERNA DE LA IMAGEN)
+# PESTAÑA: 🍱 MENÚ DEL DÍA
 # =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     aplicar_fondo("pag1.jpeg", "menu")
     
-    st.markdown('<div class="titulo-categoria-chifa">🍱 OPCIONES DEL MENÚ DEL DÍA</div>', unsafe_allow_html=True)
+    # Texto movido al encabezado de la sección de manera vistosa
+    st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
     
-    # Renderizado directo de todos los platos internos cargados
+    # Renderizado directo de los platos limpios
     for plato in PLATOS_MENU_INTERNO:
         col_info, col_btn = st.columns([0.84, 0.16])
         with col_info:
@@ -353,6 +367,11 @@ with tab_pedido:
 
             origen_tipo = item.get("tipo", "Carta")
             detalles_lista = [f"📌 Tipo: {origen_tipo}"]
+            
+            # Si el plato tiene entrada seleccionada, la mostramos en la lista de detalles
+            if item.get("entrada"):
+                detalles_lista.append(f"🍲 Entrada: {item['entrada']}")
+                
             if item['cremas']: detalles_lista.append(f"🧂 {item['cremas']}")
             if item['notas']: detalles_lista.append(f"📝 {item['notas']}")
             
@@ -419,7 +438,7 @@ with tab_pedido:
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
             error_validacion = "Seleccionaste Delivery Moto, debes escribir una Dirección de Envío."
 
-        # Construcción dinámica del mensaje de WhatsApp detallando tipo (Carta o Menú del Día)
+        # Construcción dinámica del mensaje de WhatsApp
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
         mensaje_wa += f"👤 *Cliente:* {nombre_cliente.strip()}\n"
         mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
@@ -432,8 +451,9 @@ with tab_pedido:
             tipo_item = item.get("tipo", "Carta")
             mensaje_wa += f"✅ {item['cant']}x {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
             detalles_wa = []
+            if item.get("entrada"): detalles_wa.append(f"Entrada: {item['entrada']}")
             if item['cremas']: detalles_wa.append(f"{item['cremas']}")
-            if item['notas']: detalles_wa.append(f"{item['notas']}")
+            if item['notes' if 'notes' in item else 'notas']: detalles_wa.append(f"{item['notas']}")
             if detalles_wa:
                 mensaje_wa += f"  • {" | ".join(detalles_wa)}\n"
         
