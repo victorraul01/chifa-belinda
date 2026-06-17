@@ -357,7 +357,8 @@ with tab_pedido:
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         telefono_cliente = st.text_input("Tu número de contacto:")
 
-        if nombre_cliente.strip() and phone := telefono_cliente.strip():
+        if nombre_cliente.strip() and telefono_cliente.strip():
+            phone = telefono_cliente.strip()
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n📞 *Contacto:* {phone}\n-------------------------\n"
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
