@@ -213,19 +213,50 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
+/* ESTILO HORIZONTAL DE LOS SELECTORES DE OPCIONES */
 div[data-testid="stRadio"] {
-    background-color: rgba(0, 0, 0, 0.3) !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
     backdrop-filter: blur(2px);
-    padding: 10px !important;
-    border: 1px solid #FFEB3B !important;
+    padding: 8px 12px !important;
+    border: 1px solid rgba(255, 235, 59, 0.4) !important;
     border-radius: 8px !important;
-    margin-bottom: 15px !important;
+    margin-bottom: 10px !important;
 }
 
 div[data-testid="stRadio"] label {
     color: #FFFFFF !important;
     font-weight: bold !important;
     text-shadow: 2px 2px 2px #000000 !important;
+}
+
+/* FILA UNIFICADA EN LA CARTA */
+.contenedor-plato-unico {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 10px 0px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.texto-nombre-plato {
+    color: #FFFFFF !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
+    flex-grow: 1 !important;
+    padding-right: 10px !important;
+    text-align: left !important;
+}
+
+.texto-precio-plato {
+    color: #FFEB3B !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
+    white-space: nowrap !important;
+    padding-right: 15px !important;
 }
 
 /* CONTENEDOR EXCLUSIVO PARA FORZAR ALINEACIÓN EN EL CARRITO */
@@ -235,7 +266,7 @@ div[data-testid="stRadio"] label {
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding: 10px 0px;
+    padding: 5px 0px;
 }
 
 .bloque-texto-carrito {
@@ -277,7 +308,7 @@ div.boton-normal-ancho button {
     box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
 }
 
-/* REPARACIÓN DEFINITIVA DEL BOTÓN DE ELIMINAR */
+/* REPARACIÓN DEFINITIVA DEL BOTÓN DE ELIMINAR CERCANO AL TEXTO */
 div.boton-eliminar-carrito button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -314,16 +345,19 @@ div.boton-eliminar-carrito button {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* AVISO LLAMATIVO PARA EL DELIVERY */
-.alerta-delivery-personalizada {
-    background-color: rgba(255, 235, 59, 0.15) !important;
-    border: 1px solid #FFEB3B !important;
-    padding: 12px !important;
-    border-radius: 8px !important;
+/* CUADROS DE MENSAJE MUCHO MÁS NOTORIOS Y LLAMATIVOS */
+.alerta-delivery-destacada {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    border: 2px solid #FFEB3B !important;
+    padding: 15px !important;
+    border-radius: 10px !important;
     color: #FFFFFF !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
     text-shadow: 1px 1px 2px #000000 !important;
     margin-top: 10px;
     margin-bottom: 15px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -398,18 +432,20 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
+        # Bloque de productos en el carrito alineados de forma impecable horizontalmente
         for idx, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            # Usamos columnas nativas de Streamlit combinadas con contenedores limpios
             col_resumen, col_accion = st.columns([0.84, 0.16])
             
             with col_resumen:
                 st.markdown(f"""
-                <div class="bloque-texto-carrito">
-                    <span style='color: #FFFFFF; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 2px #000000;'>💥 {item['cant']}x {item['nombre']} — S/. {subtotal:.2f}</span>
-                    <span class='texto-detalles-carrito'>🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notes' if 'notes' in item else 'notas']}</span>
+                <div class="fila-carrito-ajustada">
+                    <div class="bloque-texto-carrito">
+                        <span style='color: #FFFFFF; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 2px #000000;'>💥 {item['cant']}x {item['nombre']} — S/. {subtotal:.2f}</span>
+                        <span class='texto-detalles-carrito'>🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -422,13 +458,14 @@ with tab_pedido:
 
         st.divider()
         
-        # Formulario de Envío Renovado
+        # Formulario de Envío
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Ingresa tu Nombre Completo:</span>', unsafe_allow_html=True)
         nombre_cliente = st.text_input("", label_visibility="collapsed", key="nom_cli")
         
+        # MÉTODOS EN HORIZONTAL (DINÁMICO Y COMPACTO)
         st.write("")
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Entrega:</span>', unsafe_allow_html=True)
-        metodo_entrega = st.radio("", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], label_visibility="collapsed", key="met_ent")
+        metodo_entrega = st.radio("", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, label_visibility="collapsed", key="met_ent")
 
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
@@ -436,24 +473,29 @@ with tab_pedido:
             st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 14px;">Dirección de Envío:</span>', unsafe_allow_html=True)
             direccion_cliente = st.text_input("", placeholder="Ej: Av. Perú 123, dpto 402...", label_visibility="collapsed", key="dir_cli")
             
+            # Mensaje de Delivery renovado (Ultra Notorio)
             st.markdown("""
-            <div class="alerta-delivery-personalizada">
-                📌 <b>NOTA DE DELIVERY:</b> Al finalizar y enviar el mensaje por WhatsApp, por favor <b>compártenos tu ubicación actual</b> en el chat para que el motorizado llegue rápido.<br><br>
-                💰 El costo del delivery se calculará y se lo enviaremos inmediatamente después de confirmar su pedido.
+            <div class="alerta-delivery-destacada">
+                🚨 <span style="color: #FFEB3B; font-weight: bold; font-size: 15px;">¡AVISO IMPORTANTE DE DELIVERY!</span><br>
+                1️⃣ Después de enviar el mensaje, <b>compártenos tu ubicación actual por WhatsApp</b> para que el motorizado llegue rápido.<br>
+                2️⃣ <b>Costo de envío:</b> Se calculará y te lo enviaremos inmediatamente después de recibir tu lista de platos.
             </div>
             """, unsafe_allow_html=True)
         else:
+            # Mensaje de Recojo renovado (Ultra Notorio)
             st.markdown("""
-            <div class="alerta-delivery-personalizada" style="border-color: #4CAF50;">
-                🏪 <b>RECOJO EN LOCAL:</b> Tu pedido estará listo y empacado para recoger en aproximadamente <b>20 a 30 minutos</b>. ¡Te esperamos!
+            <div class="alerta-delivery-destacada" style="border-color: #4CAF50;">
+                🏪 <span style="color: #4CAF50; font-weight: bold; font-size: 15px;">PEDIDO PARA RECOJO EN LOCAL</span><br>
+                ⏳ Su comida estará lista y empacada con cuidado en aproximadamente <b>20 a 30 minutos</b>. ¡Te esperamos!
             </div>
             """, unsafe_allow_html=True)
 
+        # MÉTODO DE PAGO EN HORIZONTAL
         st.write("")
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Pago:</span>', unsafe_allow_html=True)
-        metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], label_visibility="collapsed", key="met_pag")
+        metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], horizontal=True, label_visibility="collapsed", key="met_pag")
 
-        # Validación y armado del mensaje final de WhatsApp
+        # Configuración final del envío
         if nombre_cliente.strip() and (metodo_entrega == "Recojo en Local 🏪" or direccion_cliente.strip()):
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
             mensaje_wa += f"👤 *Cliente:* {nombre_cliente}\n"
@@ -482,7 +524,7 @@ with tab_pedido:
             st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.write("")
-            st.warning("⚠️ Por favor, ingresa tu nombre completo y dirección (si seleccionaste delivery) para habilitar el envío.")
+            st.warning("⚠️ Completa tu nombre y dirección de envío para poder habilitar el botón de WhatsApp.")
 
         st.write("")
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
