@@ -93,15 +93,6 @@ def aplicar_fondo(nombre_imagen, pagina_id):
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# Manejo de la acción de eliminar mediante query params estables
-query_params = st.query_params
-if "eliminar_idx" in query_params:
-    idx_eliminar = int(query_params["eliminar_idx"])
-    if 0 <= idx_eliminar < len(st.session_state.carrito):
-        st.session_state.carrito.pop(idx_eliminar)
-    st.query_params.clear()
-    st.rerun()
-
 # DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
@@ -124,9 +115,30 @@ def cargar_catalogo_limpio():
 
 df_carta = cargar_catalogo_limpio()
 
-# MODAL REUTILIZABLE DIALOG (Ejecutado sin alterar la URL)
+# =========================================================
+# LÓGICA DE CONTROL DE PESTAÑAS FIJAS POR URL
+# =========================================================
+query_params = st.query_params
+
+# Mapeo: 0 = Menú, 1 = Carta, 2 = Pedido
+tab_seleccionada_idx = 0
+if "tab" in query_params:
+    val_tab = query_params["tab"]
+    if val_tab == "carta": tab_seleccionada_idx = 1
+    elif val_tab == "pedido": tab_seleccionada_idx = 2
+
+# Manejo de eliminación en el carrito
+if "eliminar_idx" in query_params:
+    idx_eliminar = int(query_params["eliminar_idx"])
+    if 0 <= idx_eliminar < len(st.session_state.carrito):
+        st.session_state.carrito.pop(idx_eliminar)
+    st.query_params.clear()
+    st.query_params["tab"] = "pedido"
+    st.rerun()
+
+# DIALOG FLOTANTE DE CONFIGURACIÓN ORIGINAL
 @st.dialog("Configura tu Plato 🍜")
-def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
+def abrir_modal_dinamico(p_info, p_cat_name, p_orig, pestaña_origen):
     st.markdown(f"### {p_info['Name']}")
     st.markdown(f"**Tipo:** {p_orig} | **Precio Unitario:** S/. {p_info['Price']:.2f}")
     st.write("---")
@@ -159,10 +171,33 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
             "tipo": p_orig, "entrada": entrada_sel
         })
         st.toast("¡Agregado exitosamente!")
+        st.query_params.clear()
+        # Mantenemos al usuario exactamente en la pestaña desde donde llamó al modal
+        st.query_params["tab"] = pestaña_origen
         st.rerun()
 
+# Interceptar si se presionó agregar (＋)
+plato_para_modal = None
+cat_para_modal = "GENERAL"
+orig_para_modal = "Carta"
+pestana_origen_modal = "menu"
+
+if "add_id" in query_params:
+    p_id = query_params["add_id"]
+    orig_para_modal = query_params.get("origin", "Carta")
+    cat_para_modal = query_params.get("cat", "GENERAL")
+    pestana_origen_modal = query_params.get("tab", "menu")
+    
+    if orig_para_modal == "Menú del Día":
+        plato_para_modal = next((p for p in PLATOS_MENU_INTERNO if p["ID"] == p_id), None)
+    else:
+        if not df_carta.empty:
+            match = df_carta[df_carta["ID"] == p_id]
+            if not match.empty:
+                plato_para_modal = {"ID": p_id, "Name": match.iloc[0]["Name"], "Price": float(match.iloc[0]["Price"])}
+
 # =========================================================
-# 5. CSS MAESTRO GLOBAL (Optimizado para evitar recargas)
+# 5. CSS MAESTRO GLOBAL (Diseño original intacto)
 # =========================================================
 st.markdown("""
 <style>
@@ -187,13 +222,13 @@ div[data-testid="stRadio"] {
 }
 div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 
-/* Contenedor Flexbox unificado para Nombre e Info del precio */
+/* Contenedor de Fila Unificada Flexbox original */
 .fila-plato-flex {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding: 2px 0px !important;
+    padding: 6px 0px !important;
     box-sizing: border-box !important;
 }
 .bloque-izq-nombre {
@@ -205,34 +240,21 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 8px !important;
+    gap: 12px !important;
     flex-shrink: 0 !important;
 }
 
 .texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 4px; }
+.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* Estilizado forzado de botones Streamlit para mimetizarse */
-div.btn-chifa-nativo button {
-    background-color: #FFEB3B !important; 
-    color: #8B0000 !important;
-    font-size: 20px !important; 
-    font-weight: bold !important;
-    border-radius: 6px !important; 
-    width: 36px !important; 
-    height: 36px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
-    padding: 0 !important;
-    display: flex !important; 
-    align-items: center !important; 
-    justify-content: center !important;
-    border: none !important;
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
-}
-div.btn-chifa-nativo button:hover, div.btn-chifa-nativo button:active {
-    background-color: #FFF59D !important;
-    color: #8B0000 !important;
+/* Botón HTML original */
+.btn-agregar-nativo {
+    background-color: #FFEB3B !important; color: #8B0000 !important;
+    font-size: 20px !important; font-weight: bold !important;
+    border-radius: 6px !important; width: 36px !important; height: 36px !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    text-decoration: none !important; box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
+    border: none !important; cursor: pointer !important; line-height: 1 !important;
 }
 
 .fila-carrito-ordenada { padding: 12px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%; }
@@ -251,9 +273,7 @@ div.boton-normal-ancho button { background-color: #FFEB3B !important; color: #8B
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================
-# 6. ENCABEZADO FIJO
-# =========================================================
+# Encabezado Fijo
 st.markdown("""
 <div class="cabecera-fija-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
@@ -263,14 +283,15 @@ st.markdown("""
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# =========================================================
-# 7. CREACIÓN DE PESTAÑAS
-# =========================================================
-tab_menu, tab_carta, tab_pedido = st.tabs([
-    "🍱 Menú del Día", 
-    "📖 Platos a la Carta", 
-    f"🛒 Mi Pedido ({items_en_carrito})"
-])
+# Pestañas respetando el índice guardado de la URL para que no salte al inicio
+tab_menu, tab_carta, tab_pedido = st.tabs(
+    ["🍱 Menú del Día", "📖 Platos a la Carta", f"🛒 Mi Pedido ({items_en_carrito})"],
+    value=tab_seleccionada_idx
+)
+
+# Lanzamos el modal sobre la pestaña actual si fue activado
+if plato_para_modal is not None:
+    abrir_modal_dinamico(plato_para_modal, cat_para_modal, orig_para_modal, pestana_origen_modal)
 
 # =========================================================
 # PESTAÑA: 🍱 MENÚ DEL DÍA
@@ -281,22 +302,19 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        # Usamos st.columns de tamaño microscópico a la derecha para posicionar el botón nativo en la misma línea
-        col_txt, col_btn = st.columns([0.82, 0.18])
-        with col_txt:
-            st.markdown(f"""
-            <div class="fila-plato-flex" style="margin-top: 6px;">
-                <div class="bloque-izq-nombre"><span class="texto-nombre-plato">{plato['Name']}</span></div>
-                <div class="bloque-der-precio-accion"><span class="texto-precio-plato">S/. {plato['Price']:.2f}</span></div>
+        # Añade &tab=menu para quedarse aquí mismo al presionar el botón
+        st.markdown(f"""
+        <div class="fila-plato-flex">
+            <div class="bloque-izq-nombre">
+                <span class="texto-nombre-plato">{plato['Name']}</span>
             </div>
-            """, unsafe_allow_html=True)
-        with col_btn:
-            st.markdown('<div class="btn-chifa-nativo">', unsafe_allow_html=True)
-            if st.button("＋", key=f"btn_m_{plato['ID']}", label_visibility="collapsed"):
-                abrir_modal_dinamico(plato, "MENÚ", "Menú del Día")
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-        st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 0px 0 2px 0;">', unsafe_allow_html=True)
+            <div class="bloque-der-precio-accion">
+                <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
+                <a href="?add_id={plato['ID']}&origin=Menú+del+Día&cat=MENÚ&tab=menu" target="_self" class="btn-agregar-nativo">＋</a>
+            </div>
+        </div>
+        <hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">
+        """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
@@ -316,25 +334,19 @@ with tab_carta:
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
-                    
-                    # Dividimos la fila: Izquierda para Texto (Flexbox HTML), Derecha exclusiva para el botón Nativo
-                    col_txt, col_btn = st.columns([0.82, 0.18])
-                    with col_txt:
-                        st.markdown(f"""
-                        <div class="fila-plato-flex" style="margin-top: 6px;">
-                            <div class="bloque-izq-nombre"><span class="texto-nombre-plato">{row['Name']}</span></div>
-                            <div class="bloque-der-precio-accion"><span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span></div>
+                    # Añade &tab=carta para quedarse exactamente aquí en la carta sin redirigir a ningún otro lado
+                    st.markdown(f"""
+                    <div class="fila-plato-flex">
+                        <div class="bloque-izq-nombre">
+                            <span class="texto-nombre-plato">{row['Name']}</span>
                         </div>
-                        """, unsafe_allow_html=True)
-                    with col_btn:
-                        st.markdown('<div class="btn-chifa-nativo">', unsafe_allow_html=True)
-                        # El botón es nativo, por lo que guarda el estado de la pestaña actual y no recarga la app
-                        plato_dict = {"ID": row['ID'], "Name": row['Name'], "Price": float(row['Price'])}
-                        if st.button("＋", key=f"btn_c_{row['ID']}", label_visibility="collapsed"):
-                            abrir_modal_dinamico(plato_dict, cat_name, "Carta")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 0px 0 2px 0;">', unsafe_allow_html=True)
+                        <div class="bloque-der-precio-accion">
+                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
+                            <a href="?add_id={row['ID']}&origin=Carta&cat={urllib.parse.quote(cat_name)}&tab=carta" target="_self" class="btn-agregar-nativo">＋</a>
+                        </div>
+                    </div>
+                    <hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">
+                    """, unsafe_allow_html=True)
 
 # =========================================================
 # PESTAÑA: 🛒 MI PEDIDO
@@ -436,6 +448,8 @@ with tab_pedido:
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
+            st.query_params.clear()
+            st.query_params["tab"] = "carta"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
