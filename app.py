@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO OPTIMIZADO PARA ELIMINAR ESPACIOS
+# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
 # =========================================================
 st.markdown("""
 <style>
@@ -151,32 +151,34 @@ html, body, [data-testid="stApp"] {
     padding: 0 !important;
 }
 
-/* Ocultar el header nativo vacío de Streamlit para liberar espacio superior */
-[data-testid="stHeader"] {
-    display: none !important;
+/* Forzamos a que el contenedor de la app elimine paddings por defecto que causan el hueco */
+[data-testid="stMainBlockContainer"] {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
 
-/* Reducir el padding superior por defecto del contenedor principal de Streamlit */
 .main .block-container {
     padding-top: 0px !important;
-    margin-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* Cabecera integrada al flujo superior para que todo suba dinámicamente */
+/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA (Tus valores originales) */
 .cabecera-fija-chifa {
-    width: 100% !important;
-    background-color: rgba(0, 0, 0, 0.55) !important;
+    position: fixed !important;
+    top: 0px !important;
+    left: 0px !important;
+    right: 0px !important;
+    z-index: 999999 !important;
+    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
     backdrop-filter: blur(5px) !important;
     padding: 15px 10px !important;
     text-align: center;
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
-    margin-top: 0px !important;
 }
 
-/* Ajuste de pestañas pegadas al encabezado sin espacios muertos */
+/* COMPENSACIÓN ORIGINAL */
 div[data-testid="stTabs"] {
-    margin-top: 10px !important; 
+    margin-top: 95px !important; 
 }
 
 /* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
@@ -273,10 +275,10 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE (Tus valores originales)
 # =========================================================
 st.markdown("""
-<div class="cabecera-fija-chifa">
+<div class="cabecera-fifa-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
     <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
