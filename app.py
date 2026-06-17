@@ -48,7 +48,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* QUITAR CUALQUIER FONDO ROJO O BLANCO INTERMEDIO PARA VER TU IMAGEN DIRECTAMENTE */
+        /* TRANSPARENCIA TOTAL: Cero fondos rojos o blancos que tapen tu imagen */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
@@ -139,70 +139,51 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: CONGELAR BLOQUE SUPERIOR COMPLETO
+# 5. CSS MAESTRO: ENCABEZADO, PESTAÑAS Y PÁGINAS ESTÁTICAS
 # =========================================================
 st.markdown("""
 <style>
-/* Desactivar scroll general del cuerpo para controlar la lista de platos */
 html, body, [data-testid="stApp"] {
-    overflow: hidden !important;
-    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .main .block-container {
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
+    padding-top: 10px !important;
     max-width: 100% !important;
 }
 
-/* ENCABEZADO FIJO REAL (Nombre del Chifa) */
-.mi-encabezado-fijo {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    background-color: rgba(139, 0, 0, 0.98) !important;
-    z-index: 999999 !important;
-    padding: 10px 0px !important;
-    text-align: center !important;
+/* 1. HACER QUE LAS PESTAÑAS SE QUEDEN PEGADAS ARRIBA AL HACER SCROLL */
+div[data-testid="stTabs"] > div:first-child {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0px !important;
+    background-color: rgba(0, 0, 0, 0.85) !important; /* Fondo oscuro semi-transparente para legibilidad */
+    z-index: 99999 !important;
+    padding: 6px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
 }
 
-/* PESTAÑAS NATIVAS FIJAS (Carta y Pedido) */
-div[data-testid="stTabs"] > div:first-child {
-    position: fixed !important;
-    top: 68px !important;
-    left: 0 !important;
-    width: 100% !important;
-    background-color: rgba(139, 0, 0, 0.98) !important;
-    z-index: 999998 !important;
-    padding: 0px 10px !important;
-}
 div[data-testid="stTabs"] button p {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
 }
 
-/* CONTENEDOR DE CADA PESTAÑA FIJO */
-div[data-testid="stTabs"] > div:nth-child(2) {
-    margin-top: 115px !important;
-    height: calc(100vh - 115px) !important;
+/* 2. HACER QUE EL SELECTOR DE PÁGINAS TAMBIÉN SEA ESTÁTICO ABAJO DE LAS PESTAÑAS */
+div[data-testid="stRadio"] {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 55px !important;
+    z-index: 99998 !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    padding: 8px !important;
+    border-radius: 8px !important;
+    border: 1px solid #FFEB3B !important;
+    margin-bottom: 15px !important;
 }
 
-/* SELECTOR DE PÁGINAS FIJO ABAJO DEL MENÚ */
-.contenedor-paginas-fijo {
-    position: fixed !important;
-    top: 115px !important;
-    left: 0 !important;
-    width: 100% !important;
-    background-color: rgba(139, 0, 0, 0.95) !important;
-    z-index: 999997 !important;
-    padding: 8px 16px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-/* Estilo limpio para los botones de opción (Radio) */
 div[data-testid="stRadio"] div[role="radiogroup"] {
     background-color: transparent !important;
     border: none !important;
@@ -211,15 +192,6 @@ div[data-testid="stRadio"] div[role="radiogroup"] {
 div[data-testid="stRadio"] label {
     color: #FFFFFF !important;
     font-weight: bold !important;
-}
-
-/* ÁREA EXCLUSIVA DE SCROLL VERTICAL PARA LOS PLATOS */
-.zona-scroll-platos {
-    margin-top: 110px !important; /* Margen para no chocar con las páginas fijas */
-    height: calc(100vh - 245px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding: 10px 4px 120px 4px !important;
 }
 
 /* Botón redondo amarillo "＋" */
@@ -243,7 +215,7 @@ div.stButton > button {
     color: #FFEB3B !important;
     font-size: 16px !important;
     font-weight: bold !important;
-    background-color: rgba(139, 0, 0, 0.85) !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
     padding: 10px 14px !important;
     border-radius: 6px !important;
     margin-top: 15px !important;
@@ -251,7 +223,7 @@ div.stButton > button {
     border-left: 5px solid #FFEB3B !important;
 }
 
-/* Filas totalmente transparentes */
+/* Filas de platos 100% transparentes sobre tu imagen */
 .fila-plato-limpia {
     display: flex !important;
     flex-direction: row !important;
@@ -259,18 +231,18 @@ div.stButton > button {
     align-items: center !important;
     width: 100% !important;
     padding: 12px 4px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO HTML ESTÁTICO SUPERIOR
+# 6. ENCABEZADO PRINCIPAL (NOMBRE DEL CHIFA)
 # =========================================================
 st.markdown("""
-<div class="mi-encabezado-fijo">
-    <h2 style="margin: 0; font-size: 24px; color: #FFEB3B; font-family: sans-serif; font-weight: bold;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 2px 0 0 0; font-size: 12px; color: #FFFFFF;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+<div style="text-align: center; padding: 10px 0;">
+    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 4px 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -287,26 +259,22 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Inyectar el selector de páginas dentro de la zona fija superior
-        st.markdown('<div class="contenedor-paginas-fijo">', unsafe_allow_html=True)
+        # Selector de páginas estático
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
             format_func=lambda x: f"Pág. {x}",
             horizontal=True,
-            key="pagina_actual",
-            label_visibility="collapsed"
+            key="pagina_actual"
         )
-        st.markdown('</div>', unsafe_allow_html=True)
 
-        # Cargar fondo limpio sin capas rojas intermedias
+        # Aplicar el fondo exacto correspondiente a la página
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Contenedor con scroll exclusivo para los platos de comida
-        st.markdown('<div class="zona-scroll-platos">', unsafe_allow_html=True)
+        # Lista de platos (solo esta parte tendrá movimiento vertical al deslizar)
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
@@ -329,13 +297,12 @@ with tab_carta:
                             </span>
                         </div>
                         """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
 # PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
-    st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 60px; border: 1px solid #E0E0E0; height: calc(100vh - 200px); overflow-y: auto;">', unsafe_allow_html=True)
+    st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 15px; border: 1px solid #E0E0E0;">', unsafe_allow_html=True)
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
