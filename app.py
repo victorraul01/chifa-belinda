@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: CONTROL DE ELEMENTOS ESTÁTICOS COMPATIBLES
+# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
 # =========================================================
 st.markdown("""
 <style>
@@ -152,52 +152,50 @@ html, body, [data-testid="stApp"] {
 }
 
 .main .block-container {
-    padding-top: 10px !important;
+    padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* EL TITULO: Se queda arriba de forma estática con su cuadro oscuro */
-.cabecera-estatica-chifa {
-    position: -webkit-sticky !important;
-    position: sticky !important;
+/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+.cabecera-fija-chifa {
+    position: fixed !important;
     top: 0px !important;
+    left: 0px !important;
+    right: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro que resalta */
-    backdrop-filter: blur(4px);
-    border-radius: 8px;
-    padding: 15px 10px 10px 10px !important;
+    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    backdrop-filter: blur(5px) !important;
+    padding: 15px 10px !important;
     text-align: center;
-    width: 100%;
+    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* LAS PESTAÑAS (TABS): También estáticas abajo del título, transparentes sin cuadros ni fondos */
+/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
+div[data-testid="stTabs"] {
+    margin-top: 95px !important; 
+}
+
+/* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
 div[data-testid="stTabs"] > div:first-child {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 76px !important; /* Se acopla perfectamente abajo del cuadro del título */
-    z-index: 999998 !important;
-    background-color: transparent !important; /* Sin ningún cuadro oscuro ni fondo */
-    background: transparent !important;
-    padding: 6px 10px !important;
+    background-color: transparent !important;
+    padding: 4px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
-    margin-top: 5px !important;
 }
 
 div[data-testid="stTabs"] button p {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000, 2px -2px 3px #000000, -2px 2px 3px #000000 !important;
+    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* EL SELECTOR DE PÁGINAS Y DETALLES SE MUEVEN LIBREMENTE CON EL SCROLL */
+/* SELECTOR DE PÁGINAS */
 div[data-testid="stRadio"] {
     background-color: rgba(0, 0, 0, 0.2) !important;
     backdrop-filter: blur(2px);
     padding: 8px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
-    margin-top: 10px !important;
     margin-bottom: 20px !important;
 }
 
@@ -211,7 +209,7 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* FILA UNIFICADA: Nombre - Precio - Botón (+) */
+/* FILA UNIFICADA DE PLATOS */
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -226,8 +224,7 @@ div[data-testid="stRadio"] label {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
-    font-family: sans-serif !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000, 2px 2px 2px #000000, -2px 2px 2px #000000 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
     flex-grow: 1 !important;
     padding-right: 10px !important;
     text-align: left !important;
@@ -237,8 +234,7 @@ div[data-testid="stRadio"] label {
     color: #FFEB3B !important;
     font-size: 16px !important;
     font-weight: 900 !important;
-    font-family: sans-serif !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000, 2px 2px 2px #000000, -2px 2px 2px #000000 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
     white-space: nowrap !important;
     padding-right: 15px !important;
 }
@@ -252,21 +248,17 @@ div.stButton > button {
     width: 38px !important;
     height: 38px !important;
     min-width: 38px !important;
-    max-width: 38px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
-    padding: 0 !important;
-    margin: 0 !important;
 }
 
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 17px !important;
     font-weight: bold !important;
-    background-color: transparent !important;
     padding: 10px 4px !important;
     margin-top: 15px !important;
     margin-bottom: 5px !important;
@@ -277,12 +269,12 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO (ESTÁTICO REFORZADO)
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE
 # =========================================================
 st.markdown("""
-<div class="cabecera-estatica-chifa">
+<div class="cabecera-fija-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 4px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -299,7 +291,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas (se desliza libremente con el scroll)
+        # Selector de páginas
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
