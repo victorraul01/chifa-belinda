@@ -101,7 +101,7 @@ df_carta = cargar_catalogo_limpio()
 
 # 4. VENTANA EMERGENTE (MODAL) PARA DETALLES DEL PLATO
 @st.dialog("Configura tu Plato 🍜")
-def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
+def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_plato):
     st.markdown(f"### {nombre_plato}")
     st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
     st.write("---")
@@ -109,24 +109,49 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
 
     st.markdown("**Selecciona tus Cremas / Salsas:**")
-    col1, col2 = st.columns(2)
-    with col1:
-        c_aji = st.checkbox("Ají Chi Chon San 🌶️")
-        c_mayo = st.checkbox("Mayonesa ⚪")
-    with col2:
-        c_ketchup = st.checkbox("Ketchup 🍅")
-        c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    
+    c_aji = st.checkbox("Ají 🌶️")
+    c_mayo = st.checkbox("Mayonesa ⚪")
+    c_ketchup = st.checkbox("Ketchup 🍅")
+    c_tamarindo = st.checkbox("Tamarindo 🍯")
+    
+    mostrar_limon = any(keyword in categoria_plato for keyword in ["ALITAS", "BROASTER"])
+    c_limon = False
+    if mostrar_limon:
+        c_limon = st.checkbox("Limón 🍋")
 
     st.write("")
     notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla, bien frito...")
 
     st.write("")
+    
+    # CSS Inyectado localmente para reparar el diseño de ESTE botón en específico dentro del diálogo
+    st.markdown(f"""
+    <style>
+    div[data-testid="stDialog"] div.stButton > button {{
+        background-color: #FFEB3B !important;
+        color: #8B0000 !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        height: 45px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key=f"modal_add_{id_plato}"):
         cremas_list = []
         if c_aji: cremas_list.append("Ají")
         if c_mayo: cremas_list.append("Mayo")
         if c_ketchup: cremas_list.append("Ketchup")
         if c_tamarindo: cremas_list.append("Tamarindo")
+        if mostrar_limon and c_limon: cremas_list.append("Limón")
 
         cremas_texto = ", ".join(cremas_list) if cremas_list else "Ninguna"
 
@@ -151,12 +176,17 @@ html, body, [data-testid="stApp"] {
     padding: 0 !important;
 }
 
+[data-testid="stMainBlockContainer"] {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
 .main .block-container {
     padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+/* EL CUADRO SE QUETA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
@@ -239,7 +269,8 @@ div[data-testid="stRadio"] label {
     padding-right: 15px !important;
 }
 
-div.stButton > button {
+/* Regla apuntando únicamente a la vista principal para evitar romper los diálogos */
+[data-testid="stAppViewContainer"] div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 20px !important;
@@ -326,7 +357,7 @@ with tab_carta:
                         
                     with col_btn:
                         if st.button("＋", key=f"btn_{row['ID']}"):
-                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
+                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name)
 
 # =========================================================
 # PESTAÑA 2: MI PEDIDO (CARRITO)
