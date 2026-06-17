@@ -90,7 +90,7 @@ DISTRIBUCION_PAGINAS = {
     6: ['CHANCHO', 'COSTILLAS', 'PORCIONES', 'BEBIDAS FRÍAS', 'BEBIDAS CALIENTES']
 }
 
-@st.cache_data(ttl=10) # TTL bajo para evitar que se quede pegada la caché vieja del excel
+@st.cache_data(ttl=10)
 def cargar_catalogo_limpio():
     nombre_archivo = "Catalogo_Productos.xlsx"
     nombre_csv = "Catalogo_Productos.xlsx - in.csv"
@@ -101,7 +101,6 @@ def cargar_catalogo_limpio():
     df.columns = df.columns.str.strip()
     
     if 'Category' in df.columns:
-        # Forzar limpieza absoluta por si acaso
         df['Category'] = df['Category'].astype(str).str.strip().str.upper()
     
     if 'Description' not in df.columns:
@@ -134,15 +133,15 @@ def abrir_modal_dinamico():
 
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     st.markdown("*Selecciona tus Cremas / Salsas:*")
-    c_aji = st.checkbox("Ají  🌶️")
+    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
     
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
 
-    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key="btn_guardar_modal_real"):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
@@ -280,9 +279,7 @@ with tab_carta:
         pag_seleccionada = st.radio("Selecciona una Página:", options=[1, 2, 3, 4, 5, 6], format_func=lambda x: f"Pág. {x}", horizontal=True, key="pagina_actual")
         aplicar_fondo(IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg"), pag_seleccionada)
 
-        # Usamos una comparación robusta contra el DataFrame directamente en el loop
         for cat_name in DISTRIBUCION_PAGINAS.get(pag_seleccionada, []):
-            # Filtro exacto ignorando diferencias sutiles
             df_filtrado_cat = df_carta[df_carta["Category"].str.upper().str.strip() == cat_name.upper().strip()]
             
             if not df_filtrado_cat.empty:
@@ -328,7 +325,7 @@ with tab_pedido:
             detalles_lista = [f"📌 {item.get('tipo','Carta')}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 {item['entrada']}")
             if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
-            if item.get('notes'): detalles_lista.append(f"📝 {item['notas']}")
+            if item.get('notas'): detalles_lista.append(f"📝 {item['notas']}")
 
             st.markdown('<div class="fila-carrito-ordenada">', unsafe_allow_html=True)
             col_tacho, col_info = st.columns([0.12, 0.88])
@@ -355,11 +352,24 @@ with tab_pedido:
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
+        # CONSTRUCCIÓN DEL MENSAJE DE WHATSAPP CON DETALLE CARTA/MENÚ
         mensaje_wa = f"🍜 CHIFA D' BELINDA\n\n👤 Cliente: {nombre_cliente.strip()}\n♻️ Entrega: {metodo_entrega}\n"
-        if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
+        if metodo_entrega == "Delivery Moto 🏍️": 
+            mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
         mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
+        
         for item in st.session_state.carrito:
-            mensaje_wa += f"✅ {item['cant']}   {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+            # Determinamos el tipo para el texto de WhatsApp brevemente: (MENÚ) o (CARTA)
+            tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
+            
+            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
+            if item.get("entrada"): 
+                mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
+            if item.get('cremas'): 
+                mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
+            if item.get('notas'): 
+                mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
+                
         mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
 
