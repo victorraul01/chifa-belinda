@@ -41,6 +41,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
+        /* Capa combinada: Imagen de fondo + Capa oscura semitransparente total de extremo a extremo */
         [data-testid="stAppViewContainer"] {{
             background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
@@ -48,6 +49,7 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
+        /* Transparencia absoluta para evitar bloques de color sobre el fondo */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
@@ -140,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO
+# 5. CSS MAESTRO: CABECERA Y PESTAÑAS DOBLEMENTE ESTÁTICAS
 # =========================================================
 st.markdown("""
 <style>
@@ -154,6 +156,7 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
+/* EL CUADRO DEL TITULO: Fijo arriba con su fondo oscuro intacto */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
@@ -162,19 +165,26 @@ html, body, [data-testid="stApp"] {
     z-index: 999999 !important;
     background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
-    padding: 15px 10px !important;
+    padding: 15px 10px 5px 10px !important;
     text-align: center;
-    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-div[data-testid="stTabs"] {
-    margin-top: 95px !important; 
-}
-
+/* LAS PESTAÑAS (TABS): Fijas justo debajo del título, completamente transparentes (sin fondos ni cuadros oscuros) */
 div[data-testid="stTabs"] > div:first-child {
-    background-color: transparent !important;
-    padding: 4px 10px !important;
+    position: fixed !important;
+    top: 78px !important; /* Posicionado exactamente abajo del bloque de título */
+    left: 0px !important;
+    right: 0px !important;
+    z-index: 999998 !important;
+    background-color: transparent !important; /* Sin cuadro oscuro ni fondos adicionales */
+    background: transparent !important;
+    padding: 2px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
+}
+
+/* COMPENSACIÓN INTERNA: Deja el espacio necesario arriba para que las categorías y platos no queden tapados */
+div[data-testid="stTabPanel"] {
+    padding-top: 135px !important;
 }
 
 div[data-testid="stTabs"] button p {
@@ -182,6 +192,56 @@ div[data-testid="stTabs"] button p {
     font-size: 15px !important;
     font-weight: bold !important;
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
+}
+
+/* SELECTOR DE PÁGINAS */
+div[data-testid="stRadio"] {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(2px);
+    padding: 8px !important;
+    border: 1px solid #FFEB3B !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+}
+
+div[data-testid="stRadio"] div[role="radiogroup"] {
+    background-color: transparent !important;
+}
+
+div[data-testid="stRadio"] label {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
+}
+
+/* FILA UNIFICADA DE PLATOS */
+.contenedor-plato-unico {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 10px 0px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.texto-nombre-plato {
+    color: #FFFFFF !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
+    flex-grow: 1 !important;
+    padding-right: 10px !important;
+    text-align: left !important;
+}
+
+.texto-precio-plato {
+    color: #FFEB3B !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
+    white-space: nowrap !important;
+    padding-right: 15px !important;
 }
 
 div.stButton > button {
@@ -214,7 +274,7 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO
 # =========================================================
 st.markdown("""
 <div class="cabecera-fija-chifa">
@@ -236,68 +296,48 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # NUEVO SELECTOR CON BOTONES
-        if "pagina_actual" not in st.session_state:
-            st.session_state.pagina_actual = 1
+        # Selector de páginas
+        pag_seleccionada = st.radio(
+            "Selecciona una Página de la Carta:",
+            options=[1, 2, 3, 4, 5, 6],
+            format_func=lambda x: f"Pág. {x}",
+            horizontal=True,
+            key="pagina_actual"
+        )
 
-        col_prev, col_info, col_next = st.columns([1, 2, 1])
-
-        with col_prev:
-            if st.button("⬅️"):
-                if st.session_state.pagina_actual > 1:
-                    st.session_state.pagina_actual -= 1
-                    st.rerun()
-
-        with col_info:
-            st.markdown(
-                f"""
-                <div style="text-align:center; color:white; font-weight:bold; font-size:16px; padding-top:8px;">
-                    Página {st.session_state.pagina_actual} de 6
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        with col_next:
-            if st.button("➡️"):
-                if st.session_state.pagina_actual < 6:
-                    st.session_state.pagina_actual += 1
-                    st.rerun()
-
-        pag_seleccionada = st.session_state.pagina_actual
-
+        # Aplicar el fondo exacto correspondiente a la página seleccionada
         imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
+        # Despliegue de los platos
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
-
+            
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
-
+                
                 for idx, row in df_filtrado_cat.iterrows():
                     col_info, col_btn = st.columns([0.84, 0.16])
-
+                    
                     with col_info:
                         st.markdown(f"""
                         <div class="contenedor-plato-unico">
-                            <span>{row['Name']}</span>
-                            <span>S/. {float(row['Price']):.2f}</span>
+                            <span class="texto-nombre-plato">{row['Name']}</span>
+                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
                         </div>
                         """, unsafe_allow_html=True)
-
+                        
                     with col_btn:
                         if st.button("＋", key=f"btn_{row['ID']}"):
                             abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
 
 # =========================================================
-# PESTAÑA 2: MI PEDIDO
+# PESTAÑA 2: MI PEDIDO (CARRITO)
 # =========================================================
 with tab_pedido:
     st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 15px; border: 1px solid #E0E0E0;">', unsafe_allow_html=True)
-
     if not st.session_state.carrito:
         st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
@@ -311,27 +351,37 @@ with tab_pedido:
             col_a, col_b = st.columns([0.85, 0.15])
             with col_a:
                 st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
+                st.markdown(f"<span style='color: #8B0000; font-size: 13px;'>└ 🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>", unsafe_allow_html=True)
             with col_b:
                 if st.button("🗑️", key=f"del_{idx}"):
                     st.session_state.carrito.pop(idx)
                     st.rerun()
+            st.write("")
 
         st.divider()
-
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
         telefono_cliente = st.text_input("Tu número de contacto:")
 
         if nombre_cliente.strip() and telefono_cliente.strip():
             phone = telefono_cliente.strip()
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n📞 *Contacto:* {phone}\n-------------------------\n"
-
             for item in st.session_state.carrito:
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
-
+                if item['cremas'] != "Ninguna":
+                    mensaje_wa += f"  • Salsas: {item['cremas']}\n"
+                if item['notas'] != "Ninguna":
+                    mensaje_wa += f"  • Nota: {item['notas']}\n"
             mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
 
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-
+            st.write("")
             st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
+        else:
+            st.write("")
+            st.warning("⚠️ Completa tu nombre y número de contacto para poder enviar el pedido.")
 
+        st.write("")
+        if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
+            st.session_state.carrito = []
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
