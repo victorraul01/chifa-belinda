@@ -12,20 +12,17 @@ st.set_page_config(
     layout="centered"
 )
 
-# 2. INICIALIZACIÓN DEL CARRITO (Garantiza Persistencia Continua)
+# 2. INICIALIZACIÓN DEL CARRITO
 if "carrito" not in st.session_state:
     st.session_state["carrito"] = []
 
-# Variables de control para el diálogo modal
 if "mostrar_modal" not in st.session_state:
     st.session_state["mostrar_modal"] = False
     st.session_state["modal_plato_info"] = None
     st.session_state["modal_origen"] = "Carta"
     st.session_state["modal_categoria"] = "GENERAL"
 
-# =========================================================
 # Opciones del Menú del Día
-# =========================================================
 PLATOS_MENU_INTERNO = [
     {"ID": "M01", "Name": "Chaufa de Pollo", "Price": 14.00},
     {"ID": "M02", "Name": "Alita Rebozada", "Price": 15.00},
@@ -58,27 +55,15 @@ PLATOS_MENU_INTERNO = [
     {"ID": "M29", "Name": "Alitas Acevichadas (3 piezas)", "Price": 18.00}
 ]
 
-# =========================================================
-# CARGA DE IMÁGENES DE FONDO
-# =========================================================
 @st.cache_data
 def cargar_imagen_b64(nombre_imagen):
-    rutas_posibles = [
-        os.path.join("images", nombre_imagen),
-        os.path.join("app", "static", "images", nombre_imagen),
-        nombre_imagen
-    ]
+    rutas_posibles = [os.path.join("images", nombre_imagen), os.path.join("app", "static", "images", nombre_imagen), nombre_imagen]
     for r in rutas_posibles:
         if os.path.exists(r):
-            with open(r, "rb") as image_file:
-                return base64.b64encode(image_file.read()).decode()
+            with open(r, "rb") as f: return base64.b64encode(f.read()).decode()
     return None
 
-IMAGENES_POR_PAGINA = {
-    1: "pag1.jpeg", 2: "pag2.jpeg", 3: "pag3.jpeg",
-    4: "pag5.jpeg", 5: "pag5.jpeg", 6: "pag6.jpeg",
-    "menu": "pag1.jpeg"
-}
+IMAGENES_POR_PAGINA = {1: "pag1.jpeg", 2: "pag2.jpeg", 3: "pag3.jpeg", 4: "pag5.jpeg", 5: "pag5.jpeg", 6: "pag6.jpeg", "menu": "pag1.jpeg"}
 
 def aplicar_fondo(nombre_imagen, pagina_id):
     img_b64 = cargar_imagen_b64(nombre_imagen)
@@ -87,23 +72,14 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         <style id="fondo-pagina-{pagina_id}">
         [data-testid="stAppViewContainer"] {{
             background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('data:image/jpeg;base64,{img_b64}') !important;
-            background-size: cover !important;
-            background-repeat: no-repeat !important;
-            background-position: center center !important;
-            background-attachment: fixed !important;
+            background-size: cover !important; background-repeat: no-repeat !important; background-position: center center !important; background-attachment: fixed !important;
         }}
-        .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], 
-        div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
-            background-color: transparent !important;
-            background: transparent !important;
-            box-shadow: none !important;
+        .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
+            background-color: transparent !important; background: transparent !important; box-shadow: none !important;
         }}
         </style>
         """, unsafe_allow_html=True)
 
-# =========================================================
-# CATALOGO DE PRODUCTOS
-# =========================================================
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
     2: ['SOPAS', 'CHAUFA'], 3: ['AEROPUERTO', 'COMBINADOS', 'LOMOS SALTADOS'],
@@ -126,7 +102,7 @@ def cargar_catalogo_limpio():
 df_carta = cargar_catalogo_limpio()
 
 # =========================================================
-# DEFINICIÓN DEL MODAL DINÁMICO (Sincronizado)
+# MODAL DE CONFIGURACIÓN
 # =========================================================
 @st.dialog("Configura tu Plato 🍜")
 def abrir_modal_dinamico():
@@ -156,30 +132,21 @@ def abrir_modal_dinamico():
 
     notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
-    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
+    # Botón de Guardar limpio y ancho completo nativo sin verse afectado
+    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key="btn_guardar_modal_real"):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
         if mostrar_limon and c_limon: cremas_list.append("Limón")
         
-        # Guardar de forma totalmente segura e incremental
         nuevo_item = {
-            "uid": time.time(),
-            "id": p_info["ID"], 
-            "nombre": p_info["Name"], 
-            "precio": float(p_info["Price"]),
-            "cant": int(cantidad), 
-            "cremas": ", ".join(cremas_list), 
-            "notas": notas.strip(),
-            "tipo": p_orig, 
-            "entrada": entrada_sel
+            "uid": time.time(), "id": p_info["ID"], "nombre": p_info["Name"], "precio": float(p_info["Price"]),
+            "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(), "tipo": p_orig, "entrada": entrada_sel
         }
         st.session_state["carrito"].append(nuevo_item)
-        
-        # Resetear variables de control
         st.session_state["mostrar_modal"] = False
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO GLOBAL (Inyección de Estilos para Botones Nativos)
+# CSS MAESTRO DEFINITIVO (FILTRADO POR CONTENEDORES)
 # =========================================================
 st.markdown("""
 <style>
@@ -198,52 +165,56 @@ div[data-testid="stTabs"] { margin-top: 95px !important; }
 div[data-testid="stTabs"] > div:first-child { background-color: transparent !important; padding: 4px 10px !important; border-bottom: 2px solid #FFEB3B !important; }
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
-div[data-testid="stRadio"] {
-    background-color: rgba(0, 0, 0, 0.4) !important; padding: 8px 12px !important;
-    border: 1px solid rgba(255, 235, 59, 0.4) !important; border-radius: 8px !important; margin-bottom: 10px !important;
-}
-div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-
 .fila-plato-flex {
     display: flex !important; justify-content: space-between !important; align-items: center !important;
     width: 100% !important; padding: 2px 0px !important; box-sizing: border-box !important;
 }
 .bloque-izq-nombre { flex-grow: 1 !important; text-align: left !important; padding-right: 10px !important; }
-.bloque-der-precio-accion { display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 15px !important; flex-shrink: 0 !important; }
-
 .texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* RE-ESTILIZACIÓN DE BOTONES NATIVOS DE STREAMLIT PARA VOLVERLOS AMARILLOS REDONDOS */
-div.stButton > button {
+/* 🎯 CORRECCIÓN CLAVE: SELECCIONAR SÓLO LOS BOTONES "＋" DE LAS LISTAS */
+div[data-testid="stHorizontalBlock"] div.stButton > button {
     background-color: #FFEB3B !important; color: #8B0000 !important;
-    font-size: 20px !important; font-weight: bold !important;
-    border-radius: 6px !important; width: 38px !important; height: 38px !important;
+    font-size: 22px !important; font-weight: bold !important;
+    border-radius: 8px !important; width: 42px !important; height: 42px !important;
     padding: 0px !important; border: none !important;
     box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
-div.stButton > button:hover { background-color: #FFF59D !important; color: #8B0000 !important; border: none !important; }
 
-/* Botón tacho rojo/amarillo pequeño */
-div.boton-tacho-contenedor > div.stButton > button {
+/* 🎯 IMPEDIR QUE EL MODAL Y EL BOTÓN VACIAR SE VUELVAN CHICOS */
+div[data-testid="stDialog"] div.stButton > button, 
+div.boton-vaciar-pedido div.stButton > button {
+    width: 100% !important; height: 45px !important;
     background-color: #FFEB3B !important; color: #8B0000 !important;
-    font-size: 14px !important; width: 30px !important; height: 30px !important;
-    border-radius: 4px !important; box-shadow: 0px 1px 3px rgba(0,0,0,0.5) !important;
+    font-size: 16px !important; font-weight: bold !important;
+    border-radius: 8px !important; display: block !important; border: none !important;
+}
+
+/* Botón tacho rojo/amarillo pequeño del carrito */
+div.boton-tacho-contenedor div.stButton > button {
+    background-color: #FFEB3B !important; color: #8B0000 !important;
+    font-size: 14px !important; width: 32px !important; height: 32px !important;
+    border-radius: 6px !important; padding: 0px !important; display: flex !important;
 }
 
 .fila-carrito-ordenada { padding: 8px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%; }
 .linea-principal-carrito { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; }
 .texto-plato-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-precio-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
-.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; text-shadow: 1px 1px 2px #000000 !important; display: block; margin-left: 36px; opacity: 0.95; }
+.texto-precio-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
+.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; }
 
-.enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; font-weight: bold !important; font-size: 16px !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; }
-div.boton-vaciar-pedido button { background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 15px !important; font-weight: bold !important; border-radius: 8px !important; width: 100% !important; height: 42px !important; border: none !important; }
-
-.titulo-categoria-chifa { color: #FFEB3B !important; font-size: 17px !important; font-weight: bold !important; padding: 10px 4px !important; margin-top: 15px !important; margin-bottom: 5px !important; border-left: 5px solid #FFEB3B !important; text-shadow: 2px 2px 3px #000000 !important; }
-.alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; font-size: 14px !important; line-height: 1.5 !important; text-shadow: 1px 1px 2px #000000 !important; margin-top: 10px; margin-bottom: 15px; box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important; }
-.recuadro-total-final { background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
+/* ESTILO DEL BOTÓN DE WHATSAPP SIEMPRE FIJO Y ACTIVO */
+.enlace-wa-directo-siempre { 
+    display: block !important; background-color: #25D366 !important; color: white !important; 
+    text-align: center !important; font-weight: bold !important; font-size: 16px !important; 
+    padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; 
+    box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; 
+}
+.titulo-categoria-chifa { color: #FFEB3B !important; font-size: 17px !important; font-weight: bold !important; padding: 10px 4px !important; margin-top: 15px !important; border-left: 5px solid #FFEB3B !important; text-shadow: 2px 2px 3px #000000 !important; }
+.alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; margin-bottom: 15px; }
+.recuadro-total-final { background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -258,29 +229,18 @@ st.markdown("""
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # 4. CREACIÓN DE PESTAÑAS
-tab_menu, tab_carta, tab_pedido = st.tabs([
-    "🍱 Menú del Día", 
-    "📖 Platos a la Carta", 
-    f"🛒 Mi Pedido ({items_en_carrito})"
-])
+tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a la Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
 
-# =========================================================
 # PESTAÑA: 🍱 MENÚ DEL DÍA
-# =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     aplicar_fondo("pag1.jpeg", "menu")
-    st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE ENTRADA + REFRESCO)</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        col_txt, col_btn = st.columns([0.8, 0.2])
+        col_txt, col_btn = st.columns([0.82, 0.18])
         with col_txt:
-            st.markdown(f"""
-            <div class="fila-plato-flex">
-                <div class="bloque-izq-nombre"><span class="texto-nombre-plato">{plato['Name']}</span></div>
-                <div class="bloque-der-precio-accion"><span class="texto-precio-plato">S/. {plato['Price']:.2f}</span></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div class="fila-plato-flex"><div class="bloque-izq-nombre"><span class="texto-nombre-plato">{plato["Name"]}</span></div><div><span class="texto-precio-plato">S/. {plato["Price"]:.2f}</span></div></div>', unsafe_allow_html=True)
         with col_btn:
             if st.button("＋", key=f"btn_menu_{plato['ID']}"):
                 st.session_state["modal_plato_info"] = plato
@@ -291,31 +251,22 @@ with tab_menu:
         st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 2px 0 4px 0;">', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# =========================================================
 # PESTAÑA: 📖 PLATOS A LA CARTA
-# =========================================================
 with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
     else:
-        pag_seleccionada = st.radio("Selecciona una Página de la Carta:", options=[1, 2, 3, 4, 5, 6], format_func=lambda x: f"Pág. {x}", horizontal=True, key="pagina_actual")
-        imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
-        aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
+        pag_seleccionada = st.radio("Selecciona una Página:", options=[1, 2, 3, 4, 5, 6], format_func=lambda x: f"Pág. {x}", horizontal=True, key="pagina_actual")
+        aplicar_fondo(IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg"), pag_seleccionada)
 
-        categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
-        for cat_name in categorias_permitidas:
+        for cat_name in DISTRIBUCION_PAGINAS.get(pag_seleccionada, []):
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
-                    col_txt, col_btn = st.columns([0.8, 0.2])
+                    col_txt, col_btn = st.columns([0.82, 0.18])
                     with col_txt:
-                        st.markdown(f"""
-                        <div class="fila-plato-flex">
-                            <div class="bloque-izq-nombre"><span class="texto-nombre-plato">{row['Name']}</span></div>
-                            <div class="bloque-der-precio-accion"><span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span></div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.markdown(f'<div class="fila-plato-flex"><div class="bloque-izq-nombre"><span class="texto-nombre-plato">{row["Name"]}</span></div><div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div></div>', unsafe_allow_html=True)
                     with col_btn:
                         if st.button("＋", key=f"btn_carta_{row['ID']}_{idx}"):
                             st.session_state["modal_plato_info"] = {"ID": row['ID'], "Name": row['Name'], "Price": row['Price']}
@@ -325,9 +276,7 @@ with tab_carta:
                             st.rerun()
                     st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 2px 0 4px 0;">', unsafe_allow_html=True)
 
-# =========================================================
-# PESTAÑA: 🛒 MI PEDIDO (Acumulador Completo)
-# =========================================================
+# PESTAÑA: 🛒 MI PEDIDO
 with tab_pedido:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     if not st.session_state.carrito:
@@ -336,107 +285,68 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
-        # Renderizar cada elemento de la lista acumulada de forma estable
         for i, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
-
-            origen_tipo = item.get("tipo", "Carta")
-            detalles_lista = [f"📌 {origen_tipo}"]
+            detalles_lista = [f"📌 {item.get('tipo','Carta')}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 {item['entrada']}")
             if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
-            if item.get('notas'): detalles_lista.append(f"📝 {item['notas']}")
-            detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
+            if item.get('notes'): detalles_lista.append(f"📝 {item['notas']}")
 
             st.markdown('<div class="fila-carrito-ordenada">', unsafe_allow_html=True)
             col_tacho, col_info = st.columns([0.12, 0.88])
-            
             with col_tacho:
                 st.markdown('<div class="boton-tacho-contenedor">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{item['uid']}_{i}"):
                     st.session_state.carrito.pop(i)
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
-                
             with col_info:
-                st.markdown(f"""
-                <div class="linea-principal-carrito">
-                    <span class="texto-plato-carrito">💥 {item['cant']}x {item['nombre']}</span>
-                    <span class="texto-precio-carrito">S/. {subtotal:.2f}</span>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown(detalles_html, unsafe_allow_html=True)
+                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito">💥 {item["cant"]}x {item["nombre"]}</span><span class="texto-precio-carrito">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
+            st.markdown(f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown(f"""
-        <div class="recuadro-total-final">
-            <span style="color: #FFFFFF; font-size: 17px; font-weight: bold; text-shadow: 1px 1px 2px #000000;">💵 TOTAL DEL PEDIDO:</span>
-            <span style="color: #FFEB3B; font-size: 20px; font-weight: 900; text-shadow: 1px 1px 3px #000000;">S/. {total:.2f}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="recuadro-total-final"><span style="color:#FFF; font-size:17px; font-weight:bold;">💵 TOTAL:</span><span style="color:#FFEB3B; font-size:20px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
         
-        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Ingresa tu Nombre Completo:</span>', unsafe_allow_html=True)
-        nombre_cliente = st.text_input("", label_visibility="collapsed", key="nom_cli")
-        
-        st.write("")
-        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Entrega:</span>', unsafe_allow_html=True)
-        metodo_entrega = st.radio("", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, label_visibility="collapsed", key="met_ent")
+        nombre_cliente = st.text_input("Ingresa tu Nombre Completo:", key="nom_cli")
+        metodo_entrega = st.radio("Método de Entrega:", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, key="met_ent")
 
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
-            st.write("")
-            st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 14px;">Dirección de Envío:</span>', unsafe_allow_html=True)
-            direccion_cliente = st.text_input("", placeholder="Ej: Av. Perú 123...", label_visibility="collapsed", key="dir_cli")
-            
-            st.markdown("""
-            <div class="alerta-delivery-destacada">
-                🚨 <span style="color: #FFEB3B; font-weight: bold; font-size: 15px;">¡AVISO IMPORTANTE DE DELIVERY!</span><br>
-                1️⃣ Compartir ubicación actual por WhatsApp.<br>
-                2️⃣ Costo de envío calculado tras recibir el pedido.
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="alerta-delivery-destacada" style="border-color: #4CAF50;">
-                🏪 <span style="color: #4CAF50; font-weight: bold; font-size: 15px;">PEDIDO PARA RECOJO EN LOCAL</span><br>
-                ⏳ Listo en aproximadamente 20 a 30 minutos.
-            </div>
-            """, unsafe_allow_html=True)
+            direccion_cliente = st.text_input("Dirección de Envío:", placeholder="Ej: Av. Perú 123...", key="dir_cli")
+            st.markdown('<div class="alerta-delivery-destacada">🚨 <b>AVISO:</b> Compartir ubicación por WhatsApp. Costo de envío variable.</div>', unsafe_allow_html=True)
 
-        st.write("")
-        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Pago:</span>', unsafe_allow_html=True)
-        metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], horizontal=True, label_visibility="collapsed", key="met_pag")
+        metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
-        error_validacion = None
-        if not nombre_cliente.strip():
-            error_validacion = "Completa tu nombre completo."
-        elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
-            error_validacion = "Escribe una Dirección de Envío."
-
-        mensaje_wa = f"🍜 CHIFA D' BELINDA\n\n👤 Cliente: {nombre_cliente.strip()}\n🛵 Entrega: {metodo_entrega}\n"
+        # Mensaje compilado para WhatsApp
+        mensaje_wa = f"🍜 CHIFA D' BELINDA\n\n👤 Cliente: {nombre_cliente.strip()}\n♻️ Entrega: {metodo_entrega}\n"
         if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
         mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
-        
         for item in st.session_state.carrito:
             mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
         mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
-
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
 
-        if error_validacion:
-            st.warning(f"⚠️ {error_validacion}")
+        # Validaciones interactivas al dar clic al enlace
+        error_msg = ""
+        if not nombre_cliente.strip():
+            error_msg = "Por favor ingrese su Nombre."
+        elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
+            error_msg = "Por favor ingrese su Dirección."
+
+        # El botón verde ahora se renderiza SIEMPRE sin condiciones
+        if error_msg:
+            st.markdown(f'<a href="#" onclick="alert(\'{error_msg}\'); return false;" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
         else:
             st.markdown(f'<a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
 
         st.write("")
         st.markdown('<div class="boton-vaciar-pedido">', unsafe_allow_html=True)
-        if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
+        if st.button("🗑️ Vaciar Todo el Carrito", use_container_width=True, key="btn_vaciar_pedido_real"):
             st.session_state.carrito = []
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Lógica del Diálogo fuera de las pestañas para estabilidad del Framework
 if st.session_state["mostrar_modal"]:
     abrir_modal_dinamico()
