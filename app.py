@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # =========================================================
-# CARGA DE IMÁGENES DE FONDO
+# CARGA DE IMÁGENES DE FONDO (UNA POR PÁGINA, CACHEADAS)
 # =========================================================
 @st.cache_data
 def cargar_imagen_b64(nombre_imagen):
@@ -27,7 +27,6 @@ def cargar_imagen_b64(nombre_imagen):
                 return base64.b64encode(image_file.read()).decode()
     return None
 
-
 IMAGENES_POR_PAGINA = {
     1: "pag1.jpeg",
     2: "pag2.jpeg",
@@ -37,25 +36,22 @@ IMAGENES_POR_PAGINA = {
     6: "pag6.jpeg",
 }
 
-
 def aplicar_fondo(nombre_imagen, pagina_id):
     img_b64 = cargar_imagen_b64(nombre_imagen)
     if img_b64:
         st.markdown(f"""
         <style id="fondo-pagina-{pagina_id}">
         [data-testid="stAppViewContainer"] {{
-            background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
-            url('data:image/jpeg;base64,{img_b64}') !important;
+            background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important;
             background-repeat: no-repeat !important;
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-
-        .main,
-        [data-testid="stCanvas"],
-        [data-testid="stTabPanel"],
-        div[role="tabpanel"],
+        .main, 
+        [data-testid="stCanvas"], 
+        [data-testid="stTabPanel"], 
+        div[role="tabpanel"], 
         div[data-testid="stVerticalBlock"],
         [data-testid="stApp"],
         [data-testid="stHeader"],
@@ -67,12 +63,13 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
-
-# CARRITO
+# 2. INICIALIZACIÓN DEL CARRITO
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# DISTRIBUCIÓN
+# =========================================================
+# 3. DICCIONARIO MAESTRO DE DISTRIBUCION DE PAGINAS
+# =========================================================
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
     2: ['SOPAS', 'CHAUFA'],
@@ -81,7 +78,6 @@ DISTRIBUCION_PAGINAS = {
     5: ['ENROLLADOS', 'TAYPA', 'RES', 'LANGOSTINOS', 'PATO', 'CHICHARRONES'],
     6: ['CHANCHO', 'COSTILLAS', 'PORCIONES', 'BEBIDAS FRÍAS', 'BEBIDAS CALIENTES']
 }
-
 
 @st.cache_data
 def cargar_catalogo_limpio():
@@ -99,38 +95,52 @@ def cargar_catalogo_limpio():
     df['Category'] = df['Category'].astype(str).str.strip().str.upper()
     return df
 
-
 df_carta = cargar_catalogo_limpio()
 
-# MODAL
+# 4. VENTANA EMERGENTE (MODAL) PARA DETALLES DEL PLATO
 @st.dialog("Configura tu Plato 🍜")
 def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
     st.markdown(f"### {nombre_plato}")
     st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
     st.write("---")
 
-    cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1)
+    cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
 
-    notas = st.text_input(
-        "Notas / Observaciones (Opcional):",
-        placeholder="Ej: Sin cebolla"
-    )
+    st.markdown("**Selecciona tus Cremas / Salsas:**")
+    col1, col2 = st.columns(2)
+    with col1:
+        c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+        c_mayo = st.checkbox("Mayonesa ⚪")
+    with col2:
+        c_ketchup = st.checkbox("Ketchup 🍅")
+        c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
 
-    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
+    st.write("")
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla, bien frito...")
+
+    st.write("")
+    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key=f"modal_add_{id_plato}"):
+        cremas_list = []
+        if c_aji: cremas_list.append("Ají")
+        if c_mayo: cremas_list.append("Mayo")
+        if c_ketchup: cremas_list.append("Ketchup")
+        if c_tamarindo: cremas_list.append("Tamarindo")
+
+        cremas_texto = ", ".join(cremas_list) if cremas_list else "Ninguna"
+
         st.session_state.carrito.append({
             "id": id_plato,
             "nombre": nombre_plato,
             "precio": float(precio_plato),
             "cant": int(cantidad),
-            "cremas": "Ninguna",
+            "cremas": cremas_texto,
             "notas": notas if notas.strip() != "" else "Ninguna"
         })
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
 
-
 # =========================================================
-# CSS ORIGINAL + NUEVO CUADRO FIJO
+# 5. CSS MAESTRO
 # =========================================================
 st.markdown("""
 <style>
@@ -140,11 +150,10 @@ html, body, [data-testid="stApp"] {
 }
 
 .main .block-container {
-    padding-top: 170px !important;
+    padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* TU TITULO ORIGINAL */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
@@ -158,20 +167,10 @@ html, body, [data-testid="stApp"] {
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* NUEVO CUADRO INDEPENDIENTE */
-.barra-control-fija {
-    position: fixed !important;
-    top: 78px !important;
-    left: 0px !important;
-    right: 0px !important;
-    z-index: 999998 !important;
-    background-color: rgba(0, 0, 0, 0.55) !important;
-    backdrop-filter: blur(5px) !important;
-    padding: 8px 10px !important;
-    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
+div[data-testid="stTabs"] {
+    margin-top: 95px !important; 
 }
 
-/* TODO TU ESTILO ORIGINAL */
 div[data-testid="stTabs"] > div:first-child {
     background-color: transparent !important;
     padding: 4px 10px !important;
@@ -185,43 +184,20 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-div[data-testid="stRadio"] {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(2px);
-    padding: 8px !important;
-    border: 1px solid #FFEB3B !important;
-    border-radius: 8px !important;
-    margin-bottom: 20px !important;
-}
-
-div[data-testid="stRadio"] label {
-    color: #FFFFFF !important;
+div.stButton > button {
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 20px !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
-}
-
-.contenedor-plato-unico {
+    border-radius: 50% !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
     display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
     align-items: center !important;
-    width: 100% !important;
-    padding: 10px 0px !important;
-    border-bottom: 1px solid rgba(255,255,255,0.25) !important;
-}
-
-.texto-nombre-plato {
-    color: #FFFFFF !important;
-    font-size: 15px !important;
-    font-weight: bold !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
-}
-
-.texto-precio-plato {
-    color: #FFEB3B !important;
-    font-size: 16px !important;
-    font-weight: 900 !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
 }
 
 .titulo-categoria-chifa {
@@ -237,63 +213,69 @@ div[data-testid="stRadio"] label {
 </style>
 """, unsafe_allow_html=True)
 
-# CABECERA ORIGINAL
+# =========================================================
+# 6. ENCABEZADO
+# =========================================================
 st.markdown("""
 <div class="cabecera-fija-chifa">
-    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">
-        🍜 CHIFA D' BELINDA
-    </h2>
-    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">
-        Pedidos en línea rápidos y directos a nuestro WhatsApp
-    </p>
+    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
-""", unsafe_allow_html=True)
-
-# NUEVO CUADRO VACÍO DE CONTROL
-st.markdown("""
-<div class="barra-control-fija"></div>
 """, unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# TABS
 tab_carta, tab_pedido = st.tabs([
-    "📖 Nuestra Carta",
-    f"🛒 Mi Pedido ({items_en_carrito})"
+    "📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
 
-# SELECTOR FIJO
-pag_seleccionada = st.radio(
-    "Selecciona una Página de la Carta:",
-    options=[1, 2, 3, 4, 5, 6],
-    format_func=lambda x: f"Pág. {x}",
-    horizontal=True,
-    key="pagina_actual"
-)
-
-# TAB CARTA
+# =========================================================
+# PESTAÑA 1: NUESTRA CARTA
+# =========================================================
 with tab_carta:
     if df_carta.empty:
-        st.warning("⚠️ Por favor carga tu catálogo.")
+        st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(
-            pag_seleccionada,
-            "pag1.jpeg"
-        )
+        # NUEVO SELECTOR CON BOTONES
+        if "pagina_actual" not in st.session_state:
+            st.session_state.pagina_actual = 1
+
+        col_prev, col_info, col_next = st.columns([1, 2, 1])
+
+        with col_prev:
+            if st.button("⬅️"):
+                if st.session_state.pagina_actual > 1:
+                    st.session_state.pagina_actual -= 1
+                    st.rerun()
+
+        with col_info:
+            st.markdown(
+                f"""
+                <div style="text-align:center; color:white; font-weight:bold; font-size:16px; padding-top:8px;">
+                    Página {st.session_state.pagina_actual} de 6
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with col_next:
+            if st.button("➡️"):
+                if st.session_state.pagina_actual < 6:
+                    st.session_state.pagina_actual += 1
+                    st.rerun()
+
+        pag_seleccionada = st.session_state.pagina_actual
+
+        imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
         aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
 
-        categorias_permitidas = DISTRIBUCION_PAGINAS.get(
-            pag_seleccionada, []
-        )
+        categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
 
             if not df_filtrado_cat.empty:
-                st.markdown(
-                    f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>',
-                    unsafe_allow_html=True
-                )
+                st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
 
                 for idx, row in df_filtrado_cat.iterrows():
                     col_info, col_btn = st.columns([0.84, 0.16])
@@ -301,28 +283,55 @@ with tab_carta:
                     with col_info:
                         st.markdown(f"""
                         <div class="contenedor-plato-unico">
-                            <span class="texto-nombre-plato">{row['Name']}</span>
-                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
+                            <span>{row['Name']}</span>
+                            <span>S/. {float(row['Price']):.2f}</span>
                         </div>
                         """, unsafe_allow_html=True)
 
                     with col_btn:
                         if st.button("＋", key=f"btn_{row['ID']}"):
-                            abrir_modal_agregar_plato(
-                                row['ID'],
-                                row['Name'],
-                                row['Price']
-                            )
+                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'])
 
-# TAB PEDIDO
+# =========================================================
+# PESTAÑA 2: MI PEDIDO
+# =========================================================
 with tab_pedido:
+    st.markdown('<div style="background-color: #FFFFFF; padding: 20px; border-radius: 12px; color: #222222; margin-top: 15px; border: 1px solid #E0E0E0;">', unsafe_allow_html=True)
+
     if not st.session_state.carrito:
-        st.info("Tu carrito está vacío.")
+        st.info("Tu carrito está vacío. ¡Explora las páginas de la carta y arma tu orden!")
     else:
+        st.subheader("📋 Resumen Total del Pedido")
         total = 0
-        for item in st.session_state.carrito:
+
+        for idx, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
-            st.markdown(
-                f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}"
-            )
+
+            col_a, col_b = st.columns([0.85, 0.15])
+            with col_a:
+                st.markdown(f"💥 **{item['cant']}x {item['nombre']}** — S/. {subtotal:.2f}")
+            with col_b:
+                if st.button("🗑️", key=f"del_{idx}"):
+                    st.session_state.carrito.pop(idx)
+                    st.rerun()
+
+        st.divider()
+
+        nombre_cliente = st.text_input("Ingresa tu Nombre Completo:")
+        telefono_cliente = st.text_input("Tu número de contacto:")
+
+        if nombre_cliente.strip() and telefono_cliente.strip():
+            phone = telefono_cliente.strip()
+            mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente}\n📞 *Contacto:* {phone}\n-------------------------\n"
+
+            for item in st.session_state.carrito:
+                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+
+            mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
+
+            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+
+            st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
