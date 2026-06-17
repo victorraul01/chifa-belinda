@@ -151,18 +151,12 @@ html, body, [data-testid="stApp"] {
     padding: 0 !important;
 }
 
-/* Forzamos a que el contenedor de la app elimine paddings por defecto que causan el hueco */
-[data-testid="stMainBlockContainer"] {
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}
-
 .main .block-container {
     padding-top: 0px !important;
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA (Tus valores originales) */
+/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
@@ -176,7 +170,7 @@ html, body, [data-testid="stApp"] {
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* COMPENSACIÓN ORIGINAL */
+/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
 div[data-testid="stTabs"] {
     margin-top: 95px !important; 
 }
@@ -275,10 +269,10 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE (Tus valores originales)
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE
 # =========================================================
 st.markdown("""
-<div class="cabecera-fifa-chifa">
+<div class="cabecera-fija-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
     <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
