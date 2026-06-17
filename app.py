@@ -30,6 +30,7 @@ def cargar_imagen_b64(nombre_imagen):
 IMAGENES_POR_PAGINA = {
     1: "pag1.jpeg", 2: "pag2.jpeg", 3: "pag3.jpeg",
     4: "pag4.jpeg", 5: "pag5.jpeg", 6: "pag6.jpeg",
+    "menu": "pag1.jpeg"
 }
 
 def aplicar_fondo(nombre_imagen, pagina_id):
@@ -66,7 +67,7 @@ if "eliminar_idx" in query_params:
     st.query_params.clear()
     st.rerun()
 
-# 3. DISTRIBUCION DE PAGINAS
+# 3. DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
 DISTRIBUCION_PAGINAS = {
     1: ['COMBOS', 'ALITAS REBOZADAS', 'ALITAS ESPECIALES', 'POLLO BROASTER'],
     2: ['SOPAS', 'CHAUFA'], 3: ['AEROPUERTO', 'COMBINADOS', 'LOMOS SALTADOS'],
@@ -90,8 +91,9 @@ df_carta = cargar_catalogo_limpio()
 
 # 4. MODAL DETALLES DEL PLATO
 @st.dialog("Configura tu Plato 🍜")
-def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_plato):
+def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_plato, tipo_origen="Carta"):
     st.markdown(f"### {nombre_plato}")
+    st.markdown(f"**Tipo:** {tipo_origen}")
     st.markdown(f"**Precio Unitario:** S/. {precio_plato:.2f}")
     st.write("---")
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
@@ -130,7 +132,8 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
 
         st.session_state.carrito.append({
             "id": id_plato, "nombre": nombre_plato, "precio": float(precio_plato),
-            "cant": int(cantidad), "cremas": cremas_texto, "notas": notas.strip()
+            "cant": int(cantidad), "cremas": cremas_texto, "notas": notas.strip(),
+            "tipo": tipo_origen
         })
         st.toast(f"¡{cantidad}x {nombre_plato} agregado!")
         st.rerun()
@@ -192,24 +195,13 @@ div.boton-agregar-carta button {
     border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important; padding: 0px !important;
 }
 
-/* 🟢 ESTILO DEL BOTÓN VERDE WHATSAPP DEFINITIVO Y DIRECTO */
 .enlace-wa-directo-siempre {
-    display: block !important;
-    background-color: #25D366 !important;
-    color: white !important;
-    text-align: center !important;
-    font-weight: bold !important;
-    font-size: 16px !important;
-    padding: 14px 20px !important;
-    border-radius: 8px !important;
-    text-decoration: none !important;
-    box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important;
-    margin: 18px 0px !important;
-    border: 1px solid #ffffff !important;
+    display: block !important; background-color: #25D366 !important; color: white !important;
+    text-align: center !important; font-weight: bold !important; font-size: 16px !important;
+    padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important;
+    box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important;
 }
-.enlace-wa-directo-siempre:active {
-    background-color: #128C7E !important;
-}
+.enlace-wa-directo-siempre:active { background-color: #128C7E !important; }
 
 div.boton-normal-ancho button {
     background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 15px !important; font-weight: bold !important;
@@ -237,11 +229,48 @@ st.markdown("""
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# DEFINICIÓN DE LAS PESTAÑAS
-tab_carta, tab_pedido = st.tabs(["📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
+# =========================================================
+# 7. CREACIÓN DE PESTAÑAS (SIEMPRE VISIBLE PARA PRUEBAS)
+# =========================================================
+tab_menu, tab_carta, tab_pedido = st.tabs([
+    "🍱 Menú del Día", 
+    "📖 Platos a la Carta", 
+    f"🛒 Mi Pedido ({items_en_carrito})"
+])
 
 # =========================================================
-# PESTAÑA 1: NUESTRA CARTA
+# PESTAÑA: 🍱 MENÚ DEL DÍA (SIEMPRE ACTIVA)
+# =========================================================
+with tab_menu:
+    st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
+    aplicar_fondo("pag1.jpeg", "menu")
+    
+    if df_carta.empty:
+        st.warning("⚠️ Catálogo vacío.")
+    else:
+        df_filtrado_menu = df_carta[df_carta["Category"] == "MENÚ"]
+        if df_filtrado_menu.empty:
+            st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">No hay platos asignados a la categoría MENÚ en el Excel.</h3>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="titulo-categoria-chifa">🍱 OPCIONES DEL MENÚ DEL DÍA</div>', unsafe_allow_html=True)
+            for idx, row in df_filtrado_menu.iterrows():
+                col_info, col_btn = st.columns([0.84, 0.16])
+                with col_info:
+                    st.markdown(f"""
+                    <div class="contenedor-plato-unico">
+                        <span class="texto-nombre-plato">{row['Name']}</span>
+                        <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_btn:
+                    st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
+                    if st.button("＋", key=f"btn_menu_{row['ID']}"):
+                        abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], "MENÚ", tipo_origen="Menú del Día")
+                    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# =========================================================
+# PESTAÑA: 📖 PLATOS A LA CARTA
 # =========================================================
 with tab_carta:
     if df_carta.empty:
@@ -268,11 +297,11 @@ with tab_carta:
                     with col_btn:
                         st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
                         if st.button("＋", key=f"btn_{row['ID']}"):
-                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name)
+                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name, tipo_origen="Carta")
                         st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA 2: MI PEDIDO (ELIMINADO PASO INTERMEDIO)
+# PESTAÑA: 🛒 MI PEDIDO
 # =========================================================
 with tab_pedido:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -286,14 +315,12 @@ with tab_pedido:
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            detalles_lista = []
+            origen_tipo = item.get("tipo", "Carta")
+            detalles_lista = [f"📌 Tipo: {origen_tipo}"]
             if item['cremas']: detalles_lista.append(f"🧂 {item['cremas']}")
             if item['notas']: detalles_lista.append(f"📝 {item['notas']}")
             
-            detalles_html = ""
-            if detalles_lista:
-                texto_detalles = " | ".join(detalles_lista)
-                detalles_html = f'<span class="texto-detalles-resaltados">{texto_detalles}</span>'
+            detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
 
             st.markdown(f"""
             <div class="fila-carrito-ordenada">
@@ -349,14 +376,14 @@ with tab_pedido:
 
         st.write("")
         
-        # 🛡️ VALIDACIÓN EN TIEMPO REAL ANTES DE GENERAR EL LINK EN LÍNEA
+        # 🛡️ VALIDACIÓN EN TIEMPO REAL
         error_validacion = None
         if not nombre_cliente.strip():
             error_validacion = "Completa tu nombre completo para poder enviar el pedido."
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
             error_validacion = "Seleccionaste Delivery Moto, debes escribir una Dirección de Envío."
 
-        # Construcción dinámica del mensaje de WhatsApp
+        # Construcción dinámica del mensaje de WhatsApp detallando tipo (Carta o Menú del Día)
         mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
         mensaje_wa += f"👤 *Cliente:* {nombre_cliente.strip()}\n"
         mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
@@ -366,7 +393,8 @@ with tab_pedido:
         mensaje_wa += f"-------------------------\n"
         
         for item in st.session_state.carrito:
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} - S/. {item['precio'] * item['cant']:.2f}\n"
+            tipo_item = item.get("tipo", "Carta")
+            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
             detalles_wa = []
             if item['cremas']: detalles_wa.append(f"{item['cremas']}")
             if item['notas']: detalles_wa.append(f"{item['notas']}")
@@ -380,17 +408,15 @@ with tab_pedido:
 
         link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
 
-        # 🟢 MOSTRAR EL BOTÓN VERDE SIEMPRE VISIBLE
+        # 🟢 MOSTRAR EL BOTÓN VERDE DIRECTO
         if error_validacion:
-            # Si faltan datos, el botón avisa al cliente con un alert al presionarlo o verlo
             st.warning(f"⚠️ {error_validacion}")
             st.markdown(f"""
                 <a href="#" onclick="alert('{error_validacion}'); return false;" class="enlace-wa-directo-siempre">
-                    💬 ENVIAR PEDIDO A WHATSAPP
+                     💬 ENVIAR PEDIDO A WHATSAPP
                 </a>
             """, unsafe_allow_html=True)
         else:
-            # Si todo está completo, el botón verde está activo y abre WhatsApp nativamente
             st.markdown(f"""
                 <a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">
                     💬 ENVIAR PEDIDO A WHATSAPP
