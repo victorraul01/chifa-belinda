@@ -170,17 +170,15 @@ html, body, [data-testid="stApp"] {
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* COMPENSACIÓN: Margen superior para que el contenido inicie ABAJO del cuadro fijo + la barra de pestañas fija, y no se tapen */
+/* COMPENSACIÓN: Margen superior para que el contenido inicie ABAJO del cuadro fijo, y no se tape */
 div[data-testid="stTabs"] {
-    margin-top: 150px !important; 
+    margin-top: 95px !important; 
 }
 
-/* PESTAÑAS (TABS) AHORA FIJAS, JUSTO DEBAJO DEL ENCABEZADO */
+/* PESTAÑAS (TABS) PEGADAS (STICKY) JUSTO DEBAJO DEL ENCABEZADO AL HACER SCROLL */
 div[data-testid="stTabs"] > div:first-child {
-    position: fixed !important;
-    top: 95px !important;
-    left: 0px !important;
-    right: 0px !important;
+    position: sticky !important;
+    top: 0px !important;
     z-index: 999998 !important;
     background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
