@@ -191,7 +191,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO GLOBAL (Línea corregida)
+# 5. CSS MAESTRO GLOBAL (Optimizado para alineación derecha)
 # =========================================================
 st.markdown("""
 <style>
@@ -216,12 +216,17 @@ div[data-testid="stRadio"] {
 }
 div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 
-.contenedor-plato-unico {
-    display: flex !important; flex-direction: row !important; justify-content: space-between !important;
-    align-items: center !important; width: 100% !important; padding: 5px 0px !important;
+/* Contenedores de platos ajustados */
+.contenedor-plato-izq {
+    display: flex !important; align-items: center !important; height: 40px !important; width: 100% !important;
 }
-.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; flex-grow: 1 !important; text-align: left !important; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; padding-right: 15px !important; }
+.contenedor-plato-der {
+    display: flex !important; flex-direction: row !important; justify-content: flex-end !important;
+    align-items: center !important; height: 40px !important; width: 100% !important; gap: 10px !important;
+}
+
+.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; text-align: left !important; }
+.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
 .fila-carrito-ordenada {
     padding: 12px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%;
@@ -241,9 +246,10 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
 .texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; text-shadow: 1px 1px 2px #000000 !important; display: block; margin-left: 30px; opacity: 0.95; }
 
 div.boton-agregar-carta button {
-    background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 20px !important; font-weight: bold !important;
-    border-radius: 8px !important; width: 44px !important; height: 40px !important; min-width: 44px !important;
-    border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important; padding: 0px !important;
+    background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 18px !important; font-weight: bold !important;
+    border-radius: 6px !important; width: 36px !important; height: 36px !important; min-width: 36px !important;
+    border: none !important; box-shadow: 0px 2px 4px rgba(0,0,0,0.5) !important; padding: 0px !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
 }
 
 .enlace-wa-directo-siempre {
@@ -273,214 +279,4 @@ div.boton-normal-ancho button {
 # =========================================================
 st.markdown("""
 <div class="cabecera-fija-chifa">
-    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
-</div>
-""", unsafe_allow_html=True)
-
-items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
-
-# =========================================================
-# 7. CREACIÓN DE PESTAÑAS
-# =========================================================
-tab_menu, tab_carta, tab_pedido = st.tabs([
-    "🍱 Menú del Día", 
-    "📖 Platos a la Carta", 
-    f"🛒 Mi Pedido ({items_en_carrito})"
-])
-
-# =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA
-# =========================================================
-with tab_menu:
-    st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
-    aplicar_fondo("pag1.jpeg", "menu")
-    
-    st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
-    
-    for plato in PLATOS_MENU_INTERNO:
-        col_info, col_btn = st.columns([0.80, 0.20])
-        with col_info:
-            st.markdown(f"""
-            <div class="contenedor-plato-unico">
-                <span class="texto-nombre-plato">{plato['Name']}</span>
-                <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
-            </div>
-            """, unsafe_allow_html=True)
-        with col_btn:
-            st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
-            if st.button("＋", key=f"btn_menu_{plato['ID']}"):
-                abrir_modal_agregar_plato(plato['ID'], plato['Name'], plato['Price'], "MENÚ", tipo_origen="Menú del Día")
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Línea divisoria colocada al final absoluto de la fila del plato
-        st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.22); margin: 5px 0 12px 0;">', unsafe_allow_html=True)
-            
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# =========================================================
-# PESTAÑA: 📖 PLATOS A LA CARTA
-# =========================================================
-with tab_carta:
-    if df_carta.empty:
-        st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
-    else:
-        pag_seleccionada = st.radio("Selecciona una Página de la Carta:", options=[1, 2, 3, 4, 5, 6], format_func=lambda x: f"Pág. {x}", horizontal=True, key="pagina_actual")
-        imagen_de_esta_pagina = IMAGENES_POR_PAGINA.get(pag_seleccionada, "pag1.jpeg")
-        aplicar_fondo(imagen_de_esta_pagina, pag_seleccionada)
-
-        categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
-        for cat_name in categorias_permitidas:
-            df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
-            if not df_filtrado_cat.empty:
-                st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
-                for idx, row in df_filtrado_cat.iterrows():
-                    col_info, col_btn = st.columns([0.80, 0.20])
-                    with col_info:
-                        st.markdown(f"""
-                        <div class="contenedor-plato-unico">
-                            <span class="texto-nombre-plato">{row['Name']}</span>
-                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    with col_btn:
-                        st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
-                        if st.button("＋", key=f"btn_{row['ID']}"):
-                            abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], cat_name, tipo_origen="Carta")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # Línea divisoria colocada al final absoluto de la fila de la carta también
-                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.22); margin: 5px 0 12px 0;">', unsafe_allow_html=True)
-
-# =========================================================
-# PESTAÑA: 🛒 MI PEDIDO
-# =========================================================
-with tab_pedido:
-    st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
-    if not st.session_state.carrito:
-        st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">Tu carrito está vacío. ¡Explora la carta!</h3>', unsafe_allow_html=True)
-    else:
-        st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
-        total = 0
-
-        for idx, item in enumerate(st.session_state.carrito):
-            subtotal = item["precio"] * item["cant"]
-            total += subtotal
-
-            origen_tipo = item.get("tipo", "Carta")
-            detalles_lista = [f"📌 Tipo: {origen_tipo}"]
-            
-            if item.get("entrada"):
-                detalles_lista.append(f"🍲 Entrada: {item['entrada']}")
-                
-            if item['cremas']: detalles_lista.append(f"🧂 {item['cremas']}")
-            if item['notas']: detalles_lista.append(f"📝 {item['notas']}")
-            
-            detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
-
-            st.markdown(f"""
-            <div class="fila-carrito-ordenada">
-                <div class="linea-principal-carrito">
-                    <span style="display: flex; align-items: center;">
-                        <a href="?eliminar_idx={idx}" target="_self" class="btn-tacho-mini">🗑️</a>
-                        <span class="texto-plato-carrito">💥 {item['cant']}x {item['nombre']}</span>
-                    </span>
-                    <span class="texto-precio-carrito">S/. {subtotal:.2f}</span>
-                </div>
-                {detalles_html}
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown(f"""
-        <div class="recuadro-total-final">
-            <span style="color: #FFFFFF; font-size: 17px; font-weight: bold; text-shadow: 1px 1px 2px #000000;">💵 TOTAL DEL PEDIDO:</span>
-            <span style="color: #FFEB3B; font-size: 20px; font-weight: 900; text-shadow: 1px 1px 3px #000000;">S/. {total:.2f}</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Ingresa tu Nombre Completo:</span>', unsafe_allow_html=True)
-        nombre_cliente = st.text_input("", label_visibility="collapsed", key="nom_cli")
-        
-        st.write("")
-        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Entrega:</span>', unsafe_allow_html=True)
-        metodo_entrega = st.radio("", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, label_visibility="collapsed", key="met_ent")
-
-        direccion_cliente = ""
-        if metodo_entrega == "Delivery Moto 🏍️":
-            st.write("")
-            st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 14px;">Dirección de Envío:</span>', unsafe_allow_html=True)
-            direccion_cliente = st.text_input("", placeholder="Ej: Av. Perú 123, dpto 402...", label_visibility="collapsed", key="dir_cli")
-            
-            st.markdown("""
-            <div class="alerta-delivery-destacada">
-                🚨 <span style="color: #FFEB3B; font-weight: bold; font-size: 15px;">¡AVISO IMPORTANTE DE DELIVERY!</span><br>
-                1️⃣ Después de enviar el mensaje, <b>compártenos tu ubicación actual por WhatsApp</b> para que el motorizado llegue rápido.<br>
-                2️⃣ <b>Costo de envío:</b> Se calculará y te lo enviaremos inmediatamente después de recibir tu lista de platos.
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="alerta-delivery-destacada" style="border-color: #4CAF50;">
-                🏪 <span style="color: #4CAF50; font-weight: bold; font-size: 15px;">PEDIDO PARA RECOJO EN LOCAL</span><br>
-                ⏳ Su comida estará lista y empacada con cuidado en aproximadamente <b>20 a 30 minutos</b>. ¡Te esperamos!
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.write("")
-        st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Pago:</span>', unsafe_allow_html=True)
-        metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], horizontal=True, label_visibility="collapsed", key="met_pag")
-
-        st.write("")
-        
-        error_validacion = None
-        if not nombre_cliente.strip():
-            error_validacion = "Completa tu nombre completo para poder enviar el pedido."
-        elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
-            error_validacion = "Seleccionaste Delivery Moto, debes escribir una Dirección de Envío."
-
-        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
-        mensaje_wa += f"👤 *Cliente:* {nombre_cliente.strip()}\n"
-        mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
-        if metodo_entrega == "Delivery Moto 🏍️": 
-            mensaje_wa += f"📍 *Dirección:* {direccion_cliente.strip()}\n"
-        mensaje_wa += f"💳 *Pago:* {metodo_pago}\n"
-        mensaje_wa += f"-------------------------\n"
-        
-        for item in st.session_state.carrito:
-            tipo_item = item.get("tipo", "Carta")
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} ({tipo_item}) - S/. {item['precio'] * item['cant']:.2f}\n"
-            detalles_wa = []
-            if item.get("entrada"): detalles_wa.append(f"Entrada: {item['entrada']}")
-            if item['cremas']: detalles_wa.append(f"{item['cremas']}")
-            if item['notas']: detalles_wa.append(f"{item['notas']}")
-            if detalles_wa:
-                mensaje_wa += f"  • {" | ".join(detalles_wa)}\n"
-        
-        mensaje_wa += f"-------------------------\n"
-        mensaje_wa += f"💰 *TOTAL A PAGAR:* S/. {total:.2f}\n"
-        if metodo_entrega == "Delivery Moto 🏍️": 
-            mensaje_wa += f"ℹ️ _El costo de delivery se sumará en breve._"
-
-        link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-
-        if error_validacion:
-            st.warning(f"⚠️ {error_validacion}")
-            st.markdown(f"""
-                <a href="#" onclick="alert('{error_validacion}'); return false;" class="enlace-wa-directo-siempre">
-                     💬 ENVIAR PEDIDO A WHATSAPP
-                </a>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-                <a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">
-                    💬 ENVIAR PEDIDO A WHATSAPP
-                </a>
-            """, unsafe_allow_html=True)
-
-        st.write("")
-        st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
-        if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
-            st.session_state.carrito = []
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2
