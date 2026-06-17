@@ -12,6 +12,46 @@ st.set_page_config(
 )
 
 # =========================================================
+# Opciones del Menú del Día (Actualizado desde 1000051619.jpg)
+# =========================================================
+PLATOS_MENU_INTERNO = [
+    # --- Platos de la primera sección de la imagen ---
+    {"ID": "M01", "Name": "Chaufa de Pollo + Entrada y Refresco", "Price": 14.00},
+    {"ID": "M02", "Name": "Alita Rebozada + Entrada y Refresco", "Price": 15.00},
+    {"ID": "M03", "Name": "1/8 Broaster + Entrada y Refresco", "Price": 14.00},
+    {"ID": "M04", "Name": "Aeropuerto de Pollo + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M05", "Name": "Combinado de Pollo + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M06", "Name": "Pollo con Verdura + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M07", "Name": "Tallarín Saltado de Pollo + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M08", "Name": "Pollo con Tamarindo + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M09", "Name": "Alita con Tamarindo + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M10", "Name": "Lomo Saltado de Pollo + Entrada y Refresco", "Price": 17.00},
+    {"ID": "M11", "Name": "Alitas 4 Pzs + Entrada y Refresco", "Price": 18.00},
+    {"ID": "M12", "Name": "Tortilla de Verdura + Entrada y Refresco", "Price": 19.00},
+    {"ID": "M13", "Name": "Alitas con Piña + Entrada y Refresco", "Price": 18.00},
+    {"ID": "M14", "Name": "Pollo con Piña + Entrada y Refresco", "Price": 19.00},
+    {"ID": "M15", "Name": "Chaufa de Chancho + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M16", "Name": "Chaufa de Res + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M17", "Name": "Chaufa de Molleja + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M18", "Name": "Chicharrón de Pollo + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M19", "Name": "Chi Jau Kay + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M20", "Name": "Kam Lu Wantan + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M21", "Name": "Enrollado de Pollo + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M22", "Name": "Tipa Kay + Entrada y Refresco", "Price": 20.00},
+    
+    # --- Platos de la segunda sección de la imagen ---
+    {"ID": "M23", "Name": "Tallarín de Res + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M24", "Name": "Combinado de Res + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M25", "Name": "Chancho con Piña + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M26", "Name": "Chancho con Tamarindo + Entrada y Refresco", "Price": 20.00},
+    {"ID": "M27", "Name": "¼ Broaster + Entrada y Refresco", "Price": 22.00},
+    
+    # --- Nuevos platos agregados ---
+    {"ID": "M28", "Name": "Alitas a la BBQ (3 piezas) + Entrada y Refresco", "Price": 18.00},
+    {"ID": "M29", "Name": "Alitas Acevichadas (3 piezas) + Entrada y Refresco", "Price": 18.00}
+]
+
+# =========================================================
 # CARGA DE IMÁGENES DE FONDO
 # =========================================================
 @st.cache_data
@@ -239,34 +279,30 @@ tab_menu, tab_carta, tab_pedido = st.tabs([
 ])
 
 # =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA (SIEMPRE ACTIVA)
+# PESTAÑA: 🍱 MENÚ DEL DÍA (USANDO LISTA INTERNA DE LA IMAGEN)
 # =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     aplicar_fondo("pag1.jpeg", "menu")
     
-    if df_carta.empty:
-        st.warning("⚠️ Catálogo vacío.")
-    else:
-        df_filtrado_menu = df_carta[df_carta["Category"] == "MENÚ"]
-        if df_filtrado_menu.empty:
-            st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">No hay platos asignados a la categoría MENÚ en el Excel.</h3>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="titulo-categoria-chifa">🍱 OPCIONES DEL MENÚ DEL DÍA</div>', unsafe_allow_html=True)
-            for idx, row in df_filtrado_menu.iterrows():
-                col_info, col_btn = st.columns([0.84, 0.16])
-                with col_info:
-                    st.markdown(f"""
-                    <div class="contenedor-plato-unico">
-                        <span class="texto-nombre-plato">{row['Name']}</span>
-                        <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                with col_btn:
-                    st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
-                    if st.button("＋", key=f"btn_menu_{row['ID']}"):
-                        abrir_modal_agregar_plato(row['ID'], row['Name'], row['Price'], "MENÚ", tipo_origen="Menú del Día")
-                    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-categoria-chifa">🍱 OPCIONES DEL MENÚ DEL DÍA</div>', unsafe_allow_html=True)
+    
+    # Renderizado directo de todos los platos internos cargados
+    for plato in PLATOS_MENU_INTERNO:
+        col_info, col_btn = st.columns([0.84, 0.16])
+        with col_info:
+            st.markdown(f"""
+            <div class="contenedor-plato-unico">
+                <span class="texto-nombre-plato">{plato['Name']}</span>
+                <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_btn:
+            st.markdown('<div class="boton-agregar-carta">', unsafe_allow_html=True)
+            if st.button("＋", key=f"btn_menu_{plato['ID']}"):
+                abrir_modal_agregar_plato(plato['ID'], plato['Name'], plato['Price'], "MENÚ", tipo_origen="Menú del Día")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
     st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
