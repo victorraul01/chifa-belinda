@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE (MODIFICADO SOLO TAMAÑO Y CONTENEDOR)
+# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
 # =========================================================
 st.markdown("""
 <style>
@@ -156,31 +156,27 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE HACE MÁS GRANDE PARA AGRUPAR LAS PESTAÑAS Y LAS PÁGINAS ADENTRO */
+/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
     left: 0px !important;
     right: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.70) !important; /* Un poco más oscuro para que resalte la agrupación */
+    background-color: rgba(0, 0, 0, 0.75) !important; /* Cuadro oscuro semitransparente un poco más alto */
     backdrop-filter: blur(8px) !important;
-    padding: 15px 15px 10px 15px !important;
+    padding: 18px 12px 15px 12px !important;
     text-align: center;
     border-bottom: 2px solid rgba(255, 235, 59, 0.4);
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.6);
 }
 
-/* Forzar que las pestañas de Streamlit que inyectamos arriba adopten la posición fija dentro de la cabecera */
+/* COMPENSACIÓN EXACTA: Para que las pestañas e interfaces no choquen ni se monten debajo del cuadro fijo */
 div[data-testid="stTabs"] {
-    position: fixed !important;
-    top: 65px !important;
-    left: 10px !important;
-    right: 10px !important;
-    z-index: 1000000 !important;
+    margin-top: 105px !important; 
 }
 
-/* PESTAÑAS (TABS) COMPLETAMENTE TRANSPARENTES */
+/* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
 div[data-testid="stTabs"] > div:first-child {
     background-color: transparent !important;
     padding: 4px 10px !important;
@@ -194,18 +190,15 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* SELECTOR DE PÁGINAS ACOMODADO E INYECTADO DENTRO DE LA ESTRUCTURA SUPERIOR FIJA */
+/* SELECTOR DE PÁGINAS */
 div[data-testid="stRadio"] {
-    position: fixed !important;
-    top: 120px !important;
-    left: 15px !important;
-    right: 15px !important;
-    z-index: 1000000 !important;
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    backdrop-filter: blur(2px);
-    padding: 6px !important;
+    background-color: rgba(0, 0, 0, 0.35) !important;
+    backdrop-filter: blur(4px);
+    padding: 10px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
@@ -217,11 +210,6 @@ div[data-testid="stRadio"] label {
     color: #FFFFFF !important;
     font-weight: bold !important;
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
-}
-
-/* COMPENSACIÓN DEL ESPACIADO: Ajustado para que empiece abajo de toda la cabecera gigante unificada */
-.main div[role="tabpanel"] {
-    padding-top: 195px !important;
 }
 
 /* FILA UNIFICADA DE PLATOS */
@@ -284,12 +272,12 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE (MÁS GRANDE)
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE (MÁS AMPLIO)
 # =========================================================
 st.markdown("""
-<div class="cabecera-fija-chifa" style="height: 185px;">
-    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+<div class="cabecera-fija-chifa">
+    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 5px 0 0 0; font-size: 13.5px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -306,13 +294,12 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas (Ahora fijado dentro del cuadro de cabecera ampliado)
+        # Selector de páginas (Fluye nativamente de manera ordenada debajo de las pestañas)
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
             format_func=lambda x: f"Pág. {x}",
             horizontal=True,
-            label_visibility="collapsed", # Quita la etiqueta de texto para ahorrar espacio dentro del cuadro
             key="pagina_actual"
         )
 
@@ -381,7 +368,7 @@ with tab_pedido:
                 if item['cremas'] != "Ninguna":
                     mensaje_wa += f"  • Salsas: {item['cremas']}\n"
                 if item['notas'] != "Ninguna":
-                    mensaje_wa += f"  • Nota: {item['notas']}\n"
+                    mensaje_wa += f"  • Note: {item['notas']}\n"
             mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
 
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
