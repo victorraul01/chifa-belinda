@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO Y PESTAÑAS SIMULTÁNEAMENTE FIJOS
+# 5. CSS MAESTRO: ENCABEZADO Y PESTAÑAS TOTALMENTE FIJOS
 # =========================================================
 st.markdown("""
 <style>
@@ -156,7 +156,7 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* EL TITULO: Se queda arriba fijo con su cuadro oscuro */
+/* EL TITULO: Se queda arriba fijo con su cuadro oscuro original */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
@@ -165,25 +165,26 @@ html, body, [data-testid="stApp"] {
     z-index: 999999 !important;
     background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
-    padding: 15px 10px 10px 10px !important;
+    padding: 15px 10px 5px 10px !important;
     text-align: center;
 }
 
-/* LAS PESTAÑAS (TABS): Ahora también son fijas, sin fondo oscuro y justo debajo del título */
+/* LAS PESTAÑAS (TABS): Fijas debajo del título, completamente transparentes (sin cuadros oscuros ni fondos) */
 div[data-testid="stTabs"] > div:first-child {
     position: fixed !important;
-    top: 82px !important; /* Ubicación exacta debajo del título */
+    top: 78px !important; /* Altura exacta para acoplarse abajo del título */
     left: 0px !important;
     right: 0px !important;
     z-index: 999998 !important;
-    background-color: transparent !important; /* Sin cuadro oscuro ni fondo */
-    padding: 6px 10px !important;
+    background-color: transparent !important; /* Totalmente transparente */
+    background: transparent !important;
+    padding: 0px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
 }
 
-/* COMPENSACIÓN DEL CONTENIDO: Empuja el menú hacia abajo para que empiece libre de las zonas fijas */
-div[data-testid="stTabPanel"] {
-    padding-top: 140px !important;
+/* COMPENSACIÓN PARA EL CONTENIDO: Empuja el menú hacia abajo para que empiece justo debajo de las zonas fijas y el scroll funcione */
+div[data-testid="stTabs"] {
+    margin-top: 140px !important; 
 }
 
 div[data-testid="stTabs"] button p {
