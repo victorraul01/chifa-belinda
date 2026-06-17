@@ -164,7 +164,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato, categoria_pl
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO Y SOLUCIÓN DE ALINEACIÓN
+# 5. CSS MAESTRO: ENCABEZADO FIJO Y AJUSTES VISUALES
 # =========================================================
 st.markdown("""
 <style>
@@ -213,7 +213,6 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* ESTILO HORIZONTAL DE LOS SELECTORES DE OPCIONES */
 div[data-testid="stRadio"] {
     background-color: rgba(0, 0, 0, 0.4) !important;
     backdrop-filter: blur(2px);
@@ -259,22 +258,77 @@ div[data-testid="stRadio"] label {
     padding-right: 15px !important;
 }
 
-/* CONTENEDOR EXCLUSIVO PARA FORZAR ALINEACIÓN EN EL CARRITO */
-.fila-carrito-ajustada {
+/* ESTRUCTURA INQUEBRANTABLE FLEXBOX PARA EL CARRITO EN MÓVILES */
+.contenedor-item-carrito-fijo {
     display: flex !important;
     flex-direction: row !important;
-    justify-content: space-between !important;
     align-items: center !important;
+    justify-content: space-between !important;
     width: 100% !important;
-    padding: 5px 0px;
+    padding: 8px 0px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
-.bloque-texto-carrito {
+.seccion-izquierda-carrito {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     flex-grow: 1 !important;
-    padding-right: 10px !important;
 }
 
-/* CLASE ESPECÍFICA PARA LOS BOTONES REDONDOS "+" DE LA CARTA */
+.texto-descripcion-carrito {
+    color: #FFFFFF !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-shadow: 1px 1px 2px #000000 !important;
+    margin-left: 10px !important;
+    text-align: left !important;
+}
+
+.texto-precio-carrito-final {
+    color: #FFEB3B !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-shadow: 1px 1px 2px #000000 !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
+    padding-left: 10px !important;
+}
+
+/* BOTÓN ELIMINAR MINIATURA */
+div.boton-eliminar-compacto button {
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    padding: 0px !important;
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.4) !important;
+}
+
+/* BOTONES GENERALES DE ANCHO COMPLETO */
+div.boton-normal-ancho button {
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    height: 45px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
+}
+
+/* BOTÓN REDONDO "+" DE LA CARTA */
 div.boton-agregar-carta button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -292,48 +346,6 @@ div.boton-agregar-carta button {
     padding: 0px !important;
 }
 
-/* BOTONES GENERALES DE ANCHO COMPLETO (ENVIAR Y VACIAR) */
-div.boton-normal-ancho button {
-    background-color: #FFEB3B !important;
-    color: #8B0000 !important;
-    font-size: 15px !important;
-    font-weight: bold !important;
-    border-radius: 8px !important;
-    width: 100% !important;
-    height: 45px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    box-shadow: 0px 3px 5px rgba(0,0,0,0.3) !important;
-}
-
-/* REPARACIÓN DEFINITIVA DEL BOTÓN DE ELIMINAR CERCANO AL TEXTO */
-div.boton-eliminar-carrito button {
-    background-color: #FFEB3B !important;
-    color: #8B0000 !important;
-    font-size: 16px !important;
-    border-radius: 8px !important;
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    padding: 0px !important;
-    box-shadow: 0px 2px 4px rgba(0,0,0,0.4) !important;
-}
-
-.texto-detalles-carrito {
-    color: #FFFFFF !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000 !important;
-    display: block;
-    margin-top: 2px;
-}
-
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 17px !important;
@@ -345,7 +357,6 @@ div.boton-eliminar-carrito button {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* CUADROS DE MENSAJE MUCHO MÁS NOTORIOS Y LLAMATIVOS */
 .alerta-delivery-destacada {
     background-color: rgba(0, 0, 0, 0.75) !important;
     border: 2px solid #FFEB3B !important;
@@ -358,6 +369,19 @@ div.boton-eliminar-carrito button {
     margin-top: 10px;
     margin-bottom: 15px;
     box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
+}
+
+/* RECUADRO SUPER LLAMATIVO PARA EL TOTAL GLOBAL */
+.contenedor-total-pedido-global {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    border-top: 2px dashed #FFEB3B !important;
+    border-bottom: 2px dashed #FFEB3B !important;
+    padding: 12px 5px !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -432,37 +456,47 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
-        # Bloque de productos en el carrito alineados de forma impecable horizontalmente
+        # Renderizado Forzado de una Sola Fila Horizontal (Botón Eliminar - Nombre - Precio)
         for idx, item in enumerate(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            col_resumen, col_accion = st.columns([0.84, 0.16])
+            # Abrimos la estructura híbrida flexbox
+            st.markdown(f"""
+            <div class="contenedor-item-carrito-fijo">
+                <div class="seccion-izquierda-carrito">
+            """, unsafe_allow_html=True)
             
-            with col_resumen:
-                st.markdown(f"""
-                <div class="fila-carrito-ajustada">
-                    <div class="bloque-texto-carrito">
-                        <span style='color: #FFFFFF; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 2px #000000;'>💥 {item['cant']}x {item['nombre']} — S/. {subtotal:.2f}</span>
-                        <span class='texto-detalles-carrito'>🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>
+            # Botón de eliminar incrustado en el lado izquierdo
+            st.markdown('<div class="boton-eliminar-compacto">', unsafe_allow_html=True)
+            if st.button("🗑️", key=f"del_{idx}"):
+                st.session_state.carrito.pop(idx)
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Textos descriptivos y precio alineados a la derecha de manera obligatoria
+            st.markdown(f"""
+                    <div class="texto-descripcion-carrito">
+                        {item['cant']}x {item['nombre']}<br>
+                        <span style="font-size:12px; font-weight:normal; opacity:0.85;">🧂 Salsas: {item['cremas']} | 📝 Nota: {item['notas']}</span>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-                
-            with col_accion:
-                st.markdown('<div class="boton-eliminar-carrito">', unsafe_allow_html=True)
-                if st.button("🗑️", key=f"del_{idx}"):
-                    st.session_state.carrito.pop(idx)
-                    st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+                <div class="texto-precio-carrito-final">S/. {subtotal:.2f}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        st.divider()
+        # SECCIÓN TOTAL DEL PEDIDO (SUMATORIA AUTOMÁTICA)
+        st.markdown(f"""
+        <div class="contenedor-total-pedido-global">
+            <span style="color: #FFFFFF; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000000;">💵 TOTAL DEL PEDIDO:</span>
+            <span style="color: #FFEB3B; font-size: 22px; font-weight: 900; text-shadow: 1px 1px 3px #000000;">S/. {total:.2f}</span>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Formulario de Envío
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Ingresa tu Nombre Completo:</span>', unsafe_allow_html=True)
         nombre_cliente = st.text_input("", label_visibility="collapsed", key="nom_cli")
         
-        # MÉTODOS EN HORIZONTAL (DINÁMICO Y COMPACTO)
         st.write("")
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Entrega:</span>', unsafe_allow_html=True)
         metodo_entrega = st.radio("", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, label_visibility="collapsed", key="met_ent")
@@ -473,7 +507,6 @@ with tab_pedido:
             st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 14px;">Dirección de Envío:</span>', unsafe_allow_html=True)
             direccion_cliente = st.text_input("", placeholder="Ej: Av. Perú 123, dpto 402...", label_visibility="collapsed", key="dir_cli")
             
-            # Mensaje de Delivery renovado (Ultra Notorio)
             st.markdown("""
             <div class="alerta-delivery-destacada">
                 🚨 <span style="color: #FFEB3B; font-weight: bold; font-size: 15px;">¡AVISO IMPORTANTE DE DELIVERY!</span><br>
@@ -482,7 +515,6 @@ with tab_pedido:
             </div>
             """, unsafe_allow_html=True)
         else:
-            # Mensaje de Recojo renovado (Ultra Notorio)
             st.markdown("""
             <div class="alerta-delivery-destacada" style="border-color: #4CAF50;">
                 🏪 <span style="color: #4CAF50; font-weight: bold; font-size: 15px;">PEDIDO PARA RECOJO EN LOCAL</span><br>
@@ -490,7 +522,6 @@ with tab_pedido:
             </div>
             """, unsafe_allow_html=True)
 
-        # MÉTODO DE PAGO EN HORIZONTAL
         st.write("")
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Pago:</span>', unsafe_allow_html=True)
         metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], horizontal=True, label_visibility="collapsed", key="met_pag")
@@ -513,7 +544,7 @@ with tab_pedido:
                     mensaje_wa += f"  • Nota: {item['notas']}\n"
             
             mensaje_wa += f"-------------------------\n"
-            mensaje_wa += f"💰 *SUBTOTAL:* S/. {total:.2f}\n"
+            mensaje_wa += f"💰 *TOTAL A PAGAR:* S/. {total:.2f}\n"
             if metodo_entrega == "Delivery Moto 🏍️":
                 mensaje_wa += f"ℹ️ _El costo de delivery se sumará en breve._"
 
