@@ -163,17 +163,16 @@ html, body, [data-testid="stApp"] {
     left: 0px !important;
     right: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.75) !important; /* Cuadro oscuro semitransparente un poco más alto */
-    backdrop-filter: blur(8px) !important;
-    padding: 18px 12px 15px 12px !important;
+    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    backdrop-filter: blur(5px) !important;
+    padding: 15px 10px !important;
     text-align: center;
-    border-bottom: 2px solid rgba(255, 235, 59, 0.4);
-    box-shadow: 0px 4px 15px rgba(0,0,0,0.6);
+    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* COMPENSACIÓN EXACTA: Para que las pestañas e interfaces no choquen ni se monten debajo del cuadro fijo */
+/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
 div[data-testid="stTabs"] {
-    margin-top: 105px !important; 
+    margin-top: 95px !important; 
 }
 
 /* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
@@ -192,18 +191,16 @@ div[data-testid="stTabs"] button p {
 
 /* SELECTOR DE PÁGINAS */
 div[data-testid="stRadio"] {
-    background-color: rgba(0, 0, 0, 0.35) !important;
-    backdrop-filter: blur(4px);
-    padding: 10px !important;
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(2px);
+    padding: 8px !important;
     border: 1px solid #FFEB3B !important;
     border-radius: 8px !important;
-    margin-top: 10px !important;
     margin-bottom: 20px !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
     background-color: transparent !important;
-    justify-content: center !important;
 }
 
 div[data-testid="stRadio"] label {
@@ -272,12 +269,12 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE (MÁS AMPLIO)
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE
 # =========================================================
 st.markdown("""
 <div class="cabecera-fija-chifa">
-    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 5px 0 0 0; font-size: 13.5px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -294,7 +291,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas (Fluye nativamente de manera ordenada debajo de las pestañas)
+        # Selector de páginas
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -368,7 +365,7 @@ with tab_pedido:
                 if item['cremas'] != "Ninguna":
                     mensaje_wa += f"  • Salsas: {item['cremas']}\n"
                 if item['notas'] != "Ninguna":
-                    mensaje_wa += f"  • Note: {item['notas']}\n"
+                    mensaje_wa += f"  • Nota: {item['notas']}\n"
             mensaje_wa += f"-------------------------\n💰 *TOTAL DEL PEDIDO:* S/. {total:.2f}"
 
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
