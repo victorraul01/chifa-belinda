@@ -93,13 +93,24 @@ def aplicar_fondo(nombre_imagen, pagina_id):
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
-# Manejo de la acción de eliminar o agregar mediante query params estables
+# Captura de query params estables
 query_params = st.query_params
+
+# Detectar qué pestaña mantener activa (0=Menú, 1=Carta, 2=Pedido)
+tab_seleccionada_idx = 0
+if "tab" in query_params:
+    if query_params["tab"] == "carta":
+        tab_seleccionada_idx = 1
+    elif query_params["tab"] == "pedido":
+        tab_seleccionada_idx = 2
+
+# Manejo de la acción de eliminar del carrito
 if "eliminar_idx" in query_params:
     idx_eliminar = int(query_params["eliminar_idx"])
     if 0 <= idx_eliminar < len(st.session_state.carrito):
         st.session_state.carrito.pop(idx_eliminar)
     st.query_params.clear()
+    st.query_params["tab"] = "pedido"
     st.rerun()
 
 # 3. DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
@@ -124,63 +135,69 @@ def cargar_catalogo_limpio():
 
 df_carta = cargar_catalogo_limpio()
 
-# Interceptamos clics de agregar mediante query params para disparar el modal limpiamente
+# =========================================================
+# DEFINICIÓN GLOBAL DEL COMPONENTE DIALOG (FLOTANTE)
+# =========================================================
+@st.dialog("Configura tu Plato 🍜")
+def abrir_modal_dinamico(p_info, p_cat_name, p_orig, tab_retorno):
+    st.markdown(f"### {p_info['Name']}")
+    st.markdown(f"**Tipo:** {p_orig} | **Precio Unitario:** S/. {p_info['Price']:.2f}")
+    st.write("---")
+    
+    entrada_sel = ""
+    if p_orig == "Menú del Día":
+        st.markdown("**Elige tu Entrada (Incluida):**")
+        entrada_sel = st.radio("", ["Sopa Wantán 🥣", "Wantán Frito 🥟"], horizontal=True, label_visibility="collapsed")
+        st.write("---")
+
+    cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
+    st.markdown("**Selecciona tus Cremas / Salsas:**")
+    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+    c_mayo = st.checkbox("Mayonesa ⚪")
+    c_ketchup = st.checkbox("Ketchup 🍅")
+    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    
+    mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
+    c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
+
+    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+
+    if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
+        cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
+        if mostrar_limon and c_limon: cremas_list.append("Limón")
+        
+        st.session_state.carrito.append({
+            "id": p_info["ID"], "nombre": p_info["Name"], "precio": p_info["Price"],
+            "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(),
+            "tipo": p_orig, "entrada": entrada_sel
+        })
+        st.toast("¡Agregado exitosamente!")
+        st.query_params.clear()
+        st.query_params["tab"] = tab_retorno  # Te mantiene exactamente en la pestaña actual
+        st.rerun()
+
+# Lógica para interceptar la acción de agregar sin perder la pestaña
+plato_para_modal = None
+cat_para_modal = "GENERAL"
+tipo_para_modal = "Carta"
+tab_retorno_modal = "menu"
+
 if "add_id" in query_params:
     p_id = query_params["add_id"]
-    p_tipo = query_params.get("origin", "Carta")
-    p_cat = query_params.get("cat", "GENERAL")
+    tipo_para_modal = query_params.get("origin", "Carta")
+    cat_para_modal = query_params.get("cat", "GENERAL")
+    tab_retorno_modal = query_params.get("tab", "menu")
     
-    # Buscar datos del plato seleccionado
-    plato_encontrado = None
-    if p_tipo == "Menú del Día":
-        plato_encontrado = next((p for p in PLATOS_MENU_INTERNO if p["ID"] == p_id), None)
+    if tipo_para_modal == "Menú del Día":
+        plato_para_modal = next((p for p in PLATOS_MENU_INTERNO if p["ID"] == p_id), None)
     else:
         if not df_carta.empty:
             match = df_carta[df_carta["ID"] == p_id]
             if not match.empty:
-                plato_encontrado = {"ID": p_id, "Name": match.iloc[0]["Name"], "Price": float(match.iloc[0]["Price"])}
-                
-    if plato_encontrado:
-        st.query_params.clear()
-        @st.dialog("Configura tu Plato 🍜")
-        def abrir_modal_dinamico(p_info, p_cat_name, p_orig):
-            st.markdown(f"### {p_info['Name']}")
-            st.markdown(f"**Tipo:** {p_orig} | **Precio Unitario:** S/. {p_info['Price']:.2f}")
-            st.write("---")
-            
-            entrada_sel = ""
-            if p_orig == "Menú del Día":
-                st.markdown("**Elige tu Entrada (Incluida):**")
-                entrada_sel = st.radio("", ["Sopa Wantán 🥣", "Wantán Frito 🥟"], horizontal=True, label_visibility="collapsed")
-                st.write("---")
-
-            cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
-            st.markdown("**Selecciona tus Cremas / Salsas:**")
-            c_aji = st.checkbox("Ají Chi Chon San 🌶️")
-            c_mayo = st.checkbox("Mayonesa ⚪")
-            c_ketchup = st.checkbox("Ketchup 🍅")
-            c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
-            
-            mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
-            c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
-
-            notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
-
-            if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
-                cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
-                if mostrar_limon and c_limon: cremas_list.append("Limón")
-                
-                st.session_state.carrito.append({
-                    "id": p_info["ID"], "nombre": p_info["Name"], "precio": p_info["Price"],
-                    "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(),
-                    "tipo": p_orig, "entrada": entrada_sel
-                })
-                st.toast("¡Agregado exitosamente!")
-                st.rerun()
-        abrir_modal_dinamico(plato_encontrado, p_cat, p_tipo)
+                plato_para_modal = {"ID": p_id, "Name": match.iloc[0]["Name"], "Price": float(match.iloc[0]["Price"])}
 
 # =========================================================
-# 5. CSS MAESTRO GLOBAL (Flexbox super robusto para móviles)
+# 5. CSS MAESTRO GLOBAL (Flexbox original e intacto)
 # =========================================================
 st.markdown("""
 <style>
@@ -269,16 +286,20 @@ st.markdown("""
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# 7. CREACIÓN DE PESTAÑAS
+# 7. CREACIÓN DE PESTAÑAS (Con control indexado por URL)
 # =========================================================
 tab_menu, tab_carta, tab_pedido = st.tabs([
     "🍱 Menú del Día", 
     "📖 Platos a la Carta", 
-    f"🛒 Mi Pedido ({items_en_carrito})"
-])
+    "🛒 Mi Pedido (" + str(items_en_carrito) + ")"
+], value=tab_seleccionada_idx)
+
+# Lanzamos el modal dinámico de configuración si se seleccionó un plato
+if plato_para_modal is not None:
+    abrir_modal_dinamico(plato_para_modal, cat_para_modal, tipo_para_modal, tab_retorno_modal)
 
 # =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA (Estructura Unificada)
+# PESTAÑA: 🍱 MENÚ DEL DÍA
 # =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -293,7 +314,7 @@ with tab_menu:
             </div>
             <div class="bloque-der-precio-accion">
                 <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
-                <a href="?add_id={plato['ID']}&origin=Menú+del+Día&cat=MENÚ" target="_self" class="btn-agregar-nativo">＋</a>
+                <a href="?add_id={plato['ID']}&origin=Menú+del+Día&cat=MENÚ&tab=menu" target="_self" class="btn-agregar-nativo">＋</a>
             </div>
         </div>
         <hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">
@@ -302,7 +323,7 @@ with tab_menu:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# PESTAÑA: 📖 PLATOS A LA CARTA (Estructura Unificada)
+# PESTAÑA: 📖 PLATOS A LA CARTA
 # =========================================================
 with tab_carta:
     if df_carta.empty:
@@ -325,7 +346,7 @@ with tab_carta:
                         </div>
                         <div class="bloque-der-precio-accion">
                             <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
-                            <a href="?add_id={row['ID']}&origin=Carta&cat={urllib.parse.quote(cat_name)}" target="_self" class="btn-agregar-nativo">＋</a>
+                            <a href="?add_id={row['ID']}&origin=Carta&cat={urllib.parse.quote(cat_name)}&tab=carta" target="_self" class="btn-agregar-nativo">＋</a>
                         </div>
                     </div>
                     <hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">
@@ -350,7 +371,7 @@ with tab_pedido:
             detalles_lista = [f"📌 Tipo: {origen_tipo}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 Entrada: {item['entrada']}")
             if item['cremas']: detalles_lista.append(f"🧂 {item['cremas']}")
-            if item['notes' if 'notes' in item else 'notas']: detalles_lista.append(f"📝 {item.get('notas', '')}")
+            if item.get('notas'): detalles_lista.append(f"📝 {item.get('notas')}")
             
             detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
 
@@ -412,7 +433,7 @@ with tab_pedido:
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
             error_validacion = "Escribe una Dirección de Envío."
 
-        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente.strip()}\n🛵 *Entrega:* {metodo_entrega}\n"
+        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente.strip()}\nRef: *Entrega:* {metodo_entrega}\n"
         if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 *Dirección:* {direccion_cliente.strip()}\n"
         mensaje_wa += f"💳 *Pago:* {metodo_pago}\n-------------------------\n"
         
@@ -431,6 +452,7 @@ with tab_pedido:
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
+            st.query_params.clear()
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
