@@ -199,11 +199,19 @@ div.boton-agregar-carta button {
     border: none !important; box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important; padding: 0px !important;
 }
 
-/* BOTÓN DE WHATSAPP VERDE ESTILIZADO */
-div.boton-whatsapp-verde button {
-    background-color: #25D366 !important; color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important;
-    border-radius: 8px !important; width: 100% !important; height: 48px !important; border: none !important; 
-    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+/* FORZAR COLOR VERDE CLÁSICO WHATSAPP EN EL BOTÓN DE ENLACE */
+a[data-testid="stLinkButton"] {
+    background-color: #25D366 !important; 
+    color: #FFFFFF !important; 
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
+}
+a[data-testid="stLinkButton"] p {
+    color: #FFFFFF !important;
+    font-size: 16px !important; 
+    font-weight: bold !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
 }
 
 div.boton-normal-ancho button {
@@ -280,7 +288,7 @@ with tab_pedido:
             subtotal = item["precio"] * item["cant"]
             total += subtotal
 
-            # Construcción dinámica de la línea de detalles (salsas y notas)
+            # Construcción dinámica sin textos repetitivos ni etiquetas estáticas
             detalles_lista = []
             if item['cremas']:
                 detalles_lista.append(f"🧂 {item['cremas']}")
@@ -346,7 +354,12 @@ with tab_pedido:
         st.markdown('<span style="color: white; font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 16px;">Método de Pago:</span>', unsafe_allow_html=True)
         metodo_pago = st.radio("", ["Yape 📱", "Efectivo 💵"], horizontal=True, label_visibility="collapsed", key="met_pag")
 
+        # El botón siempre se arma apuntando al link dinámico o se intercepta el aviso de error
+        datos_completos = False
         if nombre_cliente.strip() and (metodo_entrega == "Recojo en Local 🏪" or direccion_cliente.strip()):
+            datos_completos = True
+
+        if datos_completos:
             mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n"
             mensaje_wa += f"👤 *Cliente:* {nombre_cliente}\n"
             mensaje_wa += f"🛵 *Entrega:* {metodo_entrega}\n"
@@ -367,13 +380,18 @@ with tab_pedido:
             if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"ℹ️ _El costo de delivery se sumará en breve._"
 
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-            st.write("")
-            st.markdown('<div class="boton-whatsapp-verde">', unsafe_allow_html=True)
-            st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.write("")
-            st.warning("⚠️ Completa tu nombre y dirección de envío para poder habilitar el botón de WhatsApp.")
+            # Si no completó datos, apunta a una recarga de anclaje de la app para no disparar WhatsApp erróneo
+            link_final = "?error=campos_incompletos"
+
+        st.write("")
+        # El botón de WhatsApp se renderiza visible de forma ininterrumpida
+        st.link_button("📲 ENVIAR PEDIDO A WHATSAPP", link_final, use_container_width=True)
+
+        # Mostrar aviso en pantalla en lugar de esconder el botón
+        if "error" in st.query_params and st.query_params["error"] == "campos_incompletos":
+            st.error("⚠️ No se puede enviar el pedido por WhatsApp: Por favor, escribe tu Nombre Completo (y la dirección en caso de ser Delivery Moto) antes de proceder.")
+            st.query_params.clear()
 
         st.write("")
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
