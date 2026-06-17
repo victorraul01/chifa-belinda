@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
+# 5. CSS MAESTRO: CUADRO AGRUPADO INDEPENDIENTE Y FLUIDO
 # =========================================================
 st.markdown("""
 <style>
@@ -152,30 +152,22 @@ html, body, [data-testid="stApp"] {
 }
 
 .main .block-container {
-    padding-top: 0px !important;
+    padding-top: 10px !important;
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+/* CABECERA PRINCIPAL */
 .cabecera-fija-chifa {
-    position: fixed !important;
-    top: 0px !important;
-    left: 0px !important;
-    right: 0px !important;
-    z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
     padding: 15px 10px !important;
     text-align: center;
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
-/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
-div[data-testid="stTabs"] {
-    margin-top: 95px !important; 
-}
-
-/* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
+/* PESTAÑAS (TABS) COMPLETAMENTE TRANSPARENTES */
 div[data-testid="stTabs"] > div:first-child {
     background-color: transparent !important;
     padding: 4px 10px !important;
@@ -189,14 +181,15 @@ div[data-testid="stTabs"] button p {
     text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* SELECTOR DE PÁGINAS */
+/* CUADRO INDEPENDIENTE TRANSPARENTE PARA EL SELECTOR DE PÁGINAS */
 div[data-testid="stRadio"] {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(2px);
-    padding: 8px !important;
-    border: 1px solid #FFEB3B !important;
+    background-color: rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(4px);
+    padding: 10px !important;
+    border: 1px solid rgba(255, 235, 59, 0.4) !important;
     border-radius: 8px !important;
-    margin-bottom: 20px !important;
+    margin-top: 10px !important;
+    margin-bottom: 25px !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
@@ -209,7 +202,7 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* FILA UNIFICADA DE PLATOS */
+/* FILA DE PRODUCTOS */
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -269,7 +262,7 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE
+# 6. ENCABEZADO PRINCIPAL (CORREGIDO CLASE CSS)
 # =========================================================
 st.markdown("""
 <div class="cabecera-fija-chifa">
@@ -280,6 +273,7 @@ st.markdown("""
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
+# Pestañas globales semitransparentes fluidas
 tab_carta, tab_pedido = st.tabs([
     "📖 Nuestra Carta", f"🛒 Mi Pedido ({items_en_carrito})"
 ])
@@ -291,7 +285,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas
+        # El Selector de Páginas actúa como el cuadro independiente e integrado
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
