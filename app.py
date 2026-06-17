@@ -94,13 +94,13 @@ if "carrito" not in st.session_state:
     st.session_state.carrito = []
 
 # Manejo de la acción de eliminar o agregar mediante query params estables
-query_params = st.query_params
+query_params = dict(st.query_params)
 if "eliminar_idx" in query_params:
     idx_eliminar = int(query_params["eliminar_idx"])
     if 0 <= idx_eliminar < len(st.session_state.carrito):
         st.session_state.carrito.pop(idx_eliminar)
     st.query_params.clear()
-    st.rerun()
+    # st.rerun()
 
 # 3. DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
 DISTRIBUCION_PAGINAS = {
