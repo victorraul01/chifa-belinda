@@ -48,16 +48,18 @@ def aplicar_fondo(nombre_imagen, pagina_id):
             background-position: center center !important;
             background-attachment: fixed !important;
         }}
-        /* TRANSPARENCIA TOTAL: Cero fondos rojos o blancos que tapen tu imagen */
+        /* TRANSPARENCIA TOTAL ABSOLUTA: Elimina cualquier fondo gris, negro o blanco */
         .main, 
         [data-testid="stCanvas"], 
         [data-testid="stTabPanel"], 
         div[role="tabpanel"], 
         div[data-testid="stVerticalBlock"],
         [data-testid="stApp"],
-        [data-testid="stHeader"] {{
+        [data-testid="stHeader"],
+        [data-testid="stTabPanel"] div {{
             background-color: transparent !important;
             background: transparent !important;
+            box-shadow: none !important;
         }}
         </style>
         """, unsafe_allow_html=True)
@@ -139,7 +141,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO, PESTAÑAS Y PÁGINAS ESTÁTICAS
+# 5. CSS MAESTRO: TRANSPARENCIA TOTAL Y CONTROLES ESTÁTICOS
 # =========================================================
 st.markdown("""
 <style>
@@ -153,45 +155,49 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* 1. HACER QUE LAS PESTAÑAS SE QUEDEN PEGADAS ARRIBA AL HACER SCROLL */
+/* Forzar que las pestañas principales sean estáticas y transparentes */
 div[data-testid="stTabs"] > div:first-child {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 0px !important;
-    background-color: rgba(0, 0, 0, 0.85) !important; /* Fondo oscuro semi-transparente para legibilidad */
+    background-color: transparent !important;
+    background: transparent !important;
     z-index: 99999 !important;
     padding: 6px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.5) !important;
 }
 
 div[data-testid="stTabs"] button p {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
+    text-shadow: 2px 2px 4px #000000 !important;
 }
 
-/* 2. HACER QUE EL SELECTOR DE PÁGINAS TAMBIÉN SEA ESTÁTICO ABAJO DE LAS PESTAÑAS */
+/* Forzar que el selector de páginas sea estático y transparente */
 div[data-testid="stRadio"] {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 55px !important;
     z-index: 99998 !important;
-    background-color: rgba(0, 0, 0, 0.75) !important;
+    background-color: transparent !important;
+    background: transparent !important;
     padding: 8px !important;
-    border-radius: 8px !important;
     border: 1px solid #FFEB3B !important;
+    border-radius: 8px !important;
     margin-bottom: 15px !important;
 }
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
     background-color: transparent !important;
+    background: transparent !important;
     border: none !important;
-    padding: 0 !important;
 }
+
 div[data-testid="stRadio"] label {
     color: #FFFFFF !important;
     font-weight: bold !important;
+    text-shadow: 2px 2px 4px #000000 !important;
 }
 
 /* Botón redondo amarillo "＋" */
@@ -210,17 +216,18 @@ div.stButton > button {
     box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
 }
 
-/* Títulos de Categorías */
+/* Títulos de Categorías Transparentes */
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 16px !important;
     font-weight: bold !important;
-    background-color: rgba(0, 0, 0, 0.75) !important;
-    padding: 10px 14px !important;
-    border-radius: 6px !important;
+    background-color: transparent !important;
+    background: transparent !important;
+    padding: 10px 4px !important;
     margin-top: 15px !important;
     margin-bottom: 12px !important;
     border-left: 5px solid #FFEB3B !important;
+    text-shadow: 2px 2px 4px #000000 !important;
 }
 
 /* Filas de platos 100% transparentes sobre tu imagen */
@@ -274,7 +281,7 @@ with tab_carta:
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Lista de platos (solo esta parte tendrá movimiento vertical al deslizar)
+        # Lista de platos limpios y translúcidos
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
