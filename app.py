@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
+# 5. CSS MAESTRO: ENCABEZADO Y PESTAÑAS SIMULTÁNEAMENTE FIJOS
 # =========================================================
 st.markdown("""
 <style>
@@ -156,30 +156,34 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+/* EL TITULO: Se queda arriba fijo con su cuadro oscuro */
 .cabecera-fija-chifa {
     position: fixed !important;
     top: 0px !important;
     left: 0px !important;
     right: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    background-color: rgba(0, 0, 0, 0.55) !important;
     backdrop-filter: blur(5px) !important;
-    padding: 15px 10px !important;
+    padding: 15px 10px 10px 10px !important;
     text-align: center;
-    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
-div[data-testid="stTabs"] {
-    margin-top: 95px !important; 
-}
-
-/* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
+/* LAS PESTAÑAS (TABS): Ahora también son fijas, sin fondo oscuro y justo debajo del título */
 div[data-testid="stTabs"] > div:first-child {
-    background-color: transparent !important;
-    padding: 4px 10px !important;
+    position: fixed !important;
+    top: 82px !important; /* Ubicación exacta debajo del título */
+    left: 0px !important;
+    right: 0px !important;
+    z-index: 999998 !important;
+    background-color: transparent !important; /* Sin cuadro oscuro ni fondo */
+    padding: 6px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
+}
+
+/* COMPENSACIÓN DEL CONTENIDO: Empuja el menú hacia abajo para que empiece libre de las zonas fijas */
+div[data-testid="stTabPanel"] {
+    padding-top: 140px !important;
 }
 
 div[data-testid="stTabs"] button p {
