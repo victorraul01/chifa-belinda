@@ -142,7 +142,7 @@ def abrir_modal_agregar_plato(id_plato, nombre_plato, precio_plato):
         st.rerun()
 
 # =========================================================
-# 5. CSS MAESTRO: ENCABEZADO FIJO SÓLO PARA EL NOMBRE
+# 5. CSS MAESTRO: ENCABEZADO FIJO TOTALMENTE INAMOVIBLE
 # =========================================================
 st.markdown("""
 <style>
@@ -156,35 +156,40 @@ html, body, [data-testid="stApp"] {
     max-width: 100% !important;
 }
 
-/* ÚNICAMENTE EL NOMBRE DEL CHIFA QUEDA TOTALMENTE ESTÁTICO EN LA PARTE SUPERIOR */
-.cabecera-estatica-chifa {
-    position: -webkit-sticky !important;
-    position: sticky !important;
+/* EL CUADRO SE QUEDA FIJO ARRIBA DE LA PANTALLA Y NO SE MUEVE POR NADA */
+.cabecera-fija-chifa {
+    position: fixed !important;
     top: 0px !important;
+    left: 0px !important;
+    right: 0px !important;
     z-index: 999999 !important;
-    background-color: rgba(0, 0, 0, 0.3) !important; /* Ligero sombreado detrás del nombre para lectura perfecta */
-    backdrop-filter: blur(3px);
-    padding: 12px 0px 8px 0px !important;
+    background-color: rgba(0, 0, 0, 0.55) !important; /* Cuadro oscuro semitransparente resaltado */
+    backdrop-filter: blur(5px) !important;
+    padding: 15px 10px !important;
     text-align: center;
-    width: 100%;
+    border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
-/* LAS PESTAÑAS (TABS) SE MUEVEN NORMALMENTE CON EL SCROLL */
+/* COMPENSACIÓN: Margen superior para que las pestañas inicien ABAJO del cuadro fijo y no se tapen */
+div[data-testid="stTabs"] {
+    margin-top: 95px !important; 
+}
+
+/* PESTAÑAS (TABS) SE DESLIZAN NORMALMENTE POR DEBAJO DEL NOMBRE */
 div[data-testid="stTabs"] > div:first-child {
     background-color: transparent !important;
     padding: 4px 10px !important;
     border-bottom: 2px solid #FFEB3B !important;
-    margin-top: 10px !important;
 }
 
 div[data-testid="stTabs"] button p {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000, 2px -2px 3px #000000, -2px 2px 3px #000000 !important;
+    text-shadow: 2px 2px 3px #000000, -2px -2px 3px #000000 !important;
 }
 
-/* EL SELECTOR DE PÁGINAS SE MUEVE NORMALMENTE CON EL SCROLL */
+/* SELECTOR DE PÁGINAS */
 div[data-testid="stRadio"] {
     background-color: rgba(0, 0, 0, 0.2) !important;
     backdrop-filter: blur(2px);
@@ -196,7 +201,6 @@ div[data-testid="stRadio"] {
 
 div[data-testid="stRadio"] div[role="radiogroup"] {
     background-color: transparent !important;
-    border: none !important;
 }
 
 div[data-testid="stRadio"] label {
@@ -205,7 +209,7 @@ div[data-testid="stRadio"] label {
     text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
 }
 
-/* DISEÑO DE FILA UNIFICADA: Nombre - Precio - Botón (+) */
+/* FILA UNIFICADA DE PLATOS */
 .contenedor-plato-unico {
     display: flex !important;
     flex-direction: row !important;
@@ -216,30 +220,25 @@ div[data-testid="stRadio"] label {
     border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
-/* Nombre del plato con borde negro de alta visibilidad */
 .texto-nombre-plato {
     color: #FFFFFF !important;
     font-size: 15px !important;
     font-weight: bold !important;
-    font-family: sans-serif !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000, 2px -2px 2px #000000, -2px 2px 2px #000000 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
     flex-grow: 1 !important;
     padding-right: 10px !important;
     text-align: left !important;
 }
 
-/* Precio destacado en amarillo brillante */
 .texto-precio-plato {
     color: #FFEB3B !important;
     font-size: 16px !important;
     font-weight: 900 !important;
-    font-family: sans-serif !important;
-    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000, 2px -2px 2px #000000, -2px 2px 2px #000000 !important;
+    text-shadow: 2px 2px 2px #000000, -2px -2px 2px #000000 !important;
     white-space: nowrap !important;
     padding-right: 15px !important;
 }
 
-/* Forzar tamaño redondo del botón "+" a la derecha */
 div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -249,22 +248,17 @@ div.stButton > button {
     width: 38px !important;
     height: 38px !important;
     min-width: 38px !important;
-    max-width: 38px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 3px 5px rgba(0,0,0,0.5) !important;
-    padding: 0 !important;
-    margin: 0 !important;
 }
 
-/* Títulos de Categorías */
 .titulo-categoria-chifa {
     color: #FFEB3B !important;
     font-size: 17px !important;
     font-weight: bold !important;
-    background-color: transparent !important;
     padding: 10px 4px !important;
     margin-top: 15px !important;
     margin-bottom: 5px !important;
@@ -275,12 +269,12 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 6. ENCABEZADO PRINCIPAL ESTÁTICO (SOLO ESTO SE QUEDA FIJO)
+# 6. ENCABEZADO CON CUADRO OSCURO FIJO TOTALMENTE
 # =========================================================
 st.markdown("""
-<div class="cabecera-estatica-chifa">
-    <h2 style="margin: 0; font-size: 26px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
-    <p style="margin: 4px 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
+<div class="cabecera-fija-chifa">
+    <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
+    <p style="margin: 3px 0 0 0; font-size: 13px; color: #FFFFFF; text-shadow: 1px 1px 2px #000000, -1px -1px 2px #000000;">Pedidos en línea rápidos y directos a nuestro WhatsApp</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -297,7 +291,7 @@ with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo para visualizar el menú.")
     else:
-        # Selector de páginas (se desliza con el scroll)
+        # Selector de páginas
         pag_seleccionada = st.radio(
             "Selecciona una Página de la Carta:",
             options=[1, 2, 3, 4, 5, 6],
@@ -312,7 +306,7 @@ with tab_carta:
 
         categorias_permitidas = DISTRIBUCION_PAGINAS.get(pag_seleccionada, [])
 
-        # Despliegue de los platos ordenados
+        # Despliegue de los platos
         for cat_name in categorias_permitidas:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_name]
             
