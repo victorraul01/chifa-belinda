@@ -89,28 +89,23 @@ def aplicar_fondo(nombre_imagen, pagina_id):
         </style>
         """, unsafe_allow_html=True)
 
-# 2. INICIALIZACIÓN DEL CARRITO
+# 2. INICIALIZACIÓN DEL CARRITO Y ESTADOS de control alternativo seguro
 if "carrito" not in st.session_state:
     st.session_state.carrito = []
+if "tab_activa" not in st.session_state:
+    st.session_state.tab_activa = 0
 
-# Captura de query params estables
+# Manejo seguro de query params para eliminar ítems
 query_params = st.query_params
-
-# Detectar qué pestaña mantener activa (0=Menú, 1=Carta, 2=Pedido)
-tab_seleccionada_idx = 0
-if "tab" in query_params:
-    if query_params["tab"] == "carta":
-        tab_seleccionada_idx = 1
-    elif query_params["tab"] == "pedido":
-        tab_seleccionada_idx = 2
-
-# Manejo de la acción de eliminar del carrito
 if "eliminar_idx" in query_params:
-    idx_eliminar = int(query_params["eliminar_idx"])
-    if 0 <= idx_eliminar < len(st.session_state.carrito):
-        st.session_state.carrito.pop(idx_eliminar)
+    try:
+        idx_eliminar = int(query_params["eliminar_idx"])
+        if 0 <= idx_eliminar < len(st.session_state.carrito):
+            st.session_state.carrito.pop(idx_eliminar)
+    except ValueError:
+        pass
     st.query_params.clear()
-    st.query_params["tab"] = "pedido"
+    st.session_state.tab_activa = 2
     st.rerun()
 
 # 3. DISTRIBUCION DE PAGINAS (PLATOS A LA CARTA)
@@ -136,10 +131,10 @@ def cargar_catalogo_limpio():
 df_carta = cargar_catalogo_limpio()
 
 # =========================================================
-# DEFINICIÓN GLOBAL DEL COMPONENTE DIALOG (FLOTANTE)
+# MODAL DE CONFIGURACIÓN SEGURO (Mantiene estado de pestañas)
 # =========================================================
 @st.dialog("Configura tu Plato 🍜")
-def abrir_modal_dinamico(p_info, p_cat_name, p_orig, tab_retorno):
+def abrir_modal_dinamico(p_info, p_cat_name, p_orig, destino_tab_idx):
     st.markdown(f"### {p_info['Name']}")
     st.markdown(f"**Tipo:** {p_orig} | **Precio Unitario:** S/. {p_info['Price']:.2f}")
     st.write("---")
@@ -160,7 +155,7 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig, tab_retorno):
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
 
-    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
@@ -172,32 +167,11 @@ def abrir_modal_dinamico(p_info, p_cat_name, p_orig, tab_retorno):
             "tipo": p_orig, "entrada": entrada_sel
         })
         st.toast("¡Agregado exitosamente!")
-        st.query_params.clear()
-        st.query_params["tab"] = tab_retorno  # Te mantiene exactamente en la pestaña actual
+        st.session_state.tab_activa = destino_tab_idx
         st.rerun()
 
-# Lógica para interceptar la acción de agregar sin perder la pestaña
-plato_para_modal = None
-cat_para_modal = "GENERAL"
-tipo_para_modal = "Carta"
-tab_retorno_modal = "menu"
-
-if "add_id" in query_params:
-    p_id = query_params["add_id"]
-    tipo_para_modal = query_params.get("origin", "Carta")
-    cat_para_modal = query_params.get("cat", "GENERAL")
-    tab_retorno_modal = query_params.get("tab", "menu")
-    
-    if tipo_para_modal == "Menú del Día":
-        plato_para_modal = next((p for p in PLATOS_MENU_INTERNO if p["ID"] == p_id), None)
-    else:
-        if not df_carta.empty:
-            match = df_carta[df_carta["ID"] == p_id]
-            if not match.empty:
-                plato_para_modal = {"ID": p_id, "Name": match.iloc[0]["Name"], "Price": float(match.iloc[0]["Price"])}
-
 # =========================================================
-# 5. CSS MAESTRO GLOBAL (Flexbox original e intacto)
+# 5. CSS MAESTRO GLOBAL
 # =========================================================
 st.markdown("""
 <style>
@@ -222,13 +196,12 @@ div[data-testid="stRadio"] {
 }
 div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 
-/* Contenedor de Fila Unificada Flexbox */
 .fila-plato-flex {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding: 6px 0px !important;
+    padding: 2px 0px !important;
     box-sizing: border-box !important;
 }
 .bloque-izq-nombre {
@@ -247,14 +220,18 @@ div[data-testid="stRadio"] label { color: #FFFFFF !important; font-weight: bold 
 .texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* Botón HTML + estilizado como app nativa */
-.btn-agregar-nativo {
-    background-color: #FFEB3B !important; color: #8B0000 !important;
-    font-size: 20px !important; font-weight: bold !important;
-    border-radius: 6px !important; width: 36px !important; height: 36px !important;
-    display: flex !important; align-items: center !important; justify-content: center !important;
-    text-decoration: none !important; box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
-    border: none !important; cursor: pointer !important; line-height: 1 !important;
+/* Estilo personalizado para el botón nativo de Streamlit */
+div[data-testid="stColumn"] button {
+    background-color: #FFEB3B !important;
+    color: #8B0000 !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    border-radius: 6px !important;
+    height: 36px !important;
+    width: 36px !important;
+    padding: 0px !important;
+    border: none !important;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important;
 }
 
 .fila-carrito-ordenada { padding: 12px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%; }
@@ -286,20 +263,18 @@ st.markdown("""
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# 7. CREACIÓN DE PESTAÑAS (Con control indexado por URL)
+# 7. MANEJO SEGURO DE PESTAÑAS (Previene TypeError de enteros)
 # =========================================================
+indice_seguro = int(st.session_state.tab_activa) if int(st.session_state.tab_activa) in [0, 1, 2] else 0
+
 tab_menu, tab_carta, tab_pedido = st.tabs([
     "🍱 Menú del Día", 
     "📖 Platos a la Carta", 
-    "🛒 Mi Pedido (" + str(items_en_carrito) + ")"
-], value=tab_seleccionada_idx)
-
-# Lanzamos el modal dinámico de configuración si se seleccionó un plato
-if plato_para_modal is not None:
-    abrir_modal_dinamico(plato_para_modal, cat_para_modal, tipo_para_modal, tab_retorno_modal)
+    f"🛒 Mi Pedido ({items_en_carrito})"
+], value=indice_seguro)
 
 # =========================================================
-# PESTAÑA: 🍱 MENÚ DEL DÍA
+# PESTAÑA: 🍱 MENÚ DEL DÍA (Nativo e Integrado)
 # =========================================================
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
@@ -307,18 +282,24 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA (INCLUYE: SOPA WANTÁN O WANTÁN FRITO + REFRESCO)</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        st.markdown(f"""
-        <div class="fila-plato-flex">
-            <div class="bloque-izq-nombre">
-                <span class="texto-nombre-plato">{plato['Name']}</span>
+        # Usamos columnas nativas con tamaños controlados para el Flexbox visual
+        col_txt, col_btn = st.columns([0.85, 0.15])
+        with col_txt:
+            st.markdown(f"""
+            <div class="fila-plato-flex">
+                <div class="bloque-izq-nombre">
+                    <span class="texto-nombre-plato">{plato['Name']}</span>
+                </div>
+                <div class="bloque-der-precio-accion" style="padding-right:15px;">
+                    <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
+                </div>
             </div>
-            <div class="bloque-der-precio-accion">
-                <span class="texto-precio-plato">S/. {plato['Price']:.2f}</span>
-                <a href="?add_id={plato['ID']}&origin=Menú+del+Día&cat=MENÚ&tab=menu" target="_self" class="btn-agregar-nativo">＋</a>
-            </div>
-        </div>
-        <hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        with col_btn:
+            if st.button("＋", key=f"btn_m_{plato['ID']}"):
+                abrir_modal_dinamico(plato, "MENÚ", "Menú del Día", 0)
+        
+        st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
             
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -339,18 +320,25 @@ with tab_carta:
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_name}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
-                    st.markdown(f"""
-                    <div class="fila-plato-flex">
-                        <div class="bloque-izq-nombre">
-                            <span class="texto-nombre-plato">{row['Name']}</span>
+                    col_txt_c, col_btn_c = st.columns([0.85, 0.15])
+                    plato_dict = {"ID": row['ID'], "Name": row['Name'], "Price": float(row['Price'])}
+                    
+                    with col_txt_c:
+                        st.markdown(f"""
+                        <div class="fila-plato-flex">
+                            <div class="bloque-izq-nombre">
+                                <span class="texto-nombre-plato">{row['Name']}</span>
+                            </div>
+                            <div class="bloque-der-precio-accion" style="padding-right:15px;">
+                                <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
+                            </div>
                         </div>
-                        <div class="bloque-der-precio-accion">
-                            <span class="texto-precio-plato">S/. {float(row['Price']):.2f}</span>
-                            <a href="?add_id={row['ID']}&origin=Carta&cat={urllib.parse.quote(cat_name)}&tab=carta" target="_self" class="btn-agregar-nativo">＋</a>
-                        </div>
-                    </div>
-                    <hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
+                    with col_btn_c:
+                        if st.button("＋", key=f"btn_c_{row['ID']}"):
+                            abrir_modal_dinamico(plato_dict, cat_name, "Carta", 1)
+                            
+                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
 
 # =========================================================
 # PESTAÑA: 🛒 MI PEDIDO
@@ -370,8 +358,8 @@ with tab_pedido:
             origen_tipo = item.get("tipo", "Carta")
             detalles_lista = [f"📌 Tipo: {origen_tipo}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 Entrada: {item['entrada']}")
-            if item['cremas']: detalles_lista.append(f"🧂 {item['cremas']}")
-            if item.get('notas'): detalles_lista.append(f"📝 {item.get('notas')}")
+            if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
+            if item.get('notas'): detalles_lista.append(f"📝 {item['notas']}")
             
             detalles_html = f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>'
 
@@ -433,7 +421,7 @@ with tab_pedido:
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
             error_validacion = "Escribe una Dirección de Envío."
 
-        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente.strip()}\nRef: *Entrega:* {metodo_entrega}\n"
+        mensaje_wa = f"🍜 *CHIFA D' BELINDA*\n\n👤 *Cliente:* {nombre_cliente.strip()}\n🛵 *Entrega:* {metodo_entrega}\n"
         if metodo_entrega == "Delivery Moto 🏍️": mensaje_wa += f"📍 *Dirección:* {direccion_cliente.strip()}\n"
         mensaje_wa += f"💳 *Pago:* {metodo_pago}\n-------------------------\n"
         
@@ -452,7 +440,7 @@ with tab_pedido:
         st.markdown('<div class="boton-normal-ancho">', unsafe_allow_html=True)
         if st.button("🧹 Vaciar Todo el Carrito", use_container_width=True):
             st.session_state.carrito = []
-            st.query_params.clear()
+            st.session_state.tab_activa = 0
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
