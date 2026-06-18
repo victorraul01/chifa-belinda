@@ -100,29 +100,12 @@ def cargar_catalogo_limpio():
 
 df_carta = cargar_catalogo_limpio()
 
-# LÓGICA DE INTERCEPCIÓN PARA BOTONES HTML
-query_params = st.query_params
-if "add_id" in query_params:
-    p_id = query_params["add_id"]
-    p_orig = query_params.get("orig", "Carta")
-    p_cat = query_params.get("cat", "GENERAL")
-    
-    encontrado = None
-    if p_orig == "Menú del Día":
-        for p in PLATOS_MENU_INTERNO:
-            if p["ID"] == p_id: encontrado = p; break
-    else:
-        row = df_carta[df_carta["ID"] == p_id]
-        if not row.empty:
-            encontrado = {"ID": row.iloc[0]["ID"], "Name": row.iloc[0]["Name"], "Price": row.iloc[0]["Price"]}
-            
-    if encontrado:
-        st.session_state["modal_plato_info"] = encontrado
-        st.session_state["modal_origen"] = p_orig
-        st.session_state["modal_categoria"] = p_cat
-        st.session_state["mostrar_modal"] = True
-        st.query_params.clear()
-        st.rerun()
+# FUNCIÓN INTERNA PARA ACTIVAR EL MODAL SIN RECARGAR LA URL
+def click_agregar_plato(plato_info, origen, categoria):
+    st.session_state["modal_plato_info"] = plato_info
+    st.session_state["modal_origen"] = origen
+    st.session_state["modal_categoria"] = categoria
+    st.session_state["mostrar_modal"] = True
 
 # =========================================================
 # MODAL DE CONFIGURACIÓN
@@ -160,7 +143,7 @@ def abrir_modal_dinamico():
         if mostrar_limon and c_limon: cremas_list.append("Limón")
         
         nuevo_item = {
-            "uid": time.time(), "id": p_info["ID"], "nombre": p_info["Name"], "precio": float(p_info["Price"]),
+            "uid": time.time() + random.random(), "id": p_info["ID"], "nombre": p_info["Name"], "precio": float(p_info["Price"]),
             "cant": int(cantidad), "cremas": ", ".join(cremas_list), "notas": notas.strip(), "tipo": p_orig, "entrada": entrada_sel
         }
         st.session_state["carrito"].append(nuevo_item)
@@ -200,6 +183,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !im
     padding: 10px 4px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
     box-sizing: border-box !important;
+    position: relative !important;
 }
 
 .columna-izquierda-info {
@@ -216,9 +200,9 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !im
     justify-content: flex-end !important;
     gap: 12px !important;
     flex-shrink: 0 !important;
+    position: relative !important;
 }
 
-/* NOMBRE DEL PLATO MÁS NOTORIO Y GRANDE */
 .texto-nombre-plato { 
     color: #FFFFFF !important; 
     font-size: 15px !important; 
@@ -228,6 +212,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !im
 .texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
+/* MAQUETACIÓN ESTÉTICA DEL BOTÓN INALTERADA */
 .html-btn-mas {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -236,12 +221,29 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !im
     border-radius: 6px !important;
     width: 32px !important;
     height: 32px !important;
-    text-decoration: none !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 2px 4px rgba(0,0,0,0.6) !important;
+}
+
+/* ESTILO PARA HACER EL BOTÓN DE STREAMLIT TRANSPARENTE SOBRE EL BOTÓN + */
+.contenedor-click-oculto {
+    position: absolute !important;
+    right: 0px !important;
+    top: 0px !important;
+    width: 32px !important;
+    height: 32px !important;
+    z-index: 10 !important;
+    opacity: 0 !important;
+}
+.contenedor-click-oculto div.stButton button {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
 }
 
 .titulo-categoria-chifa { 
@@ -286,6 +288,7 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
+        # Colocamos la maquetación HTML idéntica
         st.markdown(f"""
         <div class="contenedor-fila-perfecta">
             <div class="columna-izquierda-info">
@@ -293,10 +296,16 @@ with tab_menu:
             </div>
             <div class="columna-derecha-precio-boton">
                 <span class="texto-precio-plato">S/. {plato["Price"]:.2f}</span>
-                <a href="?add_id={plato["ID"]}&orig=Menú+del+Día&cat=MENÚ" target="_self" class="html-btn-mas">＋</a>
+                <div class="html-btn-mas">＋</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
+        # Superponemos el botón nativo invisible para procesar el click de forma perfecta
+        st.markdown(f'<div class="contenedor-click-oculto" style="margin-top: -42px;">', unsafe_allow_html=True)
+        if st.button("", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ")):
+            pass
+        st.markdown('</div>', unsafe_allow_html=True)
+        
     st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: 📖 PLATOS A LA CARTA
@@ -330,6 +339,8 @@ with tab_carta:
                 
                 for idx, row in df_aleatorio.iterrows():
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
+                    plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
+                    
                     st.markdown(f"""
                     <div class="contenedor-fila-perfecta">
                         <div class="columna-izquierda-info">
@@ -338,17 +349,23 @@ with tab_carta:
                         </div>
                         <div class="columna-derecha-precio-boton">
                             <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
-                            <a href="?add_id={row["ID"]}&orig=Carta&cat={row["Category"]}" target="_self" class="html-btn-mas">＋</a>
+                            <div class="html-btn-mas">＋</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
+                    st.markdown(f'<div class="contenedor-click-oculto" style="margin-top: -46px;">', unsafe_allow_html=True)
+                    if st.button("", key=f"btn_sug_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", row["Category"])):
+                        pass
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    
         else:
-            # REMOVIDO EL TITULO INTERMEDIO "📂 CATEGORÍA" PARA DAR MÁS ESPACIO
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
             if not df_filtrado_cat.empty:
                 for idx, row in df_filtrado_cat.iterrows():
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
+                    plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
+                    
                     st.markdown(f"""
                     <div class="contenedor-fila-perfecta">
                         <div class="columna-izquierda-info">
@@ -357,10 +374,16 @@ with tab_carta:
                         </div>
                         <div class="columna-derecha-precio-boton">
                             <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
-                            <a href="?add_id={row["ID"]}&orig=Carta&cat={cat_seleccionada}" target="_self" class="html-btn-mas">＋</a>
+                            <div class="html-btn-mas">＋</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    st.markdown(f'<div class="contenedor-click-oculto" style="margin-top: -46px;">', unsafe_allow_html=True)
+                    if st.button("", key=f"btn_carta_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", cat_seleccionada)):
+                        pass
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    
         st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: 🛒 MI PEDIDO
