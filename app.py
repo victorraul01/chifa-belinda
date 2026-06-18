@@ -127,10 +127,10 @@ def abrir_modal_dinamico():
 
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     st.markdown("*Selecciona tus Cremas / Salsas:*")
-    c_aji = st.checkbox("Ají 🌶️")
+    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
     
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
