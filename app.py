@@ -41,7 +41,7 @@ PLATOS_MENU_INTERNO = [
     {"ID": "M13", "Name": "Alitas con Piña", "Price": 18.00},
     {"ID": "M14", "Name": "Pollo con Piña", "Price": 19.00},
     {"ID": "M15", "Name": "Chaufa de Chancho", "Price": 20.00},
-    {"ID": "M16", "Name": "Chaufa de Res", "Price": 20.00},
+    {"ID": "M16", "Chaufa de Res", "Price": 20.00},
     {"ID": "M17", "Name": "Chaufa de Molleja", "Price": 20.00},
     {"ID": "M18", "Name": "Chicharrón de Pollo", "Price": 20.00},
     {"ID": "M19", "Name": "Chi Jau Kay", "Price": 20.00},
