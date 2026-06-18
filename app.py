@@ -173,14 +173,26 @@ div[data-testid="stSelectbox"] label p { color: #FFEB3B !important; font-size: 1
 div[data-testid="stSelectbox"] div[data-baseweb="select"] { background-color: rgba(0, 0, 0, 0.7) !important; border: 1px solid #FFEB3B !important; border-radius: 8px; margin-bottom: 10px; }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; }
 
-/* CONTENEDOR DE LA FILA AJUSTADO PARA STRALIT COLUMNS */
+/* INYECCIÓN CLAVE: FUERZA A LAS COLUMNAS DE STREAMLIT A QUEDARSE HORIZONTALES EN CELULARES */
+div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+div[data-testid="stHorizontalBlock"] > div {
+    min-width: 0 !important;
+}
+
 .contenedor-fila-perfecta-col {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    min-height: 45px !important;
 }
 
 .texto-nombre-plato { 
@@ -190,34 +202,27 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !im
     text-shadow: 2px 2px 3px #000000 !important; 
 }
 .texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 8px;}
+.texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 2px;}
 
-/* TRANSFORMACIÓN DEL BOTÓN NATIVO DE STREAMLIT PARA ESTRECHASE AL DISEÑO AMARILLO */
+/* BOTÓN NATIVO EN CAJA TOTALMENTE ALINEADO */
 div.btn-mas-nativo div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
     font-size: 18px !important;
     font-weight: 900 !important;
     border-radius: 6px !important;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    max-width: 32px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
     padding: 0px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     box-shadow: 0px 2px 4px rgba(0,0,0,0.6) !important;
-    margin-top: 4px !important;
 }
 
-div.btn-mas-nativo div.stButton > button:hover {
-    background-color: #FFF59D !important;
-    color: #8B0000 !important;
-}
-
-/* SEPARADOR DE FILAS LIMPIO */
 .divisor-plato {
     border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
     margin-bottom: 5px;
@@ -266,8 +271,7 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        # Usamos columnas nativas para alinear perfectamente la info y el botón nativo estilizado
-        col_izq, col_der = st.columns([0.80, 0.20])
+        col_izq, col_der = st.columns([0.83, 0.17], gap="small")
         with col_izq:
             st.markdown(f"""
             <div class="contenedor-fila-perfecta-col">
@@ -278,7 +282,7 @@ with tab_menu:
             </div>
             """, unsafe_allow_html=True)
         with col_der:
-            st.markdown('<div class="btn-mas-nativo" style="text-align: right;">', unsafe_allow_html=True)
+            st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
             st.button("＋", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ"))
             st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
@@ -318,7 +322,7 @@ with tab_carta:
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
-                    col_izq, col_der = st.columns([0.80, 0.20])
+                    col_izq, col_der = st.columns([0.83, 0.17], gap="small")
                     with col_izq:
                         st.markdown(f"""
                         <div class="contenedor-fila-perfecta-col">
@@ -330,7 +334,7 @@ with tab_carta:
                         </div>
                         """, unsafe_allow_html=True)
                     with col_der:
-                        st.markdown('<div class="btn-mas-nativo" style="text-align: right;">', unsafe_allow_html=True)
+                        st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
                         st.button("＋", key=f"btn_sug_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", row["Category"]))
                         st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
@@ -342,7 +346,7 @@ with tab_carta:
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
-                    col_izq, col_der = st.columns([0.80, 0.20])
+                    col_izq, col_der = st.columns([0.83, 0.17], gap="small")
                     with col_izq:
                         st.markdown(f"""
                         <div class="contenedor-fila-perfecta-col">
@@ -354,7 +358,7 @@ with tab_carta:
                         </div>
                         """, unsafe_allow_html=True)
                     with col_der:
-                        st.markdown('<div class="btn-mas-nativo" style="text-align: right;">', unsafe_allow_html=True)
+                        st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
                         st.button("＋", key=f"btn_carta_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", cat_seleccionada))
                         st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
