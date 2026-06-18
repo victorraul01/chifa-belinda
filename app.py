@@ -93,7 +93,6 @@ def cargar_catalogo_limpio():
     if 'Category' in df.columns:
         df['Category'] = df['Category'].astype(str).str.strip().str.upper()
         
-    # CORRECCIÓN CLAVE: Forzar a que todo nulo o celda vacía sea un texto realmente vacío ""
     if 'Description' not in df.columns:
         df['Description'] = ""
     else:
@@ -138,7 +137,7 @@ def abrir_modal_dinamico():
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
 
-    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key="btn_guardar_modal_real"):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
@@ -320,8 +319,13 @@ with tab_carta:
                 df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                 
                 for idx, row in df_aleatorio.iterrows():
-                    desc_val = str(row["Description"]).strip()
-                    desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
+                    # REGLA ESTRICTA: Solo muestra descripción si es la categoría COMBOS
+                    cat_actual = str(row["Category"]).strip().upper()
+                    if cat_actual == "COMBOS":
+                        desc_val = str(row["Description"]).strip()
+                        desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
+                    else:
+                        desc_html = ''
                     
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
@@ -346,8 +350,13 @@ with tab_carta:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
             if not df_filtrado_cat.empty:
                 for idx, row in df_filtrado_cat.iterrows():
-                    desc_val = str(row["Description"]).strip()
-                    desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
+                    # REGLA ESTRICTA: Solo muestra descripción si es la categoría COMBOS
+                    cat_actual = str(row["Category"]).strip().upper()
+                    if cat_actual == "COMBOS":
+                        desc_val = str(row["Description"]).strip()
+                        desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
+                    else:
+                        desc_html = ''
                     
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
