@@ -141,10 +141,10 @@ def abrir_modal_dinamico():
 
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     st.markdown("*Selecciona tus Cremas / Salsas:*")
-    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+    c_aji = st.checkbox("Ají 🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Tamarindo 🍯")
     
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
@@ -474,7 +474,7 @@ with tab_pedido:
         
         for item in st.session_state.carrito:
             tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
+            mensaje_wa += f"✅ {item['cant']}    {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
             if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
             if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
             if item.get('notas') or item.get('notes'):  mensaje_wa += f"   ↳ Obs: {item.get('notas', item.get('notes'))}\n"
