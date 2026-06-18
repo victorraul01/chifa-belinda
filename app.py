@@ -127,10 +127,10 @@ def abrir_modal_dinamico():
 
     cantidad = st.number_input("Cantidad:", min_value=1, max_value=20, value=1, step=1)
     st.markdown("*Selecciona tus Cremas / Salsas:*")
-    c_aji = st.checkbox("Ají Chi Chon San 🌶️")
+    c_aji = st.checkbox("Ají 🌶️")
     c_mayo = st.checkbox("Mayonesa ⚪")
     c_ketchup = st.checkbox("Ketchup 🍅")
-    c_tamarindo = st.checkbox("Salsa Tamarindo 🍯")
+    c_tamarindo = st.checkbox("Tamarindo 🍯")
     
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
@@ -195,13 +195,30 @@ div[data-testid="stHorizontalBlock"] > div {
     width: 100% !important;
 }
 
+.columna-izquierda-info {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    margin-right: 8px !important;
+}
+
 .texto-nombre-plato { 
     color: #FFFFFF !important; 
     font-size: 15px !important; 
     font-weight: 800 !important; 
     text-shadow: 2px 2px 3px #000000 !important; 
 }
-.texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
+.texto-descripcion-plato { 
+    color: #CCCCCC !important; 
+    font-size: 11.5px !important; 
+    font-style: italic !important; 
+    margin-top: 3px; 
+    display: block; 
+    text-shadow: 1px 1px 2px #000000 !important; 
+    line-height: 1.2; 
+}
 .texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 2px;}
 
 /* BOTÓN NATIVO EN CAJA TOTALMENTE ALINEADO */
@@ -343,12 +360,18 @@ with tab_carta:
                 for idx, row in df_filtrado_cat.iterrows():
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
+                    # EVALUACIÓN EXCLUSIVA PARA LA CATEGORÍA COMBOS
+                    desc_html = ""
+                    if cat_seleccionada == "COMBOS" and str(row["Description"]).strip():
+                        desc_html = f'<span class="texto-descripcion-plato">✨ {row["Description"]}</span>'
+                    
                     col_izq, col_der = st.columns([0.83, 0.17], gap="small")
                     with col_izq:
                         st.markdown(f"""
                         <div class="contenedor-fila-perfecta-col">
                             <div class="columna-izquierda-info">
                                 <span class="texto-nombre-plato">{row["Name"]}</span>
+                                {desc_html}
                             </div>
                             <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
                         </div>
