@@ -92,12 +92,10 @@ def cargar_catalogo_limpio():
     df.columns = df.columns.str.strip()
     if 'Category' in df.columns:
         df['Category'] = df['Category'].astype(str).str.strip().str.upper()
-        
     if 'Description' not in df.columns:
         df['Description'] = ""
     else:
         df['Description'] = df['Description'].fillna("").astype(str).str.strip()
-        
     return df
 
 df_carta = cargar_catalogo_limpio()
@@ -137,7 +135,7 @@ def abrir_modal_dinamico():
     mostrar_limon = any(k in p_cat_name for k in ["ALITAS", "BROASTER"])
     c_limon = st.checkbox("Limón 🍋") if mostrar_limon else False
 
-    notas = st.text_input("Notes / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
+    notas = st.text_input("Notas / Observaciones (Opcional):", placeholder="Ej: Sin cebolla...")
 
     if st.button("🛒 AGREGAR AL PEDIDO", use_container_width=True, key="btn_guardar_modal_real"):
         cremas_list = [c for c, val in [("Ají", c_aji), ("Mayonesa", c_mayo), ("Ketchup", c_ketchup), ("Tamarindo", c_tamarindo)] if val]
@@ -175,6 +173,7 @@ div[data-testid="stSelectbox"] label p { color: #FFEB3B !important; font-size: 1
 div[data-testid="stSelectbox"] div[data-baseweb="select"] { background-color: rgba(0, 0, 0, 0.7) !important; border: 1px solid #FFEB3B !important; border-radius: 8px; margin-bottom: 10px; }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; }
 
+/* INYECCIÓN CLAVE: FUERZA A LAS COLUMNAS DE STREAMLIT A QUEDARSE HORIZONTALES EN CELULARES */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
@@ -205,6 +204,7 @@ div[data-testid="stHorizontalBlock"] > div {
 .texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 2px;}
 
+/* BOTÓN NATIVO EN CAJA TOTALMENTE ALINEADO */
 div.btn-mas-nativo div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -319,14 +319,7 @@ with tab_carta:
                 df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                 
                 for idx, row in df_aleatorio.iterrows():
-                    # REGLA ESTRICTA: Solo muestra descripción si es la categoría COMBOS
-                    cat_actual = str(row["Category"]).strip().upper()
-                    if cat_actual == "COMBOS":
-                        desc_val = str(row["Description"]).strip()
-                        desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
-                    else:
-                        desc_html = ''
-                    
+                    desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
                     col_izq, col_der = st.columns([0.83, 0.17], gap="small")
@@ -350,14 +343,7 @@ with tab_carta:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
             if not df_filtrado_cat.empty:
                 for idx, row in df_filtrado_cat.iterrows():
-                    # REGLA ESTRICTA: Solo muestra descripción si es la categoría COMBOS
-                    cat_actual = str(row["Category"]).strip().upper()
-                    if cat_actual == "COMBOS":
-                        desc_val = str(row["Description"]).strip()
-                        desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
-                    else:
-                        desc_html = ''
-                    
+                    desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
                     col_izq, col_der = st.columns([0.83, 0.17], gap="small")
