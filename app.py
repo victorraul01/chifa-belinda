@@ -41,7 +41,7 @@ PLATOS_MENU_INTERNO = [
     {"ID": "M13", "Name": "Alitas con Piña", "Price": 18.00},
     {"ID": "M14", "Name": "Pollo con Piña", "Price": 19.00},
     {"ID": "M15", "Name": "Chaufa de Chancho", "Price": 20.00},
-    {"ID": "M16", "Chaufa de Res", "Price": 20.00},
+    {"ID": "M16", "Name": "Chaufa de Res", "Price": 20.00},
     {"ID": "M17", "Name": "Chaufa de Molleja", "Price": 20.00},
     {"ID": "M18", "Name": "Chicharrón de Pollo", "Price": 20.00},
     {"ID": "M19", "Name": "Chi Jau Kay", "Price": 20.00},
@@ -107,7 +107,6 @@ if "add_id" in query_params:
     p_orig = query_params.get("orig", "Carta")
     p_cat = query_params.get("cat", "GENERAL")
     
-    # Buscar datos del plato seleccionado
     encontrado = None
     if p_orig == "Menú del Día":
         for p in PLATOS_MENU_INTERNO:
@@ -169,7 +168,7 @@ def abrir_modal_dinamico():
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO TOTALMENTE FILTRADO EN UNA SOLA FILA
+# CSS MAESTRO TOTALMENTE OPTIMIZADO
 # =========================================================
 st.markdown("""
 <style>
@@ -189,17 +188,16 @@ div[data-testid="stTabs"] > div:first-child { background-color: transparent !imp
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
 div[data-testid="stSelectbox"] label p { color: #FFEB3B !important; font-size: 14px !important; font-weight: bold !important; text-shadow: 1px 1px 2px black; }
-div[data-testid="stSelectbox"] div[data-baseweb="select"] { background-color: rgba(0, 0, 0, 0.7) !important; border: 1px solid #FFEB3B !important; border-radius: 8px; }
+div[data-testid="stSelectbox"] div[data-baseweb="select"] { background-color: rgba(0, 0, 0, 0.7) !important; border: 1px solid #FFEB3B !important; border-radius: 8px; margin-bottom: 10px; }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; }
 
-/* CONTENEDOR DE FILA TRIPLE EN LÍNEA IMPERMEABLE */
 .contenedor-fila-perfecta {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    padding: 8px 4px !important;
+    padding: 10px 4px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
     box-sizing: border-box !important;
 }
@@ -216,15 +214,20 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !im
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 12px !important; /* Espacio exacto entre precio y botón */
+    gap: 12px !important;
     flex-shrink: 0 !important;
 }
 
-.texto-nombre-plato { color: #FFFFFF !important; font-size: 13.5px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 1px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 14px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
+/* NOMBRE DEL PLATO MÁS NOTORIO Y GRANDE */
+.texto-nombre-plato { 
+    color: #FFFFFF !important; 
+    font-size: 15px !important; 
+    font-weight: 800 !important; 
+    text-shadow: 2px 2px 3px #000000 !important; 
+}
+.texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
+.texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
 
-/* BOTÓN PERSONALIZADO HTML ESTILIZADO */
 .html-btn-mas {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -265,7 +268,7 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 
 aplicar_fondo_aleatorio()
 
-# 4. ENCABEZADO FIFIXO
+# 4. ENCABEZADO FIJO
 st.markdown("""
 <div class="cabecera-fija-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
@@ -313,18 +316,15 @@ with tab_carta:
         
         st.markdown('<div style="padding: 5px 0px;">', unsafe_allow_html=True)
         
-        # CASO A: SUGERENCIAS ALEATORIAS
         if cat_seleccionada == "✨ Recomendaciones del Día":
             st.markdown('<div class="titulo-categoria-chifa">🔥 SUGERENCIAS DE LA CASA</div>', unsafe_allow_html=True)
             cats_inicio = ["CHAUFA", "AEROPUERTO", "PLATOS DULCES"]
             df_sugerencias = df_carta[df_carta["Category"].isin(cats_inicio)]
             
             if not df_sugerencias.empty:
-                # Inicializar un estado fijo para la muestra aleatoria del día por sesión si se desea estabilidad
                 if "indices_aleatorios" not in st.session_state:
                     st.session_state["indices_aleatorios"] = random.sample(range(len(df_sugerencias)), min(6, len(df_sugerencias)))
                 
-                # Asegurar de no desbordar índices si cambió el catálogo
                 valid_indices = [i for i in st.session_state["indices_aleatorios"] if i < len(df_sugerencias)]
                 df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                 
@@ -343,11 +343,10 @@ with tab_carta:
                     </div>
                     """, unsafe_allow_html=True)
                     
-        # CASO B: CATEGORÍA DESPLEGABLE SELECCIONADA
         else:
+            # REMOVIDO EL TITULO INTERMEDIO "📂 CATEGORÍA" PARA DAR MÁS ESPACIO
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
             if not df_filtrado_cat.empty:
-                st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_seleccionada}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     st.markdown(f"""
