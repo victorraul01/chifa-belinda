@@ -319,7 +319,6 @@ with tab_carta:
                 df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                 
                 for idx, row in df_aleatorio.iterrows():
-                    desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
                     col_izq, col_der = st.columns([0.83, 0.17], gap="small")
@@ -328,7 +327,6 @@ with tab_carta:
                         <div class="contenedor-fila-perfecta-col">
                             <div class="columna-izquierda-info">
                                 <span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span>
-                                {desc_html}
                             </div>
                             <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
                         </div>
@@ -343,7 +341,6 @@ with tab_carta:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
             if not df_filtrado_cat.empty:
                 for idx, row in df_filtrado_cat.iterrows():
-                    desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                     
                     col_izq, col_der = st.columns([0.83, 0.17], gap="small")
@@ -352,7 +349,6 @@ with tab_carta:
                         <div class="contenedor-fila-perfecta-col">
                             <div class="columna-izquierda-info">
                                 <span class="texto-nombre-plato">{row["Name"]}</span>
-                                {desc_html}
                             </div>
                             <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
                         </div>
