@@ -92,10 +92,13 @@ def cargar_catalogo_limpio():
     df.columns = df.columns.str.strip()
     if 'Category' in df.columns:
         df['Category'] = df['Category'].astype(str).str.strip().str.upper()
+        
+    # CORRECCIÓN CLAVE: Forzar a que todo nulo o celda vacía sea un texto realmente vacío ""
     if 'Description' not in df.columns:
         df['Description'] = ""
     else:
         df['Description'] = df['Description'].fillna("").astype(str).str.strip()
+        
     return df
 
 df_carta = cargar_catalogo_limpio()
@@ -317,7 +320,6 @@ with tab_carta:
                 df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                 
                 for idx, row in df_aleatorio.iterrows():
-                    # VALIDACIÓN DE DESCRIPCIÓN VACÍA O NULA
                     desc_val = str(row["Description"]).strip()
                     desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
                     
@@ -344,7 +346,6 @@ with tab_carta:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
             if not df_filtrado_cat.empty:
                 for idx, row in df_filtrado_cat.iterrows():
-                    # VALIDACIÓN DE DESCRIPCIÓN VACÍA O NULA
                     desc_val = str(row["Description"]).strip()
                     desc_html = f'<span class="texto-descripcion-plato">{desc_val}</span>' if desc_val and desc_val.lower() != "nan" else ''
                     
