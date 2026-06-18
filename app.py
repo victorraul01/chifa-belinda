@@ -23,6 +23,13 @@ if "mostrar_modal" not in st.session_state:
     st.session_state["modal_origen"] = "Carta"
     st.session_state["modal_categoria"] = "GENERAL"
 
+# Control de navegación interna de la Carta
+if "categoria_activa" not in st.session_state:
+    st.session_state["categoria_activa"] = None
+
+if "vista_actual" not in st.session_state:
+    st.session_state["vista_actual"] = "menu_categorias"  # "menu_categorias" o "ver_platos"
+
 FONDOS_DISPONIBLES = ["pag1.jpeg", "pag2.jpeg", "pag3.jpeg", "pag5.jpeg", "pag6.jpeg"]
 
 PLATOS_MENU_INTERNO = [
@@ -106,6 +113,13 @@ def click_agregar_plato(plato_info, origen, categoria):
     st.session_state["modal_categoria"] = categoria
     st.session_state["mostrar_modal"] = True
 
+def ir_a_categoria(categoria):
+    st.session_state["categoria_activa"] = categoria
+    st.session_state["vista_actual"] = "ver_platos"
+
+def regresar_a_categorias():
+    st.session_state["vista_actual"] = "menu_categorias"
+
 # =========================================================
 # MODAL DE CONFIGURACIÓN
 # =========================================================
@@ -150,7 +164,7 @@ def abrir_modal_dinamico():
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO TOTALMENTE OPTIMIZADO
+# CSS MAESTRO (Diseño de filas idéntico al original)
 # =========================================================
 st.markdown("""
 <style>
@@ -169,11 +183,36 @@ div[data-testid="stTabs"] { margin-top: 95px !important; }
 div[data-testid="stTabs"] > div:first-child { background-color: transparent !important; padding: 4px 10px !important; border-bottom: 2px solid #FFEB3B !important; }
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
-div[data-testid="stSelectbox"] label p { color: #FFEB3B !important; font-size: 14px !important; font-weight: bold !important; text-shadow: 1px 1px 2px black; }
-div[data-testid="stSelectbox"] div[data-baseweb="select"] { background-color: rgba(0, 0, 0, 0.7) !important; border: 1px solid #FFEB3B !important; border-radius: 8px; margin-bottom: 10px; }
-div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; }
+/* ESTILOS BOTONES DE CATEGORÍA VERTICALES */
+div.lista-categorias-vertical div.stButton > button {
+    background-color: rgba(0, 0, 0, 0.65) !important;
+    color: #FFEB3B !important;
+    border: 1px solid rgba(255, 235, 59, 0.4) !important;
+    padding: 14px 18px !important;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0px 3px 6px rgba(0,0,0,0.3) !important;
+}
 
-/* INYECCIÓN CLAVE: FUERZA A LAS COLUMNAS DE STREAMLIT A QUEDARSE HORIZONTALES EN CELULARES */
+/* BOTÓN RETROCEDER ESTILO INTERNO */
+div.boton-retroceder-contenedor div.stButton > button {
+    background-color: #8B0000 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #FFEB3B !important;
+    padding: 8px 15px !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    width: auto !important;
+    margin-bottom: 15px !important;
+}
+
+/* COMPORTAMIENTO FLEXBOX ORIGINAL PARA COLUMNAS EN CELULARES */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
@@ -221,7 +260,7 @@ div[data-testid="stHorizontalBlock"] > div {
 }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 2px;}
 
-/* BOTÓN NATIVO EN CAJA TOTALMENTE ALINEADO */
+/* BOTÓN AMARILLO ORIGINAL ALINEADO */
 div.btn-mas-nativo div.stButton > button {
     background-color: #FFEB3B !important;
     color: #8B0000 !important;
@@ -248,7 +287,7 @@ div.btn-mas-nativo div.stButton > button {
 
 .titulo-categoria-chifa { 
     color: #FFEB3B !important; font-size: 18px !important; font-weight: 900 !important; padding: 10px 8px !important; 
-    margin-top: 15px !important; margin-bottom: 10px !important; border-left: 5px solid #FFEB3B !important; 
+    margin-top: 5px !important; margin-bottom: 10px !important; border-left: 5px solid #FFEB3B !important; 
     background-color: rgba(0, 0, 0, 0.7) !important; border-radius: 0 8px 8px 0; text-shadow: 2px 2px 4px #000000 !important;
 }
 
@@ -282,7 +321,7 @@ items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a la Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
 
-# PESTAÑA: 🍱 MENÚ DEL DÍA
+# PESTAÑA: 🍱 MENÚ DEL DÍA (Mantiene el mismo diseño original intacto)
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
@@ -299,68 +338,92 @@ with tab_menu:
         
     st.markdown('</div>', unsafe_allow_html=True)
 
-# PESTAÑA: 📖 PLATOS A LA CARTA
+# PESTAÑA: 📖 PLATOS A LA CARTA (Aquí ocurre el cambio de pantalla limpio)
 with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
     else:
         st.write("")
-        categorias_excel = sorted(list(df_carta["Category"].unique()))
-        opciones_desplegable = ["✨ Recomendaciones del Día"] + categorias_excel
         
-        cat_seleccionada = st.selectbox(
-            "🔎 ¿Qué se te antoja hoy? Elige una Categoría:",
-            options=opciones_desplegable,
-            key="selector_categoria_carta"
-        )
-        
-        st.markdown('<div style="padding: 5px 0px;">', unsafe_allow_html=True)
-        
-        if cat_seleccionada == "✨ Recomendaciones del Día":
-            st.markdown('<div class="titulo-categoria-chifa">🔥 SUGERENCIAS DE LA CASA</div>', unsafe_allow_html=True)
-            cats_inicio = ["CHAUFA", "AEROPUERTO", "PLATOS DULCES"]
-            df_sugerencias = df_carta[df_carta["Category"].isin(cats_inicio)]
+        # VISTA A: PANEL PRINCIPAL (Solo se ven los botones de las categorías)
+        if st.session_state["vista_actual"] == "menu_categorias":
+            st.markdown('<p style="color: #FFEB3B; font-weight: bold; margin-bottom: 12px; font-size:16px; text-shadow: 1px 1px 2px black;">📖 Elige una sección de nuestra Carta:</p>', unsafe_allow_html=True)
             
-            if not df_sugerencias.empty:
-                if "indices_aleatorios" not in st.session_state:
-                    st.session_state["indices_aleatorios"] = random.sample(range(len(df_sugerencias)), min(6, len(df_sugerencias)))
+            categorias_excel = sorted(list(df_carta["Category"].unique()))
+            todas_categorias = ["✨ Recomendaciones del Día"] + categorias_excel
+            
+            st.markdown('<div class="lista-categorias-vertical">', unsafe_allow_html=True)
+            for cat in todas_categorias:
+                icono = "🔥" if cat == "✨ Recomendaciones del Día" else "🥢"
+                st.button(
+                    f"{icono} {cat}", 
+                    key=f"p_cat_{cat}", 
+                    on_click=ir_a_categoria, 
+                    args=(cat,),
+                    use_container_width=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        # VISTA B: PANTALLA SECUNDARIA DE PLATOS FILTRADOS (Conserva el diseño original de columnas alineadas)
+        elif st.session_state["vista_actual"] == "ver_platos":
+            cat_seleccionada = st.session_state["categoria_activa"]
+            
+            # Botón superior para volver atrás
+            st.markdown('<div class="boton-retroceder-contenedor">', unsafe_allow_html=True)
+            st.button("⬅️ Volver a Categorías", on_click=regresar_a_categorias)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('<div style="padding: 5px 0px;">', unsafe_allow_html=True)
+            
+            # Sub-vista: Recomendaciones del Día
+            if cat_seleccionada == "✨ Recomendaciones del Día":
+                st.markdown('<div class="titulo-categoria-chifa">🔥 SUGERENCIAS DE LA CASA</div>', unsafe_allow_html=True)
+                cats_inicio = ["CHAUFA", "AEROPUERTO", "PLATOS DULCES"]
+                df_sugerencias = df_carta[df_carta["Category"].isin(cats_inicio)]
                 
-                valid_indices = [i for i in st.session_state["indices_aleatorios"] if i < len(df_sugerencias)]
-                df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
-                
-                for idx, row in df_aleatorio.iterrows():
-                    plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
+                if not df_sugerencias.empty:
+                    if "indices_aleatorios" not in st.session_state:
+                        st.session_state["indices_aleatorios"] = random.sample(range(len(df_sugerencias)), min(6, len(df_sugerencias)))
                     
-                    col_izq, col_der = st.columns([0.83, 0.17], gap="small")
-                    with col_izq:
-                        st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span></div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
-                    with col_der:
-                        st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
-                        st.button("＋", key=f"btn_sug_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", row["Category"]))
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
+                    valid_indices = [i for i in st.session_state["indices_aleatorios"] if i < len(df_sugerencias)]
+                    df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                     
-        else:
-            df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
-            if not df_filtrado_cat.empty:
-                for idx, row in df_filtrado_cat.iterrows():
-                    plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
-                    
-                    # EVALUACIÓN EXCLUSIVA PARA LA CATEGORÍA COMBOS
-                    desc_html = ""
-                    if cat_seleccionada == "COMBOS" and str(row["Description"]).strip():
-                        desc_html = f'<span class="texto-descripcion-plato">✨ {row["Description"]}</span>'
-                    
-                    col_izq, col_der = st.columns([0.83, 0.17], gap="small")
-                    with col_izq:
-                        st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]}</span>{desc_html}</div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
-                    with col_der:
-                        st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
-                        st.button("＋", key=f"btn_carta_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", cat_seleccionada))
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
-                    
-        st.markdown('</div>', unsafe_allow_html=True)
+                    for idx, row in df_aleatorio.iterrows():
+                        plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
+                        
+                        # FILA ALINEADA ORIGINAL
+                        col_izq, col_der = st.columns([0.83, 0.17], gap="small")
+                        with col_izq:
+                            st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span></div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
+                        with col_der:
+                            st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
+                            st.button("＋", key=f"btn_sug_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", row["Category"]))
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
+                        
+            # Sub-vista: Categorías normales de Excel
+            else:
+                st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_seleccionada}</div>', unsafe_allow_html=True)
+                df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
+                if not df_filtrado_cat.empty:
+                    for idx, row in df_filtrado_cat.iterrows():
+                        plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
+                        
+                        desc_html = ""
+                        if cat_seleccionada == "COMBOS" and str(row["Description"]).strip():
+                            desc_html = f'<span class="texto-descripcion-plato">✨ {row["Description"]}</span>'
+                        
+                        # FILA ALINEADA ORIGINAL
+                        col_izq, col_der = st.columns([0.83, 0.17], gap="small")
+                        with col_izq:
+                            st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]}</span>{desc_html}</div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
+                        with col_der:
+                            st.markdown('<div class="btn-mas-nativo">', unsafe_allow_html=True)
+                            st.button("＋", key=f"btn_carta_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", cat_seleccionada))
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
+                        
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: 🛒 MI PEDIDO
 with tab_pedido:
