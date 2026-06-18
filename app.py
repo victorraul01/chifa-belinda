@@ -4,7 +4,7 @@ import urllib.parse
 import base64
 import os
 import time
-import random  # <--- Importante para la aleatoriedad
+import random
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
@@ -23,7 +23,6 @@ if "mostrar_modal" not in st.session_state:
     st.session_state["modal_origen"] = "Carta"
     st.session_state["modal_categoria"] = "GENERAL"
 
-# Guardamos una lista de fondos para elegir uno al azar
 FONDOS_DISPONIBLES = ["pag1.jpeg", "pag2.jpeg", "pag3.jpeg", "pag5.jpeg", "pag6.jpeg"]
 
 # Opciones del Menú del Día
@@ -68,14 +67,13 @@ def cargar_imagen_b64(nombre_imagen):
     return None
 
 def aplicar_fondo_aleatorio():
-    # Elige una imagen al azar de la lista cada vez que se renderiza la vista
     imagen_azar = random.choice(FONDOS_DISPONIBLES)
     img_b64 = cargar_imagen_b64(imagen_azar)
     if img_b64:
         st.markdown(f"""
         <style>
         [data-testid="stAppViewContainer"] {{
-            background: linear-gradient(rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.48)), url('data:image/jpeg;base64,{img_b64}') !important;
+            background: linear-gradient(rgba(0, 0, 0, 0.52), rgba(0, 0, 0, 0.52)), url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important; background-repeat: no-repeat !important; background-position: center center !important; background-attachment: fixed !important;
         }}
         .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
@@ -93,15 +91,12 @@ def cargar_catalogo_limpio():
     else: return pd.DataFrame()
     
     df.columns = df.columns.str.strip()
-    
     if 'Category' in df.columns:
         df['Category'] = df['Category'].astype(str).str.strip().str.upper()
-    
     if 'Description' not in df.columns:
         df['Description'] = ""
     else:
         df['Description'] = df['Description'].fillna("").astype(str).str.strip()
-        
     return df
 
 df_carta = cargar_catalogo_limpio()
@@ -150,7 +145,7 @@ def abrir_modal_dinamico():
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO DEFINITIVO
+# CSS MAESTRO REDISEÑADO ULTRA COMPACTO
 # =========================================================
 st.markdown("""
 <style>
@@ -169,30 +164,56 @@ div[data-testid="stTabs"] { margin-top: 95px !important; }
 div[data-testid="stTabs"] > div:first-child { background-color: transparent !important; padding: 4px 10px !important; border-bottom: 2px solid #FFEB3B !important; }
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
-/* Estilo del dropdown selector de categorías */
-div[data-testid="stSelectbox"] label p { color: #FFEB3B !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 1px 1px 2px black; }
+div[data-testid="stSelectbox"] label p { color: #FFEB3B !important; font-size: 14px !important; font-weight: bold !important; text-shadow: 1px 1px 2px black; }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] { background-color: rgba(0, 0, 0, 0.7) !important; border: 1px solid #FFEB3B !important; border-radius: 8px; }
-div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; }
+div[data-testid="stSelectbox"] div[data-baseweb="select"] * { color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; }
 
-.fila-plato-flex {
-    display: flex !important; justify-content: space-between !important; align-items: flex-start !important;
-    width: 100% !important; padding: 2px 0px !important; box-sizing: border-box !important;
+/* CONTENEDOR FLEX DEFINITIVO PARA EVITAR EL DESPLAZAMIENTO HACIA ABAJO */
+.fila-plato-contenedor-unica {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 6px 4px !important;
+    box-sizing: border-box !important;
 }
-.bloque-izq-nombre { flex-grow: 1 !important; text-align: left !important; padding-right: 10px !important; }
-.texto-nombre-plato { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; display: block; }
-.texto-descripcion-plato { color: #E0E0E0 !important; font-size: 12.5px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
+
+/* Reducción general de textos para móviles */
+.bloque-izq-textos {
+    flex: 1 !important;
+    text-align: left !important;
+    padding-right: 8px !important;
+    min-width: 0 !important; /* Permite cortar texto si es muy largo */
+}
+.texto-nombre-plato { color: #FFFFFF !important; font-size: 14px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
+.texto-descripcion-plato { color: #CCCCCC !important; font-size: 11px !important; font-style: italic !important; margin-top: 1px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.1; }
+
+.bloque-der-precio-boton {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+}
+.texto-precio-plato { color: #FFEB3B !important; font-size: 14px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; }
+
+/* FORZAR REDUCCIÓN DEL BOTÓN DE AGREGAR '＋' */
+div.boton-agregar-ajustado div.stButton > button {
+    background-color: #FFEB3B !important; color: #8B0000 !important;
+    font-size: 16px !important; font-weight: 900 !important;
+    border-radius: 6px !important; 
+    width: 32px !important; height: 32px !important;
+    min-width: 32px !important; min-height: 32px !important;
+    padding: 0px !important; border: none !important;
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.6) !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+}
 
 .titulo-categoria-chifa { 
-    color: #FFEB3B !important; font-size: 21px !important; font-weight: 900 !important; padding: 12px 10px !important; 
-    margin-top: 15px !important; margin-bottom: 12px !important; border-left: 6px solid #FFEB3B !important; 
-    background-color: rgba(0, 0, 0, 0.7) !important; border-radius: 0 8px 8px 0; text-shadow: 2px 2px 4px #000000 !important; letter-spacing: 0.5px;
-}
-
-div[data-testid="stHorizontalBlock"] div.stButton > button {
-    background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 22px !important; font-weight: bold !important;
-    border-radius: 8px !important; width: 42px !important; height: 42px !important; padding: 0px !important; border: none !important;
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.5) !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    color: #FFEB3B !important; font-size: 18px !important; font-weight: 900 !important; padding: 10px 8px !important; 
+    margin-top: 15px !important; margin-bottom: 10px !important; border-left: 5px solid #FFEB3B !important; 
+    background-color: rgba(0, 0, 0, 0.7) !important; border-radius: 0 8px 8px 0; text-shadow: 2px 2px 4px #000000 !important;
 }
 
 div[data-testid="stDialog"] div.stButton > button, div.boton-vaciar-pedido div.stButton > button {
@@ -202,16 +223,15 @@ div[data-testid="stDialog"] div.stButton > button, div.boton-vaciar-pedido div.s
 div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 14px !important; width: 32px !important; height: 32px !important; border-radius: 6px !important; padding: 0px !important; display: flex !important; }
 .fila-carrito-ordenada { padding: 8px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%; }
 .linea-principal-carrito { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; }
-.texto-plato-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-precio-carrito { color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 13px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; }
+.texto-plato-carrito { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
+.texto-precio-carrito { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
+.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 12px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; }
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; font-weight: bold !important; font-size: 16px !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; }
 .alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; margin-bottom: 15px; }
 .recuadro-total-final { background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. APLICAR EL FONDO ALEATORIO GENERAL
 aplicar_fondo_aleatorio()
 
 # 4. ENCABEZADO FIJO
@@ -233,32 +253,39 @@ with tab_menu:
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
     
     for plato in PLATOS_MENU_INTERNO:
-        col_txt, col_btn = st.columns([0.82, 0.18])
-        with col_txt:
-            st.markdown(f'<div class="fila-plato-flex"><div class="bloque-izq-nombre"><span class="texto-nombre-plato">{plato["Name"]}</span></div><div><span class="texto-precio-plato">S/. {plato["Price"]:.2f}</span></div></div>', unsafe_allow_html=True)
+        col_item, col_btn = st.columns([0.85, 0.15])
+        with col_item:
+            st.markdown(f"""
+            <div class="fila-plato-contenedor-unica">
+                <div class="bloque-izq-textos">
+                    <span class="texto-nombre-plato">{plato["Name"]}</span>
+                </div>
+                <div class="bloque-der-precio-boton">
+                    <span class="texto-precio-plato">S/. {plato["Price"]:.2f}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         with col_btn:
+            st.markdown('<div class="boton-agregar-ajustado">', unsafe_allow_html=True)
             if st.button("＋", key=f"btn_menu_{plato['ID']}"):
                 st.session_state["modal_plato_info"] = plato
                 st.session_state["modal_origen"] = "Menú del Día"
                 st.session_state["modal_categoria"] = "MENÚ"
                 st.session_state["mostrar_modal"] = True
                 st.rerun()
-        st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 2px 0 4px 0;">', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 2px 0;">', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# PESTAÑA: 📖 PLATOS A LA CARTA (MODIFICADA)
+# PESTAÑA: 📖 PLATOS A LA CARTA
 with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
     else:
         st.write("")
-        # Extraemos todas las categorías únicas del Excel de forma limpia
         categorias_excel = sorted(list(df_carta["Category"].unique()))
-        
-        # Creamos las opciones agregando la pantalla de inicio por defecto
         opciones_desplegable = ["✨ Recomendaciones del Día"] + categorias_excel
         
-        # Barra desplegable interactiva
         cat_seleccionada = st.selectbox(
             "🔎 ¿Qué se te antoja hoy? Elige una Categoría:",
             options=opciones_desplegable,
@@ -267,86 +294,83 @@ with tab_carta:
         
         st.markdown('<div style="padding: 5px 0px;">', unsafe_allow_html=True)
         
-        # CASO A: PANTALLA DE INICIO (Muestra platos aleatorios de CHAUFA, AEROPUERTO y PLATOS DULCES)
+        # CASO A: SUGERENCIAS ALEATORIAS
         if cat_seleccionada == "✨ Recomendaciones del Día":
             st.markdown('<div class="titulo-categoria-chifa">🔥 SUGERENCIAS DE LA CASA</div>', unsafe_allow_html=True)
-            
-            # Filtramos el catálogo por las categorías deseadas
             cats_inicio = ["CHAUFA", "AEROPUERTO", "PLATOS DULCES"]
             df_sugerencias = df_carta[df_carta["Category"].isin(cats_inicio)]
             
             if not df_sugerencias.empty:
-                # Tomamos una muestra aleatoria (por ejemplo, 6 platos al azar)
-                # Usamos una semilla basada en la hora si queremos que varíe constantemente, o fija por sesión
                 num_platos_a_mostrar = min(6, len(df_sugerencias))
                 df_aleatorio = df_sugerencias.sample(n=num_platos_a_mostrar)
                 
                 for idx, row in df_aleatorio.iterrows():
-                    col_txt, col_btn = st.columns([0.82, 0.18])
+                    col_item, col_btn = st.columns([0.85, 0.15])
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     
-                    with col_txt:
+                    with col_item:
                         st.markdown(f"""
-                        <div class="fila-plato-flex">
-                            <div class="bloque-izq-nombre">
-                                <span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:10px;">({row["Category"]})</small></span>
+                        <div class="fila-plato-contenedor-unica">
+                            <div class="bloque-izq-textos">
+                                <span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span>
                                 {desc_html}
                             </div>
-                            <div>
+                            <div class="bloque-der-precio-boton">
                                 <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
                     with col_btn:
+                        st.markdown('<div class="boton-agregar-ajustado">', unsafe_allow_html=True)
                         if st.button("＋", key=f"btn_sug_{row['ID']}_{idx}"):
                             st.session_state["modal_plato_info"] = {"ID": row['ID'], "Name": row['Name'], "Price": row['Price']}
                             st.session_state["modal_origen"] = "Carta"
                             st.session_state["modal_categoria"] = row["Category"]
                             st.session_state["mostrar_modal"] = True
                             st.rerun()
-                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
-            else:
-                st.write("No se encontraron platos para las sugerencias.")
-                
-        # CASO B: SE SELECCIONÓ UNA CATEGORÍA ESPECÍFICA EN EL DESPLEGABLE
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 2px 0;">', unsafe_allow_html=True)
+                    
+        # CASO B: CATEGORÍA DESPLEGABLE SELECCIONADA
         else:
             df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
-            
             if not df_filtrado_cat.empty:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_seleccionada}</div>', unsafe_allow_html=True)
                 for idx, row in df_filtrado_cat.iterrows():
-                    col_txt, col_btn = st.columns([0.82, 0.18])
+                    col_item, col_btn = st.columns([0.85, 0.15])
                     desc_html = f'<span class="texto-descripcion-plato">{row["Description"]}</span>' if row["Description"] else ''
                     
-                    with col_txt:
+                    with col_item:
                         st.markdown(f"""
-                        <div class="fila-plato-flex">
-                            <div class="bloque-izq-nombre">
+                        <div class="fila-plato-contenedor-unica">
+                            <div class="bloque-izq-textos">
                                 <span class="texto-nombre-plato">{row["Name"]}</span>
                                 {desc_html}
                             </div>
-                            <div>
+                            <div class="bloque-der-precio-boton">
                                 <span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
                     with col_btn:
+                        st.markdown('<div class="boton-agregar-ajustado">', unsafe_allow_html=True)
                         if st.button("＋", key=f"btn_carta_{row['ID']}_{idx}"):
                             st.session_state["modal_plato_info"] = {"ID": row['ID'], "Name": row['Name'], "Price": row['Price']}
                             st.session_state["modal_origen"] = "Carta"
                             st.session_state["modal_categoria"] = cat_seleccionada
                             st.session_state["mostrar_modal"] = True
                             st.rerun()
-                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.18); margin: 4px 0 6px 0;">', unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown('<hr style="border:0; border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 2px 0;">', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: 🛒 MI PEDIDO
 with tab_pedido:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     if not st.session_state.carrito:
-        st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">Tu carrito está vacío. ¡Explora la carta!</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 style="color: white; text-shadow: 2px 2px 2px black;">Tu carrito está vacío.</h3>', unsafe_allow_html=True)
     else:
-        st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:22px;">📋 Resumen Total del Pedido</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:20px;">📋 Resumen del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
         for i, item in enumerate(st.session_state.carrito):
@@ -370,15 +394,15 @@ with tab_pedido:
             st.markdown(f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown(f'<div class="recuadro-total-final"><span style="color:#FFF; font-size:17px; font-weight:bold;">💵 TOTAL:</span><span style="color:#FFEB3B; font-size:20px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="recuadro-total-final"><span style="color:#FFF; font-size:16px; font-weight:bold;">💵 TOTAL:</span><span style="color:#FFEB3B; font-size:18px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
         
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:", key="nom_cli")
         metodo_entrega = st.radio("Método de Entrega:", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, key="met_ent")
 
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
-            direccion_cliente = st.text_input("Dirección de Envío:", placeholder="Ej: Av. Perú 123...", key="dir_cli")
-            st.markdown('<div class="alerta-delivery-destacada">🚨 <b>AVISO:</b> Compartir ubicación por WhatsApp. Costo de envío variable.</div>', unsafe_allow_html=True)
+            direccion_cliente = st.text_input("Dirección de Envío:", key="dir_cli")
+            st.markdown('<div class="alerta-delivery-destacada">🚨 Compartir ubicación por WhatsApp. Costo de envío variable.</div>', unsafe_allow_html=True)
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
