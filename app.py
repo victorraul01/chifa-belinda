@@ -6,14 +6,14 @@ import os
 import time
 import random
 
-# 1. CONFIGURACIÓN DE LA PÁGINA
+# 1. CONFIGURACIÓN DE LA PÁGINA (Debe ser lo primero)
 st.set_page_config(
     page_title="Chifa D' Belinda",
     page_icon="🍜",
     layout="centered"
 )
 
-# 2. INICIALIZACIÓN DEL CARRITO Y ESTADOS
+# 2. INICIALIZACIÓN DE ESTADOS (Session State)
 if "carrito" not in st.session_state:
     st.session_state["carrito"] = []
 
@@ -23,18 +23,63 @@ if "mostrar_modal" not in st.session_state:
     st.session_state["modal_origen"] = "Carta"
     st.session_state["modal_categoria"] = "GENERAL"
 
-# Control de navegación interna de la Carta
 if "categoria_activa" not in st.session_state:
     st.session_state["categoria_activa"] = None
 
 if "vista_actual" not in st.session_state:
-    st.session_state["vista_actual"] = "menu_categorias"  # "menu_categorias" o "ver_platos"
+    st.session_state["vista_actual"] = "menu_categorias"
 
-# OPTIMIZACIÓN MÓVIL: Persistir el fondo elegido para evitar parpadeos en cada toque
+# 3. CONTROL DEL FONDO DISPOSITIVOS MÓVILES
 FONDOS_DISPONIBLES = ["pag1.jpeg", "pag2.jpeg", "pag3.jpeg", "pag5.jpeg", "pag6.jpeg"]
 if "fondo_seleccionado" not in st.session_state:
     st.session_state["fondo_seleccionado"] = random.choice(FONDOS_DISPONIBLES)
 
+# 4. DECLARACIÓN DE FUNCIONES DE CARGA Y ESTILOS
+@st.cache_data
+def cargar_imagen_b64(nombre_imagen):
+    rutas_posibles = [os.path.join("images", nombre_imagen), os.path.join("app", "static", "images", nombre_imagen), nombre_imagen]
+    for r in rutas_posibles:
+        if os.path.exists(r):
+            with open(r, "rb") as f: return base64.b64encode(f.read()).decode()
+    return None
+
+def aplicar_fondo_stable():
+    img_b64 = cargar_imagen_b64(st.session_state["fondo_seleccionado"])
+    if img_b64:
+        st.markdown(f"""
+        <style>
+        [data-testid="stAppViewContainer"] {{
+            background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('data:image/jpeg;base64,{img_b64}') !important;
+            background-size: cover !important; background-repeat: no-repeat !important; background-position: center center !important; background-attachment: fixed !important;
+        }}
+        .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
+            background-color: transparent !important; background: transparent !important; box-shadow: none !important;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+
+@st.cache_data(ttl=10)
+def cargar_catalogo_limpio():
+    nombre_archivo = "Catalogo_Productos.xlsx"
+    nombre_csv = "Catalogo_Productos.xlsx - in.csv"
+    if os.path.exists(nombre_archivo): df = pd.read_excel(nombre_archivo)
+    elif os.path.exists(nombre_csv): df = pd.read_csv(nombre_csv)
+    else: return pd.DataFrame()
+    
+    df.columns = df.columns.str.strip()
+    if 'Category' in df.columns:
+        df['Category'] = df['Category'].astype(str).str.strip().str.upper()
+    if 'Description' not in df.columns:
+        df['Description'] = ""
+    else:
+        df['Description'] = df['Description'].fillna("").astype(str).str.strip()
+    return df
+
+# Ejecutamos las llamadas iniciales inmediatamente después de definirlas
+aplicar_fondo_stable()
+df_carta = cargar_catalogo_limpio()
+
+# 5. MENÚS Y CALLBACKS
 PLATOS_MENU_INTERNO = [
     {"ID": "M01", "Name": "Chaufa de Pollo", "Price": 14.00},
     {"ID": "M02", "Name": "Alita Rebozada", "Price": 15.00},
@@ -67,48 +112,6 @@ PLATOS_MENU_INTERNO = [
     {"ID": "M29", "Name": "Alitas Acevichadas (3 piezas)", "Price": 18.00}
 ]
 
-@st.cache_data
-def cargar_imagen_b64(nombre_imagen):
-    rutas_posibles = [os.path.join("images", nombre_imagen), os.path.join("app", "static", "images", nombre_imagen), nombre_imagen]
-    for r in rutas_posibles:
-        if os.path.exists(r):
-            with open(r, "rb") as f: return base64.b64encode(f.read()).decode()
-    return None
-
-def aplicar_fondo_estable():
-    img_b64 = cargar_imagen_b64(st.session_state["fondo_seleccionado"])
-    if img_b64:
-        st.markdown(f"""
-        <style>
-        [data-testid="stAppViewContainer"] {{
-            background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('data:image/jpeg;base64,{img_b64}') !important;
-            background-size: cover !important; background-repeat: no-repeat !important; background-position: center center !important; background-attachment: fixed !important;
-        }}
-        .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
-            background-color: transparent !important; background: transparent !important; box-shadow: none !important;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-
-@st.cache_data(ttl=10)
-def cargar_catalogo_limpio():
-    nombre_archivo = "Catalogo_Productos.xlsx"
-    nombre_csv = "Catalogo_Productos.xlsx - in.csv"
-    if os.path.exists(nombre_archivo): df = pd.read_excel(nombre_archivo)
-    elif os.path.exists(nombre_csv): df = pd.read_csv(nombre_csv)
-    else: return pd.DataFrame()
-    
-    df.columns = df.columns.str.strip()
-    if 'Category' in df.columns:
-        df['Category'] = df['Category'].astype(str).str.strip().str.upper()
-    if 'Description' not in df.columns:
-        df['Description'] = ""
-    else:
-        df['Description'] = df['Description'].fillna("").astype(str).str.strip()
-    return df
-
-df_carta = cargar_catalogo_limpio()
-
 def click_agregar_plato(plato_info, origen, categoria):
     st.session_state["modal_plato_info"] = plato_info
     st.session_state["modal_origen"] = origen
@@ -122,7 +125,6 @@ def ir_a_categoria(categoria):
 def regresar_a_categorias():
     st.session_state["vista_actual"] = "menu_categorias"
 
-# OPTIMIZACIÓN MÓVIL: Función segura para eliminar del carrito usando identificador único (uid)
 def eliminar_del_carrito(uid):
     st.session_state.carrito = [item for item in st.session_state.carrito if item["uid"] != uid]
     st.rerun()
@@ -171,7 +173,7 @@ def abrir_modal_dinamico():
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO (Diseño de filas idéntico al original)
+# CSS MAESTRO 
 # =========================================================
 st.markdown("""
 <style>
@@ -190,118 +192,42 @@ div[data-testid="stTabs"] { margin-top: 95px !important; }
 div[data-testid="stTabs"] > div:first-child { background-color: transparent !important; padding: 4px 10px !important; border-bottom: 2px solid #FFEB3B !important; }
 div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 3px #000000 !important; }
 
-/* ESTILOS BOTONES DE CATEGORÍA VERTICALES */
 div.lista-categorias-vertical div.stButton > button {
-    background-color: rgba(0, 0, 0, 0.65) !important;
-    color: #FFEB3B !important;
-    border: 1px solid rgba(255, 235, 59, 0.4) !important;
-    padding: 14px 18px !important;
-    font-size: 15px !important;
-    font-weight: bold !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    border-radius: 10px !important;
-    width: 100% !important;
-    margin-bottom: 8px !important;
-    box-shadow: 0px 3px 6px rgba(0,0,0,0.3) !important;
+    background-color: rgba(0, 0, 0, 0.65) !important; color: #FFEB3B !important;
+    border: 1px solid rgba(255, 235, 59, 0.4) !important; padding: 14px 18px !important;
+    font-size: 15px !important; font-weight: bold !important; text-align: left !important;
+    justify-content: flex-start !important; border-radius: 10px !important; width: 100% !important;
+    margin-bottom: 8px !important; box-shadow: 0px 3px 6px rgba(0,0,0,0.3) !important;
 }
 
-/* BOTÓN RETROCEDER ESTILO INTERNO */
 div.boton-retroceder-contenedor div.stButton > button {
-    background-color: #8B0000 !important;
-    color: #FFFFFF !important;
-    border: 1px solid #FFEB3B !important;
-    padding: 8px 15px !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    border-radius: 8px !important;
-    width: auto !important;
-    margin-bottom: 15px !important;
+    background-color: #8B0000 !important; color: #FFFFFF !important; border: 1px solid #FFEB3B !important;
+    padding: 8px 15px !important; font-size: 14px !important; font-weight: bold !important;
+    border-radius: 8px !important; width: auto !important; margin-bottom: 15px !important;
 }
 
-/* COMPORTAMIENTO FLEXBOX ORIGINAL PARA COLUMNAS EN CELULARES */
 div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
+    display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
+    align-items: center !important; justify-content: space-between !important; width: 100% !important;
 }
+div[data-testid="stHorizontalBlock"] > div { min-width: 0 !important; }
 
-div[data-testid="stHorizontalBlock"] > div {
-    min-width: 0 !important;
-}
-
-.contenedor-fila-perfecta-col {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-}
-
-.columna-izquierda-info {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    min-width: 0 !important;
-    flex: 1 !important;
-    margin-right: 8px !important;
-}
-
-.texto-nombre-plato { 
-    color: #FFFFFF !important; 
-    font-size: 15px !important; 
-    font-weight: 800 !important; 
-    text-shadow: 2px 2px 3px #000000 !important; 
-}
-.texto-descripcion-plato { 
-    color: #CCCCCC !important; 
-    font-size: 11.5px !important; 
-    font-style: italic !important; 
-    margin-top: 3px; 
-    display: block; 
-    text-shadow: 1px 1px 2px #000000 !important; 
-    line-height: 1.2; 
-}
+.contenedor-fila-perfecta-col { display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; }
+.columna-izquierda-info { display: flex !important; flex-direction: column !important; justify-content: center !important; min-width: 0 !important; flex: 1 !important; margin-right: 8px !important; }
+.texto-nombre-plato { color: #FFFFFF !important; font-size: 15px !important; font-weight: 800 !important; text-shadow: 2px 2px 3px #000000 !important; }
+.texto-descripcion-plato { color: #CCCCCC !important; font-size: 11.5px !important; font-style: italic !important; margin-top: 3px; display: block; text-shadow: 1px 1px 2px #000000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 14.5px !important; font-weight: 900 !important; text-shadow: 2px 2px 2px #000000 !important; white-space: nowrap !important; margin-right: 2px;}
 
-/* BOTÓN AMARILLO ORIGINAL ALINEADO */
 div.btn-mas-nativo div.stButton > button {
-    background-color: #FFEB3B !important;
-    color: #8B0000 !important;
-    font-size: 18px !important;
-    font-weight: 900 !important;
-    border-radius: 6px !important;
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
-    padding: 0px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    box-shadow: 0px 2px 4px rgba(0,0,0,0.6) !important;
+    background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 18px !important; font-weight: 900 !important;
+    border-radius: 6px !important; width: 34px !important; height: 34px !important; min-width: 34px !important; max-width: 34px !important;
+    padding: 0px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    border: none !important; box-shadow: 0px 2px 4px rgba(0,0,0,0.6) !important;
 }
 
-.divisor-plato {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-    margin-bottom: 5px;
-    padding-bottom: 5px;
-}
-
-.titulo-categoria-chifa { 
-    color: #FFEB3B !important; font-size: 18px !important; font-weight: 900 !important; padding: 10px 8px !important; 
-    margin-top: 5px !important; margin-bottom: 10px !important; border-left: 5px solid #FFEB3B !important; 
-    background-color: rgba(0, 0, 0, 0.7) !important; border-radius: 0 8px 8px 0; text-shadow: 2px 2px 4px #000000 !important;
-}
-
-div[data-testid="stDialog"] div.stButton > button, div.boton-vaciar-pedido div.stButton > button {
-    width: 100% !important; height: 45px !important; background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; display: block !important; border: none !important;
-}
-
+.divisor-plato { border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; margin-bottom: 5px; padding-bottom: 5px; }
+.titulo-categoria-chifa { color: #FFEB3B !important; font-size: 18px !important; font-weight: 900 !important; padding: 10px 8px !important; margin-top: 5px !important; margin-bottom: 10px !important; border-left: 5px solid #FFEB3B !important; background-color: rgba(0, 0, 0, 0.7) !important; border-radius: 0 8px 8px 0; text-shadow: 2px 2px 4px #000000 !important; }
+div[data-testid="stDialog"] div.stButton > button, div.boton-vaciar-pedido div.stButton > button { width: 100% !important; height: 45px !important; background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; display: block !important; border: none !important; }
 div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 14px !important; width: 32px !important; height: 32px !important; border-radius: 6px !important; padding: 0px !important; display: flex !important; }
 .fila-carrito-ordenada { padding: 8px 0px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; width: 100%; }
 .linea-principal-carrito { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; }
@@ -314,9 +240,7 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 </style>
 """, unsafe_allow_html=True)
 
-aplicar_fondo_stable()
-
-# 4. ENCABEZADO FIJO
+# 6. ENCABEZADO FIJO DE LA APLICACIÓN
 st.markdown("""
 <div class="cabecera-fija-chifa">
     <h2 style="margin: 0; font-size: 25px; color: #FFEB3B; font-family: sans-serif; text-shadow: 2px 2px 4px #000000;">🍜 CHIFA D' BELINDA</h2>
@@ -325,7 +249,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
-
 tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a la Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
 
 # PESTAÑA: 🍱 MENÚ DEL DÍA
@@ -342,7 +265,6 @@ with tab_menu:
             st.button("＋", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ"))
             st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
-        
     st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: 📖 PLATOS A LA CARTA
@@ -351,34 +273,24 @@ with tab_carta:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
     else:
         st.write("")
-        
         if st.session_state["vista_actual"] == "menu_categorias":
             st.markdown('<p style="color: #FFEB3B; font-weight: bold; margin-bottom: 12px; font-size:16px; text-shadow: 1px 1px 2px black;">📖 Elige una sección de nuestra Carta:</p>', unsafe_allow_html=True)
-            
             categorias_excel = sorted(list(df_carta["Category"].unique()))
             todas_categorias = ["✨ Recomendaciones del Día"] + categorias_excel
             
             st.markdown('<div class="lista-categorias-vertical">', unsafe_allow_html=True)
             for cat in todas_categorias:
                 icono = "🔥" if cat == "✨ Recomendaciones del Día" else "🥢"
-                st.button(
-                    f"{icono} {cat}", 
-                    key=f"p_cat_{cat}", 
-                    on_click=ir_a_categoria, 
-                    args=(cat,),
-                    use_container_width=True
-                )
+                st.button(f"{icono} {cat}", key=f"p_cat_{cat}", on_click=ir_a_categoria, args=(cat,), use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
             
         elif st.session_state["vista_actual"] == "ver_platos":
             cat_seleccionada = st.session_state["categoria_activa"]
-            
             st.markdown('<div class="boton-retroceder-contenedor">', unsafe_allow_html=True)
             st.button("⬅️ Volver a Categorías", on_click=regresar_a_categorias)
             st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown('<div style="padding: 5px 0px;">', unsafe_allow_html=True)
-            
             if cat_seleccionada == "✨ Recomendaciones del Día":
                 st.markdown('<div class="titulo-categoria-chifa">🔥 SUGERENCIAS DE LA CASA</div>', unsafe_allow_html=True)
                 cats_inicio = ["CHAUFA", "AEROPUERTO", "PLATOS DULCES"]
@@ -387,13 +299,11 @@ with tab_carta:
                 if not df_sugerencias.empty:
                     if "indices_aleatorios" not in st.session_state:
                         st.session_state["indices_aleatorios"] = random.sample(range(len(df_sugerencias)), min(6, len(df_sugerencias)))
-                    
                     valid_indices = [i for i in st.session_state["indices_aleatorios"] if i < len(df_sugerencias)]
                     df_aleatorio = df_sugerencias.iloc[valid_indices] if valid_indices else df_sugerencias.head(6)
                     
                     for idx, row in df_aleatorio.iterrows():
                         plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
-                        
                         col_izq, col_der = st.columns([0.83, 0.17], gap="small")
                         with col_izq:
                             st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span></div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
@@ -402,14 +312,12 @@ with tab_carta:
                             st.button("＋", key=f"btn_sug_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", row["Category"]))
                             st.markdown('</div>', unsafe_allow_html=True)
                         st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
-                        
             else:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_seleccionada}</div>', unsafe_allow_html=True)
                 df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
                 if not df_filtrado_cat.empty:
                     for idx, row in df_filtrado_cat.iterrows():
                         plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
-                        
                         desc_html = ""
                         if cat_seleccionada == "COMBOS" and str(row["Description"]).strip():
                             desc_html = f'<span class="texto-descripcion-plato">✨ {row["Description"]}</span>'
@@ -422,7 +330,6 @@ with tab_carta:
                             st.button("＋", key=f"btn_carta_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", cat_seleccionada))
                             st.markdown('</div>', unsafe_allow_html=True)
                         st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
-                        
             st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: 🛒 MI PEDIDO
@@ -434,7 +341,6 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:20px;">📋 Resumen del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
-        # OPTIMIZACIÓN: Ciclo seguro e independiente del índice para renderizar y eliminar items
         for item in list(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
@@ -447,7 +353,6 @@ with tab_pedido:
             col_tacho, col_info = st.columns([0.12, 0.88])
             with col_tacho:
                 st.markdown('<div class="boton-tacho-contenedor">', unsafe_allow_html=True)
-                # Remoción segura basada en UID único
                 st.button("🗑️", key=f"del_{item['uid']}", on_click=eliminar_del_carrito, args=(item['uid'],))
                 st.markdown('</div>', unsafe_allow_html=True)
             with col_info:
@@ -467,7 +372,6 @@ with tab_pedido:
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
-        # VALIDACIÓN EN TIEMPO REAL (MÓVIL FRIENDLY)
         datos_validos = True
         if not nombre_cliente.strip():
             st.error("⚠️ Por favor ingresa tu nombre completo para continuar.")
@@ -491,11 +395,9 @@ with tab_pedido:
                     
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-            
             st.markdown(f'<a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
         else:
-            # Botón deshabilitado visualmente o de advertencia si faltan datos obligatorios
-            st.markdown('<a href="#" onclick="return false;" style="background-color: #cccccc !important; color: #666666 !important; cursor: not-allowed;" class="enlace-wa-directo-siempre">💬 complete sus datos arriba</a>', unsafe_allow_html=True)
+            st.markdown('<a href="#" onclick="return false;" style="background-color: #cccccc !important; color: #666666 !important; cursor: not-allowed;" class="enlace-wa-directo-siempre">💬 COMPLETE SUS DATOS ARRIBA</a>', unsafe_allow_html=True)
 
         st.write("")
         st.markdown('<div class="boton-vaciar-pedido">', unsafe_allow_html=True)
