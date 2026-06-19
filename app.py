@@ -166,12 +166,12 @@ def abrir_modal_dinamico():
         st.rerun()
 
 # =========================================================
-# CSS MAESTRO - INTERLINEADO PERFECTO Y BOTÓN FIJO LLAMATIVO
+# CSS MAESTRO OPTIMIZADO - DISEÑO FIJO COMPACTO
 # =========================================================
 st.markdown("""
 <style>
 html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important; }
-[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 95px !important; } 
+[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 100px !important; } 
 .main .block-container { padding-top: 0px !important; max-width: 100% !important; }
 
 /* CABECERA SUPERIOR */
@@ -183,33 +183,29 @@ html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important;
 }
 .bloque-principal-contenido { margin-top: 95px !important; }
 
-/* SEPARACIÓN DE LÍNEAS / ELEMENTOS DEL PLATO */
-.item-plato-bloque {
-    padding-top: 15px !important;
-    padding-bottom: 15px !important;
-}
+/* INTERLINEADO ORIGINAL COMPACTO */
 .texto-plato-titulo {
-    color: #FFFFFF !important; font-size: 16px !important; font-weight: bold !important;
-    text-shadow: 2px 2px 2px #000000 !important; display: block; margin-bottom: 4px !important;
+    color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important;
+    text-shadow: 2px 2px 2px #000000 !important; display: inline-block; margin: 0 !important;
 }
 .texto-plato-desc {
-    color: #CCCCCC !important; font-size: 12px !important; font-style: italic !important;
-    text-shadow: 1px 1px 1px #000000 !important; display: block; margin-top: 2px !important;
+    color: #CCCCCC !important; font-size: 11.5px !important; font-style: italic !important;
+    text-shadow: 1px 1px 1px #000000 !important; display: block; margin-top: 1px !important;
 }
 .texto-plato-precio {
-    color: #FFEB3B !important; font-size: 16px !important; font-weight: bold !important;
+    color: #FFEB3B !important; font-size: 15px !important; font-weight: bold !important;
     text-shadow: 2px 2px 2px #000000 !important; text-align: right; display: block; width: 100%;
 }
 
-/* BOTÓN DE AGREGAR MÁS (+) */
+/* BOTÓN DE AGREGAR NATIVO CORREGIDO */
 div.btn-agregar-cuadrado div.stButton > button {
     background-color: #FFEB3B !important;
     color: #000000 !important;
     font-size: 18px !important;
     font-weight: bold !important;
     border-radius: 8px !important;
-    width: 38px !important;
-    height: 38px !important;
+    width: 36px !important;
+    height: 36px !important;
     padding: 0px !important;
     display: flex !important;
     align-items: center !important;
@@ -219,17 +215,17 @@ div.btn-agregar-cuadrado div.stButton > button {
     margin-left: auto !important;
 }
 
-/* BOTÓN DE PEDIDO FIJO FLOTANTE ABAJO */
+/* BOTÓN DEL CARRITO TOTALMENTE FLOTANTE EN EL FONDO (ENCIMA DE TODO) */
 div.bloque-carrito-fijo-global {
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     right: 0px !important;
-    z-index: 999999 !important;
-    background-color: #1a1a1a !important;
+    z-index: 9999999 !important; /* Capa máxima sobre cualquier elemento */
+    background-color: rgba(26, 26, 26, 0.98) !important;
     padding: 12px 16px !important;
     border-top: 2px solid #FFEB3B !important;
-    box-shadow: 0px -4px 15px rgba(0,0,0,0.8) !important;
+    box-shadow: 0px -5px 20px rgba(0,0,0,0.9) !important;
 }
 div.bloque-carrito-fijo-global div.stButton > button {
     background-color: #FFEB3B !important;
@@ -240,13 +236,19 @@ div.bloque-carrito-fijo-global div.stButton > button {
     height: 52px !important;
     width: 100% !important;
     border: none !important;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.3) !important;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.4) !important;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+div.bloque-carrito-fijo-global div.stButton > button:hover {
+    background-color: #fff176 !important;
 }
 
-/* DECORATIVOS */
+/* DECORATIVOS GENERALES */
 .linea-divisor-plato {
     border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
 }
 .titulo-categoria-recuadro { 
     color: #FFEB3B !important; font-size: 16px !important; font-weight: bold !important; padding: 8px !important; 
@@ -301,7 +303,7 @@ if st.session_state["vista_actual"] == "ver_pedido":
             detalles_lista = [f"📌 {item.get('tipo','Carta')}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 {item['entrada']}")
             if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
-            if item.get('notes'):  detalles_lista.append(f"📝 {item.get('notas')}")
+            if item.get('notas'):  detalles_lista.append(f"📝 {item.get('notas')}")
 
             col_tacho, col_info, col_subt = st.columns([0.12, 0.63, 0.25])
             with col_tacho:
@@ -360,8 +362,7 @@ else:
     with tab_menu:
         st.markdown('<div class="titulo-categoria-recuadro">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
         for plato in PLATOS_MENU_INTERNO:
-            st.markdown('<div class="item-plato-bloque">', unsafe_allow_html=True)
-            col_txt, col_precio, col_btn = st.columns([0.55, 0.25, 0.20])
+            col_txt, col_precio, col_btn = st.columns([0.58, 0.25, 0.17])
             with col_txt:
                 st.markdown(f'<span class="texto-plato-titulo">{plato["Name"]}</span>', unsafe_allow_html=True)
             with col_precio:
@@ -370,7 +371,6 @@ else:
                 st.markdown('<div class="btn-agregar-cuadrado">', unsafe_allow_html=True)
                 st.button("＋", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ"))
                 st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('<div class="linea-divisor-plato"></div>', unsafe_allow_html=True)
 
     # PESTAÑA: PLATOS A LA CARTA
@@ -411,17 +411,15 @@ else:
                         for idx, row in df_aleatorio.iterrows():
                             plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                             
-                            st.markdown('<div class="item-plato-bloque">', unsafe_allow_html=True)
-                            col_txt, col_precio, col_btn = st.columns([0.55, 0.25, 0.20])
+                            col_txt, col_precio, col_btn = st.columns([0.58, 0.25, 0.17])
                             with col_txt:
-                                st.markdown(f'<span class="texto-plato-titulo">{row["Name"]} <small style="color:#FFEB3B; font-size:10px;">({row["Category"]})</small></span>', unsafe_allow_html=True)
+                                st.markdown(f'<span class="texto-plato-titulo">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span>', unsafe_allow_html=True)
                             with col_precio:
                                 st.markdown(f'<span class="texto-plato-precio">S/. {float(row["Price"]):.2f}</span>', unsafe_allow_html=True)
                             with col_btn:
                                 st.markdown('<div class="btn-agregar-cuadrado">', unsafe_allow_html=True)
                                 st.button("＋", key=f"btn_sug_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", row["Category"]))
                                 st.markdown('</div>', unsafe_allow_html=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
                             st.markdown('<div class="linea-divisor-plato"></div>', unsafe_allow_html=True)
                             
                 else:
@@ -431,8 +429,7 @@ else:
                         for idx, row in df_filtrado_cat.iterrows():
                             plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                             
-                            st.markdown('<div class="item-plato-bloque">', unsafe_allow_html=True)
-                            col_txt, col_precio, col_btn = st.columns([0.55, 0.25, 0.20])
+                            col_txt, col_precio, col_btn = st.columns([0.58, 0.25, 0.17])
                             with col_txt:
                                 st.markdown(f'<span class="texto-plato-titulo">{row["Name"]}</span>', unsafe_allow_html=True)
                                 if str(row["Description"]).strip():
@@ -443,13 +440,12 @@ else:
                                 st.markdown('<div class="btn-agregar-cuadrado">', unsafe_allow_html=True)
                                 st.button("＋", key=f"btn_carta_{row['ID']}_{idx}", on_click=click_agregar_plato, args=(plato_dict, "Carta", cat_seleccionada))
                                 st.markdown('</div>', unsafe_allow_html=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
                             st.markdown('<div class="linea-divisor-plato"></div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
-# BOTÓN DE CARRITO FIJO INFERIOR GLOBAL
+# BOTÓN DE CARRITO COMPLETAMENTE FLOTANTE FIJO (ENCIMA DE TODO)
 # =========================================================
 st.markdown('<div class="bloque-carrito-fijo-global">', unsafe_allow_html=True)
 st.button(f"🛒 Ver mi Pedido ({items_en_carrito})", key="btn_fijo_inferior_perfecto", on_click=ir_a_pedido)
