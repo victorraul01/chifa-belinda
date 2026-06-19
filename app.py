@@ -30,7 +30,10 @@ if "categoria_activa" not in st.session_state:
 if "vista_actual" not in st.session_state:
     st.session_state["vista_actual"] = "menu_categorias"  # "menu_categorias" o "ver_platos"
 
+# OPTIMIZACIÓN MÓVIL: Persistir el fondo elegido para evitar parpadeos en cada toque
 FONDOS_DISPONIBLES = ["pag1.jpeg", "pag2.jpeg", "pag3.jpeg", "pag5.jpeg", "pag6.jpeg"]
+if "fondo_seleccionado" not in st.session_state:
+    st.session_state["fondo_seleccionado"] = random.choice(FONDOS_DISPONIBLES)
 
 PLATOS_MENU_INTERNO = [
     {"ID": "M01", "Name": "Chaufa de Pollo", "Price": 14.00},
@@ -72,14 +75,13 @@ def cargar_imagen_b64(nombre_imagen):
             with open(r, "rb") as f: return base64.b64encode(f.read()).decode()
     return None
 
-def aplicar_fondo_aleatorio():
-    imagen_azar = random.choice(FONDOS_DISPONIBLES)
-    img_b64 = cargar_imagen_b64(imagen_azar)
+def aplicar_fondo_estable():
+    img_b64 = cargar_imagen_b64(st.session_state["fondo_seleccionado"])
     if img_b64:
         st.markdown(f"""
         <style>
         [data-testid="stAppViewContainer"] {{
-            background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('data:image/jpeg;base64,{img_b64}') !important;
+            background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('data:image/jpeg;base64,{img_b64}') !important;
             background-size: cover !important; background-repeat: no-repeat !important; background-position: center center !important; background-attachment: fixed !important;
         }}
         .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
@@ -119,6 +121,11 @@ def ir_a_categoria(categoria):
 
 def regresar_a_categorias():
     st.session_state["vista_actual"] = "menu_categorias"
+
+# OPTIMIZACIÓN MÓVIL: Función segura para eliminar del carrito usando identificador único (uid)
+def eliminar_del_carrito(uid):
+    st.session_state.carrito = [item for item in st.session_state.carrito if item["uid"] != uid]
+    st.rerun()
 
 # =========================================================
 # MODAL DE CONFIGURACIÓN
@@ -174,8 +181,8 @@ html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important;
 
 .cabecera-fija-chifa {
     position: fixed !important; top: 0px !important; left: 0px !important; right: 0px !important;
-    z-index: 999999 !important; background-color: rgba(0, 0, 0, 0.55) !important;
-    backdrop-filter: blur(5px) !important; padding: 15px 10px !important; text-align: center;
+    z-index: 999999 !important; background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; padding: 15px 10px !important; text-align: center;
     border-bottom: 1px solid rgba(255, 235, 59, 0.2);
 }
 
@@ -307,7 +314,7 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 </style>
 """, unsafe_allow_html=True)
 
-aplicar_fondo_aleatorio()
+aplicar_fondo_stable()
 
 # 4. ENCABEZADO FIJO
 st.markdown("""
@@ -321,7 +328,7 @@ items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a la Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
 
-# PESTAÑA: 🍱 MENÚ DEL DÍA (Mantiene el mismo diseño original intacto)
+# PESTAÑA: 🍱 MENÚ DEL DÍA
 with tab_menu:
     st.markdown('<div style="padding: 10px 5px; margin-top: 15px;">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 MENÚ CHIFA DEL DÍA</div>', unsafe_allow_html=True)
@@ -338,14 +345,13 @@ with tab_menu:
         
     st.markdown('</div>', unsafe_allow_html=True)
 
-# PESTAÑA: 📖 PLATOS A LA CARTA (Aquí ocurre el cambio de pantalla limpio)
+# PESTAÑA: 📖 PLATOS A LA CARTA
 with tab_carta:
     if df_carta.empty:
         st.warning("⚠️ Por favor, carga tu archivo del catálogo.")
     else:
         st.write("")
         
-        # VISTA A: PANEL PRINCIPAL (Solo se ven los botones de las categorías)
         if st.session_state["vista_actual"] == "menu_categorias":
             st.markdown('<p style="color: #FFEB3B; font-weight: bold; margin-bottom: 12px; font-size:16px; text-shadow: 1px 1px 2px black;">📖 Elige una sección de nuestra Carta:</p>', unsafe_allow_html=True)
             
@@ -364,18 +370,15 @@ with tab_carta:
                 )
             st.markdown('</div>', unsafe_allow_html=True)
             
-        # VISTA B: PANTALLA SECUNDARIA DE PLATOS FILTRADOS (Conserva el diseño original de columnas alineadas)
         elif st.session_state["vista_actual"] == "ver_platos":
             cat_seleccionada = st.session_state["categoria_activa"]
             
-            # Botón superior para volver atrás
             st.markdown('<div class="boton-retroceder-contenedor">', unsafe_allow_html=True)
             st.button("⬅️ Volver a Categorías", on_click=regresar_a_categorias)
             st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown('<div style="padding: 5px 0px;">', unsafe_allow_html=True)
             
-            # Sub-vista: Recomendaciones del Día
             if cat_seleccionada == "✨ Recomendaciones del Día":
                 st.markdown('<div class="titulo-categoria-chifa">🔥 SUGERENCIAS DE LA CASA</div>', unsafe_allow_html=True)
                 cats_inicio = ["CHAUFA", "AEROPUERTO", "PLATOS DULCES"]
@@ -391,7 +394,6 @@ with tab_carta:
                     for idx, row in df_aleatorio.iterrows():
                         plato_dict = {"ID": row["ID"], "Name": row["Name"], "Price": row["Price"]}
                         
-                        # FILA ALINEADA ORIGINAL
                         col_izq, col_der = st.columns([0.83, 0.17], gap="small")
                         with col_izq:
                             st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]} <small style="color:#FFEB3B; font-size:9px;">({row["Category"]})</small></span></div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
@@ -401,7 +403,6 @@ with tab_carta:
                             st.markdown('</div>', unsafe_allow_html=True)
                         st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
                         
-            # Sub-vista: Categorías normales de Excel
             else:
                 st.markdown(f'<div class="titulo-categoria-chifa">📂 {cat_seleccionada}</div>', unsafe_allow_html=True)
                 df_filtrado_cat = df_carta[df_carta["Category"] == cat_seleccionada]
@@ -413,7 +414,6 @@ with tab_carta:
                         if cat_seleccionada == "COMBOS" and str(row["Description"]).strip():
                             desc_html = f'<span class="texto-descripcion-plato">✨ {row["Description"]}</span>'
                         
-                        # FILA ALINEADA ORIGINAL
                         col_izq, col_der = st.columns([0.83, 0.17], gap="small")
                         with col_izq:
                             st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{row["Name"]}</span>{desc_html}</div><span class="texto-precio-plato">S/. {float(row["Price"]):.2f}</span></div>""", unsafe_allow_html=True)
@@ -434,21 +434,21 @@ with tab_pedido:
         st.markdown('<h2 style="color: #FFEB3B; text-shadow: 2px 2px 3px black; font-size:20px;">📋 Resumen del Pedido</h2>', unsafe_allow_html=True)
         total = 0
 
-        for i, item in enumerate(st.session_state.carrito):
+        # OPTIMIZACIÓN: Ciclo seguro e independiente del índice para renderizar y eliminar items
+        for item in list(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
             detalles_lista = [f"📌 {item.get('tipo','Carta')}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 {item['entrada']}")
             if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
-            if item.get('notes') or item.get('notas'): detalles_lista.append(f"📝 {item.get('notas', item.get('notes'))}")
+            if item.get('notas'): detalles_lista.append(f"📝 {item['notas']}")
 
             st.markdown('<div class="fila-carrito-ordenada">', unsafe_allow_html=True)
             col_tacho, col_info = st.columns([0.12, 0.88])
             with col_tacho:
                 st.markdown('<div class="boton-tacho-contenedor">', unsafe_allow_html=True)
-                if st.button("🗑️", key=f"del_{item['uid']}_{i}"):
-                    st.session_state.carrito.pop(i)
-                    st.rerun()
+                # Remoción segura basada en UID único
+                st.button("🗑️", key=f"del_{item['uid']}", on_click=eliminar_del_carrito, args=(item['uid'],))
                 st.markdown('</div>', unsafe_allow_html=True)
             with col_info:
                 st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito">💥 {item["cant"]}x {item["nombre"]}</span><span class="texto-precio-carrito">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
@@ -467,31 +467,35 @@ with tab_pedido:
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
-        mensaje_wa = f"🍜 CHIFA D' BELINDA\n\n👤 Cliente: {nombre_cliente.strip()}\n♻️ Entrega: {metodo_entrega}\n"
-        if metodo_entrega == "Delivery Moto 🏍️": 
-            mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
-        mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
-        
-        for item in st.session_state.carrito:
-            tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
-            mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
-            if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
-            if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
-            if item.get('notas') or item.get('notes'):  mensaje_wa += f"   ↳ Obs: {item.get('notas', item.get('notes'))}\n"
-                
-        mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
-        link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
-
-        error_msg = ""
+        # VALIDACIÓN EN TIEMPO REAL (MÓVIL FRIENDLY)
+        datos_validos = True
         if not nombre_cliente.strip():
-            error_msg = "Por favor ingrese su Nombre."
+            st.error("⚠️ Por favor ingresa tu nombre completo para continuar.")
+            datos_validos = False
         elif metodo_entrega == "Delivery Moto 🏍️" and not direccion_cliente.strip():
-            error_msg = "Por favor ingrese su Dirección."
+            st.error("⚠️ Por favor ingresa la dirección de envío.")
+            datos_validos = False
 
-        if error_msg:
-            st.markdown(f'<a href="#" onclick="alert(\'{error_msg}\'); return false;" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
-        else:
+        if datos_validos:
+            mensaje_wa = f"🍜 CHIFA D' BELINDA\n\n👤 Cliente: {nombre_cliente.strip()}\n♻️ Entrega: {metodo_entrega}\n"
+            if metodo_entrega == "Delivery Moto 🏍️": 
+                mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
+            mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
+            
+            for item in st.session_state.carrito:
+                tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
+                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
+                if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
+                if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
+                if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
+                    
+            mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
+            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+            
             st.markdown(f'<a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
+        else:
+            # Botón deshabilitado visualmente o de advertencia si faltan datos obligatorios
+            st.markdown('<a href="#" onclick="return false;" style="background-color: #cccccc !important; color: #666666 !important; cursor: not-allowed;" class="enlace-wa-directo-siempre">💬 complete sus datos arriba</a>', unsafe_allow_html=True)
 
         st.write("")
         st.markdown('<div class="boton-vaciar-pedido">', unsafe_allow_html=True)
