@@ -451,7 +451,7 @@ with tab_pedido:
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
             with col_info:
-                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito">💥 {item["cant"]}           {item["nombre"]}</span><span class="texto-precio-carrito">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito">💥 {item["cant"]}x {item["nombre"]}</span><span class="texto-precio-carrito">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
             st.markdown(f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -463,7 +463,7 @@ with tab_pedido:
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
             direccion_cliente = st.text_input("Dirección de Envío:", key="dir_cli")
-            st.markdown('<div class="alerta-delivery-destacada">🚨 Compartenos tu ubicación por WhatsApp después de enviar este mensaje. El costo de envío será enviado después de ver tu ubicación variable.</div>', unsafeel_allow_html=True)
+            st.markdown('<div class="alerta-delivery-destacada">🚨 Compartir ubicación por WhatsApp. Costo de envío variable.</div>', unsafe_allow_html=True)
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
