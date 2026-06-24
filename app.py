@@ -381,7 +381,7 @@ with tab_menu:
         st.markdown(f"""
         <div style="background-color: rgba(0,0,0,0.7); padding: 30px; border-radius: 12px; border: 2px dashed #FFEB3B; text-align: center; margin-top: 20px;">
             <h3 style="color: #FFEB3B; margin-bottom: 10px;">🕒 Menú No Disponible</h3>
-            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:00 PM</b>.</p>
+            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:30 PM</b>.</p>
             <p style="color: #FFEB3B; font-size: 14px; font-style: italic; margin-top: 15px;">¡Pero no te quedes con hambre! Puedes revisar nuestra variada pestaña de <b>Platos a la Carta</b> que atiende todo el día.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -475,7 +475,7 @@ with tab_pedido:
                 st.button("🗑️", key=f"del_{item['uid']}", on_click=eliminar_del_carrito, args=(item['uid'],))
                 st.markdown('</div>', unsafe_allow_html=True)
             with col_info:
-                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito">💥 {item["cant"]}x {item["nombre"]}</span><span class="texto-precio-carrito">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito">💥 {item["cant"]}  {item["nombre"]}</span><span class="texto-precio-carrito">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
             st.markdown(f'<span class="texto-detalles-resaltados">{" | ".join(detalles_lista)}</span>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -487,7 +487,7 @@ with tab_pedido:
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
             direccion_cliente = st.text_input("Dirección de Envío:", key="dir_cli")
-            st.markdown('<div class="alerta-delivery-destacada">🚨 Compartir ubicación por WhatsApp. Costo de envío variable.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="alerta-delivery-destacada">🚨 Por favor comparte tu ubicación por WhatsApp después de enviar este mensaje. El costo de envío se calculará después de enviar tu ubicación.</div>', unsafe_allow_html=True)
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
