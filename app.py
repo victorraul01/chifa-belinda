@@ -474,9 +474,8 @@ with tab_pedido:
                 st.markdown('<div class="boton-tacho-contenedor">', unsafe_allow_html=True)
                 st.button("🗑️", key=f"del_{item['uid']}", on_click=eliminar_del_carrito, args=(item['uid'],))
                 st.markdown('</div>', unsafe_allow_html=True)
-            with col_info:
-                
-        st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito" style="color:#000 !important; text-shadow:none !important;">💥 {item["cant"]} &nbsp; {item["nombre"]}</span><span class="texto-precio-carrito" style="color:#8B0000 !important; text-shadow:none !important;">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
+            with col_info:       
+                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito" style="color:#000 !important; text-shadow:none !important;">💥 {item["cant"]} &nbsp; {item["nombre"]}</span><span class="texto-precio-carrito" style="color:#8B0000 !important; text-shadow:none !important;">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
 
         st.markdown(f'<div class="recuadro-total-final"><span style="color:#FFF; font-size:16px; font-weight:bold;">💵 TOTAL:</span><span style="color:#FFEB3B; font-size:18px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
 
