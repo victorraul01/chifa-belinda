@@ -25,13 +25,23 @@ if "mostrar_modal" not in st.session_state:
     st.session_state["modal_categoria"] = "GENERAL"
 
 if "categoria_activa" not in st.session_state:
-    st.session_state["carrito_activa"] = None
+    st.session_state["categoria_activa"] = None
 
 if "vista_actual" not in st.session_state:
     st.session_state["vista_actual"] = "menu_categorias"
 
 if "fondo_seleccionado" not in st.session_state:
     st.session_state["fondo_seleccionado"] = "pag1.jpeg"
+
+# Detectar si el usuario hizo clic en el botón flotante real
+if "abrir_carrito_trigger" not in st.session_state:
+    st.session_state["abrir_carrito_trigger"] = False
+
+# Verificar si el componente HTML nos mandó la señal de abrir carrito
+query_params = st.query_params
+if "action" in query_params and query_params["action"] == "open_cart":
+    st.query_params.clear() # Limpiar la URL inmediatamente
+    st.session_state["abrir_carrito_trigger"] = True
 
 # 3. FUNCIONES DE CARGA Y ESTILOS
 @st.cache_data
@@ -174,7 +184,6 @@ def abrir_modal_carrito():
 
         st.markdown(f'<div class="recuadro-total-final" style="background-color:#F5F5F5 !important; border:2px solid #8B0000;"><span style="color:#000; font-size:16px; font-weight:bold;">💵 TOTAL:</span><span style="color:#8B0000; font-size:18px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
 
-        # Inputs del formulario dentro del modal
         nombre_cliente = st.text_input("Ingresa tu Nombre Completo:", key="mod_nom_cli")
         metodo_entrega = st.radio("Método de Entrega:", ["Delivery Moto 🏍️", "Recojo en Local 🏪"], horizontal=True, key="mod_met_ent")
 
@@ -204,7 +213,7 @@ def abrir_modal_carrito():
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
                 if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
                 if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
-                if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
+                if item.get('notes'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
 
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
             link_final = f"https://wa.me/51933437275?text={urllib.parse.quote(mensaje_wa)}"
@@ -222,7 +231,7 @@ def abrir_modal_carrito():
 
 
 # =========================================================
-# CSS MAESTRO INYECTADO (MÁXIMA PRIORIDAD OVERRIDE)
+# CSS MAESTRO INYECTADO (ESTILOS GENERALES CARTA)
 # =========================================================
 st.markdown("""
 <style>
@@ -234,9 +243,18 @@ div[data-testid="stManageAppButton"], [data-testid="stManageAppButton"], .stDepl
 
 html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important; }
 
-/* Espaciado inferior incrementado a 180px para evitar colisión visual con el botón flotante */
-[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 180px !important; }
-.main .block-container { padding-top: 0px !important; padding-bottom: 180px !important; max-width: 100% !important; }
+/* El padding inferior de la pantalla asegura que el contenido pase por detrás del botón flotante */
+[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 140px !important; }
+.main .block-container { padding-top: 0px !important; padding-bottom: 140px !important; max-width: 100% !important; }
+
+/* Ocultar el iframe del botón flotante original por si acaso */
+iframe[title="st.components.v1.html"] {
+    position: fixed !important;
+    bottom: 25px !important;
+    right: 20px !important;
+    z-index: 99999999 !important;
+    border: none !important;
+}
 
 .cabecera-fija-chifa {
     position: fixed !important; top: 0px !important; left: 0px !important; right: 0px !important;
@@ -252,27 +270,14 @@ div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px 
 .contenedor-seccion-platos { padding: 10px 5px 0px 5px !important; margin-bottom: 40px !important; }
 
 div.contenedor-categoria-limpio div.stButton > button {
-    display: block !important;
-    background: #F5F5F5 !important;
-    border: 2px solid #D9D9D9 !important;
-    border-radius: 10px !important;
-    padding: 14px 10px !important;
-    width: 100% !important;
-    height: auto !important;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.2) !important;
-    margin-bottom: 12px !important;
+    display: block !important; background: #F5F5F5 !important; border: 2px solid #D9D9D9 !important;
+    border-radius: 10px !important; padding: 14px 10px !important; width: 100% !important; height: auto !important;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2) !important; margin-bottom: 12px !important;
 }
-
 div.contenedor-categoria-limpio div.stButton > button p { color: #000000 !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: none !important; }
-div.contenedor-categoria-limpio div.stButton > button:hover { background: #E0E0E0 !important; }
 
 div.boton-retroceder-contenedor div.stButton > button {
-    background-color: #F5F5F5 !important;
-    border: 1px solid #BDBDBD !important;
-    padding: 8px 15px !important;
-    border-radius: 8px !important;
-    width: auto !important;
-    margin-bottom: 15px !important;
+    background-color: #F5F5F5 !important; border: 1px solid #BDBDBD !important; padding: 8px 15px !important; border-radius: 8px !important; width: auto !important; margin-bottom: 15px !important;
 }
 div.boton-retroceder-contenedor div.stButton > button p { color: #000000 !important; text-shadow: none !important; font-weight: bold !important; }
 
@@ -302,47 +307,6 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .linea-principal-carrito { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; }
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.2) !important; margin: 18px 0px !important; font-size: 18px !important; font-weight: 900 !important; }
 .recuadro-total-final { border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
-
-
-/* =========================================================================
-   REGLAS INYECTADAS CRÍTICAS PARA EXTIRPAR EL BOTÓN NATIVO Y VOLVERLO FLOTANTE REAL
-   ========================================================================= */
-
-/* Captura el contenedor genérico de Streamlit que contiene al botón del carrito */
-div:has(> div > button[key="boton_carrito_flotante_maestro"]) {
-    position: fixed !important;
-    bottom: 30px !important;
-    right: 25px !important;
-    left: auto !important;
-    width: auto !important;
-    height: auto !important;
-    z-index: 999999999 !important; /* Prioridad por encima de fondos, diálogos y barras de carga */
-}
-
-/* Fuerza el diseño estético de botón móvil app-style */
-button[key="boton_carrito_flotante_maestro"] {
-    background-color: #FFEB3B !important;
-    color: #000000 !important;
-    border: 3px solid #8B0000 !important;
-    box-shadow: 0px 8px 20px rgba(0,0,0,0.7) !important;
-    padding: 12px 26px !important;
-    height: 52px !important;
-    width: auto !important;
-    border-radius: 50px !important; /* Totalmente circular en las esquinas */
-    cursor: pointer !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-button[key="boton_carrito_flotante_maestro"]:active {
-    transform: scale(0.95) !important;
-}
-
-button[key="boton_carrito_flotante_maestro"] p {
-    color: #000000 !important;
-    font-weight: 900 !important;
-    font-size: 16px !important;
-    letter-spacing: 0.5px !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -388,11 +352,43 @@ PLATOS_MENU_INTERNO = [
 
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
-# =========================================================
-# EL BOTÓN NATIVO FLOTANTE DE MÁXIMA COMPATIBILIDAD
-# =========================================================
-# Se declara de forma limpia. El bloque CSS superior lo intercepta y lo remueve del layout regular.
-if st.button(f"🛒 MI PEDIDO ({items_en_carrito})", key="boton_carrito_flotante_maestro"):
+
+# =========================================================================
+# BOTÓN FLOTANTE DEFINITIVO INYECTADO POR COMPONENTE HTML EN EL VIEWPORT
+# =========================================================================
+# Usamos un iframe nativo invisible que inyecta el botón real directamente en la ventana.
+# Se comunica de regreso a Streamlit mediante la URL compartida.
+boton_html_maestro = f"""
+<div style="position: fixed; bottom: 25px; right: 20px; z-index: 9999999999;">
+    <button onclick="parent.window.location.href='?action=open_cart';" style="
+        background-color: #FFEB3B;
+        color: #000000;
+        border: 3px solid #8B0000;
+        box-shadow: 0px 8px 24px rgba(0,0,0,0.6);
+        padding: 0px 24px;
+        height: 54px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-weight: 900;
+        font-size: 16px;
+        border-radius: 50px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+        transition: transform 0.1s ease;
+    " onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+        🛒 MI PEDIDO ({items_en_carrito})
+    </button>
+</div>
+"""
+# Renderizamos el componente al principio o final, el CSS `position: fixed` hará que flote igual.
+st.components.v1.html(boton_html_maestro, height=0)
+
+# Si el botón mandó la señal, abrimos el modal del carrito de inmediato
+if st.session_state["abrir_carrito_trigger"]:
+    st.session_state["abrir_carrito_trigger"] = False
     abrir_modal_carrito()
 
 
@@ -405,7 +401,7 @@ with tab_menu:
     hora_actual_peru = datetime.now(zona_horaria_peru).time()
     
     hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
-    hora_fin = datetime.strptime("18:00:00", "%H:%M:%S").time()
+    hora_fin = datetime.strptime("16:00:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
