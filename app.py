@@ -222,7 +222,7 @@ def abrir_modal_carrito():
 
 
 # =========================================================
-# CSS MAESTRO INYECTADO
+# CSS MAESTRO INYECTADO (CORREGIDO PARA BOTÓN FLOTANTE REAL)
 # =========================================================
 st.markdown("""
 <style>
@@ -301,11 +301,27 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.2) !important; margin: 18px 0px !important; font-size: 18px !important; font-weight: 900 !important; }
 .recuadro-total-final { border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 
-/* Ocultar botón disparador de respaldo */
-.stActionButton, div:has(> button[key="respaldo_abrir_carrito"]) {
-    display: none !important;
-    opacity: 0 !important;
-    height: 0px !important;
+/* REGLA MAESTRA INYECTADA PARA FORZAR AL BOTÓN DE STREAMLIT A VOLVERSE FLOTANTE GLOBAL */
+div.contenedor-flotante-fijo {
+    position: fixed !important;
+    bottom: 25px !important;
+    left: 20px !important;
+    z-index: 999999 !important;
+}
+div.contenedor-flotante-fijo button {
+    background-color: #FFEB3B !important;
+    color: #000000 !important;
+    border: 3px solid #8B0000 !important;
+    box-shadow: 0px 6px 15px rgba(0,0,0,0.6) !important;
+    padding: 12px 22px !important;
+    height: auto !important;
+    border-radius: 50px !important;
+    font-weight: 900 !important;
+    font-size: 16px !important;
+}
+div.contenedor-flotante-fijo button p {
+    color: #000000 !important;
+    font-weight: 900 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -353,37 +369,12 @@ PLATOS_MENU_INTERNO = [
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# BOTÓN INVISIBLE DE RESPALDO Y BOTÓN FLOTANTE HTML REAL
+# BOTÓN FLOTANTE UTILIZANDO CONTENEDOR INTEGRAL DE STREAMLIT
 # =========================================================
-# Este botón procesa el clic que se genera desde el HTML
-if st.button("Abrir Carrito Respaldo", key="respaldo_abrir_carrito"):
-    abrir_modal_carrito()
-
-# Inyectamos el botón flotante real usando código HTML/CSS aislado.
-# Al hacer clic, este simula mediante Javascript la pulsación del botón de arriba.
-html_boton_flotante = f"""
-<div style="position: fixed; bottom: 25px; left: 20px; z-index: 9999999;">
-    <button onclick="parent.document.querySelector('button[key=\\'respaldo_abrir_carrito\\']').click();" 
-        style="
-            background-color: #FFEB3B;
-            color: #000000;
-            border: 3px solid #8B0000;
-            box-shadow: 0px 6px 15px rgba(0,0,0,0.6);
-            padding: 12px 22px;
-            font-size: 16px;
-            font-weight: 900;
-            border-radius: 50px;
-            cursor: pointer;
-            font-family: sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        ">
-        🛒 MI PEDIDO ({items_en_carrito})
-    </button>
-</div>
-"""
-st.components.v1.html(html_boton_flotante, height=0)
+# Colocamos un contenedor nativo al cual el CSS global le aplica el fixed. No se puede perder.
+with st.container(key="contenedor_flotante_fijo"):
+    if st.button(f"🛒 MI PEDIDO ({items_en_carrito})", key="boton_abrir_carrito_fijo"):
+        abrir_modal_carrito()
 
 
 # 6. PESTAÑAS PRINCIPALES
