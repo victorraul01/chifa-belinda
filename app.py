@@ -362,7 +362,7 @@ with tab_menu:
     
     # Definimos los límites (11:00 AM a 4:00 PM)
     hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
-    hora_fin = datetime.strptime("16:00:00", "%H:%M:%S").time()
+    hora_fin = datetime.strptime("16:30:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
@@ -381,7 +381,7 @@ with tab_menu:
         st.markdown(f"""
         <div style="background-color: rgba(0,0,0,0.7); padding: 30px; border-radius: 12px; border: 2px dashed #FFEB3B; text-align: center; margin-top: 20px;">
             <h3 style="color: #FFEB3B; margin-bottom: 10px;">🕒 Menú No Disponible</h3>
-            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:00 PM</b>.</p>
+            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:30 PM</b>.</p>
             <p style="color: #FFEB3B; font-size: 14px; font-style: italic; margin-top: 15px;">¡Pero no te quedes con hambre! Puedes revisar nuestra variada pestaña de <b>Platos a la Carta</b> que atiende todo el día.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -485,7 +485,7 @@ with tab_pedido:
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
             direccion_cliente = st.text_input("Dirección de Envío:", key="dir_cli")
-            st.markdown('<div class="alerta-delivery-destacada">🚨 Por favor! envíanos tu ubicación por WhatsApp después de enviar este mensaje para calcular tu el costo del delivery.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="alerta-delivery-destacada">🚨 Por favor! envíanos tu ubicación por WhatsApp después de enviar este mensaje para calcular  el costo del delivery.</div>', unsafe_allow_html=True)
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
