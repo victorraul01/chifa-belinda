@@ -261,13 +261,7 @@ div.contenedor-categoria-limpio div.stButton > button {
     margin-bottom: 12px !important;
 }
 
-div.contenedor-categoria-limpio div.stButton > button p {
-    color: #000000 !important;
-    font-size: 16px !important;
-    font-weight: 900 !important;
-    text-shadow: none !important;
-}
-
+div.contenedor-categoria-limpio div.stButton > button p { color: #000000 !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: none !important; }
 div.contenedor-categoria-limpio div.stButton > button:hover { background: #E0E0E0 !important; }
 
 div.boton-retroceder-contenedor div.stButton > button {
@@ -297,10 +291,9 @@ div[data-testid="stHorizontalBlock"] div.stButton > button {
 }
 
 .divisor-plato { border-bottom: none !important; margin-top: 15px !important; margin-bottom: 15px !important; clear: both; }
-
 .titulo-categoria-chifa { color: #FFEB3B !important; font-size: 18px !important; font-weight: 900 !important; padding: 10px 8px !important; margin-top: 5px !important; margin-bottom: 10px !important; border-left: 5px solid #FFEB3B !important; background-color: rgba(0, 0, 0, 0.7) !important; border-radius: 0 8px 8px 0; text-shadow: 2px 2px 4px #000000 !important; }
 
-/* ESTILOS DEL MODAL DEL CARRITO */
+/* ESTILOS DEL MODAL */
 div[data-testid="stDialog"] div.stButton > button, div.boton-vaciar-pedido div.stButton > button { width: 100% !important; height: 45px !important; background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; display: block !important; border: none !important; }
 div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !important; color: #8B0000 !important; font-size: 14px !important; width: 34px !important; height: 34px !important; border-radius: 6px !important; padding: 0px !important; display: flex !important; justify-content: center; align-items: center; border: 1px solid #8B0000 !important;}
 .fila-carrito-ordenada { padding: 8px 0px !important; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; width: 100%; }
@@ -308,37 +301,11 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.2) !important; margin: 18px 0px !important; font-size: 18px !important; font-weight: 900 !important; }
 .recuadro-total-final { border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 
-div.boton-vaciar-pedido div.stButton > button { background-color: #F5F5F5 !important; border: 2px solid #BDBDBD !important; }
-div.boton-vaciar-pedido div.stButton > button p { color: #000000 !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: none !important; }
-
-/* =========================================================
-   ESTILO INYECTADO PARA EL BOTÓN FLOTANTE INFERIOR IZQUIERDO
-   ========================================================= */
-div.element-container:has(button[key="btn_flotante_carrito"]) {
-    position: fixed !important;
-    bottom: 25px !important;
-    left: 20px !important;
-    z-index: 999999 !important;
-    width: auto !important;
-}
-
-button[key="btn_flotante_carrito"] {
-    background-color: #FFEB3B !important;
-    color: #000000 !important;
-    border: 3px solid #8B0000 !important;
-    box-shadow: 0px 6px 15px rgba(0,0,0,0.6) !important;
-    padding: 12px 20px !important;
-    font-size: 16px !important;
-    font-weight: 900 !important;
-    border-radius: 50px !important;
-    transition: transform 0.2s ease;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-button[key="btn_flotante_carrito"]:active {
-    transform: scale(0.95) !important;
+/* Ocultar botón disparador de respaldo */
+.stActionButton, div:has(> button[key="respaldo_abrir_carrito"]) {
+    display: none !important;
+    opacity: 0 !important;
+    height: 0px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -383,18 +350,43 @@ PLATOS_MENU_INTERNO = [
     {"ID": "M29", "Name": "Alitas Acevichadas (3 piezas)", "Price": 18.00}
 ]
 
-# Calculamos los ítems totales agregados
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# BOTÓN FLOTANTE SIEMPRE PRESENTE (Abajo a la Izquierda)
+# BOTÓN INVISIBLE DE RESPALDO Y BOTÓN FLOTANTE HTML REAL
 # =========================================================
-# Creamos un botón nativo y lo manipulamos con el CSS inyectado usando su identificador 'key'
-texto_boton_flotante = f"🛒 MI PEDIDO ({items_en_carrito})"
-st.button(texto_boton_flotante, key="btn_flotante_carrito", on_click=abrir_modal_carrito)
+# Este botón procesa el clic que se genera desde el HTML
+if st.button("Abrir Carrito Respaldo", key="respaldo_abrir_carrito"):
+    abrir_modal_carrito()
+
+# Inyectamos el botón flotante real usando código HTML/CSS aislado.
+# Al hacer clic, este simula mediante Javascript la pulsación del botón de arriba.
+html_boton_flotante = f"""
+<div style="position: fixed; bottom: 25px; left: 20px; z-index: 9999999;">
+    <button onclick="parent.document.querySelector('button[key=\\'respaldo_abrir_carrito\\']').click();" 
+        style="
+            background-color: #FFEB3B;
+            color: #000000;
+            border: 3px solid #8B0000;
+            box-shadow: 0px 6px 15px rgba(0,0,0,0.6);
+            padding: 12px 22px;
+            font-size: 16px;
+            font-weight: 900;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        ">
+        🛒 MI PEDIDO ({items_en_carrito})
+    </button>
+</div>
+"""
+st.components.v1.html(html_boton_flotante, height=0)
 
 
-# 6. SÓLO DOS PESTAÑAS ACTIVAS (El menú del carrito ahora es flotante)
+# 6. PESTAÑAS PRINCIPALES
 tab_menu, tab_carta = st.tabs(["🍱 Menú del Día", "📖 Platos a la Carta"])
 
 # PESTAÑA: MENÚ DEL DÍA
@@ -490,6 +482,5 @@ with tab_carta:
                         st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-# Manejo de modales diferidos
 if st.session_state["mostrar_modal"]:
     abrir_modal_dinamico()
