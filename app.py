@@ -4,7 +4,8 @@ import base64
 import os
 import time
 import random
-import urllib.parse  # <-- CORREGIDO: Importación necesaria para el link de WhatsApp
+import urllib.parse
+from datetime import datetime, timedelta, timezone  # <-- NUEVO: Manejo de tiempo y zonas horarias
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
@@ -24,7 +25,7 @@ if "mostrar_modal" not in st.session_state:
     st.session_state["modal_categoria"] = "GENERAL"
 
 if "categoria_activa" not in st.session_state:
-    st.session_state["categoria_activa"] = None
+    st.session_state["carrito_activa"] = None
 
 if "vista_actual" not in st.session_state:
     st.session_state["vista_actual"] = "menu_categorias"
@@ -225,7 +226,7 @@ div[data-testid="stHorizontalBlock"] > div { min-width: 0 !important; display: f
 
 .texto-nombre-plato { color: #FFFFFF !important; font-size: 17px !important; font-weight: 900 !important; line-height: 1.3 !important; text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000 !important; }
 .texto-descripcion-plato { color: #FFFFFF !important; font-size: 13.5px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important; line-height: 1.2; }
-.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, -1.5px 1.5px 0 #000 !important; white-space: nowrap !important; margin-right: 2px; }
+.texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000 !important; white-space: nowrap !important; margin-right: 2px; }
 
 div[data-testid="stHorizontalBlock"] div.stButton > button {
     background-color: #FFEB3B !important; color: #000000 !important; border: 2px solid #8B0000 !important;
@@ -353,18 +354,38 @@ PLATOS_MENU_INTERNO = [
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a la Carta", f"🛒 Mi Pedido ({items_en_carrito})"])
 
-# PESTAÑA: MENÚ DEL DÍA
+# PESTAÑA: MENÚ DEL DÍA (CON LÓGICA DE HORARIO INTEGRADA)
 with tab_menu:
+    # NUEVO: Forzar Zona Horaria Perú (UTC-5) para evitar fallos en servidores extranjeros
+    zona_horaria_peru = timezone(timedelta(hours=-5))
+    hora_actual_peru = datetime.now(zona_horaria_peru).time()
+    
+    # Definimos los límites (11:00 AM a 4:00 PM)
+    hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
+    hora_fin = datetime.strptime("16:00:00", "%H:%M:%S").time()
+
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
 
-    for plato in PLATOS_MENU_INTERNO:
-        col_izq, col_der = st.columns([0.86, 0.14], gap="small")
-        with col_izq:
-            st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{plato["Name"]}</span></div><span class="texto-precio-plato">S/. {plato["Price"]:.2f}</span></div>""", unsafe_allow_html=True)
-        with col_der:
-            st.button("＋", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ"))
-        st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
+    # Validación de la hora
+    if hora_inicio <= hora_actual_peru <= hora_fin:
+        for plato in PLATOS_MENU_INTERNO:
+            col_izq, col_der = st.columns([0.86, 0.14], gap="small")
+            with col_izq:
+                st.markdown(f"""<div class="contenedor-fila-perfecta-col"><div class="columna-izquierda-info"><span class="texto-nombre-plato">{plato["Name"]}</span></div><span class="texto-precio-plato">S/. {plato["Price"]:.2f}</span></div>""", unsafe_allow_html=True)
+            with col_der:
+                st.button("＋", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ"))
+            st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
+    else:
+        # Mensaje amigable cuando el menú no está disponible
+        st.markdown(f"""
+        <div style="background-color: rgba(0,0,0,0.7); padding: 30px; border-radius: 12px; border: 2px dashed #FFEB3B; text-align: center; margin-top: 20px;">
+            <h3 style="color: #FFEB3B; margin-bottom: 10px;">🕒 Menú No Disponible</h3>
+            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:00 PM</b>.</p>
+            <p style="color: #FFEB3B; font-size: 14px; font-style: italic; margin-top: 15px;">¡Pero no te quedes con hambre! Puedes revisar nuestra variada pestaña de <b>Platos a la Carta</b> que atiende todo el día.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
     st.markdown('</div>', unsafe_allow_html=True)
 
 # PESTAÑA: PLATOS A LA CARTA
@@ -492,7 +513,7 @@ with tab_pedido:
                 if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
 
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
-            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+            link_final = f"https://wa.me/51933437275?text={urllib.parse.quote(mensaje_wa)}"
             st.markdown(f'<a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
         else:
             st.markdown('<a href="#" onclick="return false;" style="background-color: #cccccc !important; color: #666666 !important; cursor: not-allowed;" class="enlace-wa-directo-siempre">💬 COMPLETE SUS DATOS ARRIBA</a>', unsafe_allow_html=True)
@@ -506,4 +527,4 @@ with tab_pedido:
     st.markdown('</div>', unsafe_allow_html=True)
 
 if st.session_state["mostrar_modal"]:
-    abrir_modal_dinamico()  # <-- CORREGIDO: Eliminado el "." erróneo
+    abrir_modal_dinamico()
