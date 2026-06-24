@@ -362,7 +362,7 @@ with tab_menu:
     
     # Definimos los límites (11:00 AM a 4:00 PM)
     hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
-    hora_fin = datetime.strptime("16:30:00", "%H:%M:%S").time()
+    hora_fin = datetime.strptime("18:30:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
