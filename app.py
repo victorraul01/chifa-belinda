@@ -362,7 +362,7 @@ with tab_menu:
     
     # Definimos los límites (11:00 AM a 4:00 PM)
     hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
-    hora_fin = datetime.strptime("16:20:00", "%H:%M:%S").time()
+    hora_fin = datetime.strptime("16:00:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
@@ -381,7 +381,7 @@ with tab_menu:
         st.markdown(f"""
         <div style="background-color: rgba(0,0,0,0.7); padding: 30px; border-radius: 12px; border: 2px dashed #FFEB3B; text-align: center; margin-top: 20px;">
             <h3 style="color: #FFEB3B; margin-bottom: 10px;">🕒 Menú No Disponible</h3>
-            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:30 PM</b>.</p>
+            <p style="color: white; font-size: 16px;">Recuerda que nuestro <b>Menú del Día</b> solo está disponible desde las <b>11:00 AM hasta las 4:00 PM</b>.</p>
             <p style="color: #FFEB3B; font-size: 14px; font-style: italic; margin-top: 15px;">¡Pero no te quedes con hambre! Puedes revisar nuestra variada pestaña de <b>Platos a la Carta</b> que atiende todo el día.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -474,9 +474,9 @@ with tab_pedido:
                 st.markdown('<div class="boton-tacho-contenedor">', unsafe_allow_html=True)
                 st.button("🗑️", key=f"del_{item['uid']}", on_click=eliminar_del_carrito, args=(item['uid'],))
                 st.markdown('</div>', unsafe_allow_html=True)
-                        with col_info:
-                # Asegúrate de que esta línea tenga los espacios correctos hacia la derecha
-                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito" style="color:#000 !important; text-shadow:none !important;">💥 {item["cant"]} &nbsp; {item["nombre"]}</span><span class="texto-precio-carrito" style="color:#8B0000 !important; text-shadow:none !important;">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
+            with col_info:
+                
+        st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito" style="color:#000 !important; text-shadow:none !important;">💥 {item["cant"]} &nbsp; {item["nombre"]}</span><span class="texto-precio-carrito" style="color:#8B0000 !important; text-shadow:none !important;">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
 
         st.markdown(f'<div class="recuadro-total-final"><span style="color:#FFF; font-size:16px; font-weight:bold;">💵 TOTAL:</span><span style="color:#FFEB3B; font-size:18px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
 
@@ -486,7 +486,7 @@ with tab_pedido:
         direccion_cliente = ""
         if metodo_entrega == "Delivery Moto 🏍️":
             direccion_cliente = st.text_input("Dirección de Envío:", key="dir_cli")
-            st.markdown('<div class="alerta-delivery-destacada">🚨 Por favor! envíanos tu ubicación por WhatsApp después de este mensaje para poder calcular tu costo de delivery.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="alerta-delivery-destacada">🚨 Por favor! envíanos tu ubicación por WhatsApp después de enviar este mensaje para calcular tu el costo del delivery.</div>', unsafe_allow_html=True)
 
         metodo_pago = st.radio("Método de Pago:", ["Yape 📱", "Efectivo 💵"], horizontal=True, key="met_pag")
 
@@ -506,13 +506,13 @@ with tab_pedido:
 
             for item in st.session_state.carrito:
                 tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
-                mensaje_wa += f"✅ {item['cant']}  &nbsp; {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
+                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
                 if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
                 if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
                 if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
 
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
-            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
+            link_final = f"https://wa.me/51933437275?text={urllib.parse.quote(mensaje_wa)}"
             st.markdown(f'<a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
         else:
             st.markdown('<a href="#" onclick="return false;" style="background-color: #cccccc !important; color: #666666 !important; cursor: not-allowed;" class="enlace-wa-directo-siempre">💬 COMPLETE SUS DATOS ARRIBA</a>', unsafe_allow_html=True)
