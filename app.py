@@ -7,11 +7,12 @@ import random
 import urllib.parse
 from datetime import datetime, timedelta, timezone
 
-# 1. CONFIGURACIÓN DE LA PÁGINA
+# 1. CONFIGURACIÓN DE LA PÁGINA (Sin barra lateral por defecto)
 st.set_page_config(
     page_title="Chifa D' Belinda",
     page_icon="🍜",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 # 2. INICIALIZACIÓN DE ESTADOS
@@ -56,6 +57,13 @@ def aplicar_fondo_stable():
         }}
         .main, [data-testid="stCanvas"], [data-testid="stTabPanel"], div[role="tabpanel"], div[data-testid="stVerticalBlock"], [data-testid="stApp"], [data-testid="stHeader"] {{
             background-color: transparent !important; background: transparent !important; box-shadow: none !important;
+        }}
+        /* Ocultar barra lateral por completo en celulares */
+        [data-testid="stSidebar"] {{
+            display: none !important;
+        }}
+        [data-testid="stSidebarCollapseButton"] {{
+            display: none !important;
         }}
         </style>
         """, unsafe_allow_html=True)
@@ -221,10 +229,11 @@ def abrir_modal_carrito():
 
 
 # =========================================================
-# CSS MAESTRO INYECTADO (ESTILOS GENERALES CARTA)
+# CSS MAESTRO INYECTADO (OPTIMIZADO PARA PANTALLAS CELULAR)
 # =========================================================
 st.markdown("""
 <style>
+/* Quitar botones por defecto de la nube de Streamlit */
 div[data-testid="stManageAppButton"], [data-testid="stManageAppButton"], .stDeployButton {
     display: none !important;
     visibility: hidden !important;
@@ -233,8 +242,9 @@ div[data-testid="stManageAppButton"], [data-testid="stManageAppButton"], .stDepl
 
 html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important; }
 
-[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 60px !important; }
-.main .block-container { padding-top: 0px !important; padding-bottom: 60px !important; max-width: 100% !important; }
+/* Relleno inferior para que los últimos platos no queden tapados por el botón flotante móvil */
+[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 120px !important; }
+.main .block-container { padding-top: 0px !important; padding-bottom: 120px !important; max-width: 100% !important; }
 
 .cabecera-fija-chifa {
     position: fixed !important; top: 0px !important; left: 0px !important; right: 0px !important;
@@ -270,6 +280,7 @@ div[data-testid="stHorizontalBlock"] > div { min-width: 0 !important; display: f
 .texto-descripcion-plato { color: #FFFFFF !important; font-size: 13.5px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000 !important; white-space: nowrap !important; margin-right: 2px; }
 
+/* Botón de añadir (Signo más) */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
     background-color: #FFEB3B !important; color: #000000 !important; border: 2px solid #8B0000 !important;
     border-radius: 6px !important; width: 32px !important; height: 32px !important; min-width: 32px !important;
@@ -288,14 +299,33 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.2) !important; margin: 18px 0px !important; font-size: 18px !important; font-weight: 900 !important; }
 .recuadro-total-final { border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 
-/* PERSONALIZACIÓN NATIVA BOTÓN SIDEBAR */
-div[data-testid="stSidebar"] div.stButton > button {
-    background-color: #FFEB3B !important; color: #000000 !important;
-    border: 3px solid #8B0000 !important; border-radius: 25px !important;
-    height: 52px !important; font-weight: 900 !important; font-size: 16px !important;
-    box-shadow: 0px 4px 15px rgba(0,0,0,0.4) !important;
-}
-div[data-testid="stSidebar"] div.stButton > button p { color: #000000 !important; }
+/* =========================================================================
+   SÚPER TRUCO CSS: FORZAR UN BOTÓN NATIVO A VOLVERSE FLOTANTE ABAJO A LA IZQUIERDA
+   ========================================================================= */
+div.element-container:has(button[key="boton_flotante_movil_izq"]) {{
+    position: fixed !important;
+    bottom: 25px !important;
+    left: 20px !important;
+    width: auto !important;
+    z-index: 9999999 !important;
+}}
+
+button[key="boton_flotante_movil_izq"] {{
+    background-color: #FFEB3B !important;
+    border: 3px solid #8B0000 !important;
+    border-radius: 30px !important;
+    padding: 0px 22px !important;
+    height: 52px !important;
+    box-shadow: 0px 6px 20px rgba(0,0,0,0.6) !important;
+    transition: transform 0.1s ease-in-out !important;
+}}
+
+button[key="boton_flotante_movil_izq"] p {{
+    color: #000000 !important;
+    font-weight: 900 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -343,21 +373,10 @@ items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 
 # =========================================================================
-# CONTROL DEL CARRITO TOTALMENTE NATIVO EN EL SIDEBAR (PANEL SEGURO)
+# EL BOTÓN MULTIPLATAFORMA FLOTANTE (ESTÁ EN LA RAÍZ, SE CORRE POR CSS ABAJO-IZQUIERDA)
 # =========================================================================
-with st.sidebar:
-    st.markdown("### 🛒 Tu Pedido Activo")
-    st.write("Gestiona las cantidades o envía la orden directamente.")
-    
-    # Botón nativo que abre el diálogo central del carrito detallado
-    if st.button(f"🛒 VER MI CARRITO ({items_en_carrito})", use_container_width=True, key="btn_sidebar_carrito"):
-        abrir_modal_carrito()
-        
-    st.write("---")
-    if items_en_carrito > 0:
-        st.success(f"Tienes {items_en_carrito} platos listos en tu bandeja.")
-    else:
-        st.info("El carrito está vacío. Agrega platos desde el menú.")
+if st.button(f"🛒 MI PEDIDO ({items_en_carrito})", key="boton_flotante_movil_izq"):
+    abrir_modal_carrito()
 
 
 # 6. PESTAÑAS PRINCIPALES DE LA CARTA
