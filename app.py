@@ -360,9 +360,9 @@ with tab_menu:
     zona_horaria_peru = timezone(timedelta(hours=-5))
     hora_actual_peru = datetime.now(zona_horaria_peru).time()
     
-    # Definimos los límites (11:00 AM a 4:00 PM)
+    # Definimos los límites (11:00 AM a 4:30 PM)
     hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
-    hora_fin = datetime.strptime("16:00:00", "%H:%M:%S").time()
+    hora_fin = datetime.strptime("16:30:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
