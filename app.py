@@ -222,7 +222,7 @@ def abrir_modal_carrito():
 
 
 # =========================================================
-# CSS MAESTRO INYECTADO (CORREGIDO PARA BOTÓN FLOTANTE REAL)
+# CSS MAESTRO INYECTADO (MÁXIMA PRIORIDAD OVERRIDE)
 # =========================================================
 st.markdown("""
 <style>
@@ -233,8 +233,10 @@ div[data-testid="stManageAppButton"], [data-testid="stManageAppButton"], .stDepl
 }
 
 html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important; }
-[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 140px !important; }
-.main .block-container { padding-top: 0px !important; padding-bottom: 140px !important; max-width: 100% !important; }
+
+/* Espaciado inferior incrementado a 180px para evitar colisión visual con el botón flotante */
+[data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 180px !important; }
+.main .block-container { padding-top: 0px !important; padding-bottom: 180px !important; max-width: 100% !important; }
 
 .cabecera-fija-chifa {
     position: fixed !important; top: 0px !important; left: 0px !important; right: 0px !important;
@@ -301,27 +303,45 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.2) !important; margin: 18px 0px !important; font-size: 18px !important; font-weight: 900 !important; }
 .recuadro-total-final { border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
 
-/* REGLA MAESTRA INYECTADA PARA FORZAR AL BOTÓN DE STREAMLIT A VOLVERSE FLOTANTE GLOBAL */
-div.contenedor-flotante-fijo {
+
+/* =========================================================================
+   REGLAS INYECTADAS CRÍTICAS PARA EXTIRPAR EL BOTÓN NATIVO Y VOLVERLO FLOTANTE REAL
+   ========================================================================= */
+
+/* Captura el contenedor genérico de Streamlit que contiene al botón del carrito */
+div:has(> div > button[key="boton_carrito_flotante_maestro"]) {
     position: fixed !important;
-    bottom: 25px !important;
-    left: 20px !important;
-    z-index: 999999 !important;
+    bottom: 30px !important;
+    right: 25px !important;
+    left: auto !important;
+    width: auto !important;
+    height: auto !important;
+    z-index: 999999999 !important; /* Prioridad por encima de fondos, diálogos y barras de carga */
 }
-div.contenedor-flotante-fijo button {
+
+/* Fuerza el diseño estético de botón móvil app-style */
+button[key="boton_carrito_flotante_maestro"] {
     background-color: #FFEB3B !important;
     color: #000000 !important;
     border: 3px solid #8B0000 !important;
-    box-shadow: 0px 6px 15px rgba(0,0,0,0.6) !important;
-    padding: 12px 22px !important;
-    height: auto !important;
-    border-radius: 50px !important;
-    font-weight: 900 !important;
-    font-size: 16px !important;
+    box-shadow: 0px 8px 20px rgba(0,0,0,0.7) !important;
+    padding: 12px 26px !important;
+    height: 52px !important;
+    width: auto !important;
+    border-radius: 50px !important; /* Totalmente circular en las esquinas */
+    cursor: pointer !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
-div.contenedor-flotante-fijo button p {
+
+button[key="boton_carrito_flotante_maestro"]:active {
+    transform: scale(0.95) !important;
+}
+
+button[key="boton_carrito_flotante_maestro"] p {
     color: #000000 !important;
     font-weight: 900 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.5px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -369,12 +389,11 @@ PLATOS_MENU_INTERNO = [
 items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 # =========================================================
-# BOTÓN FLOTANTE UTILIZANDO CONTENEDOR INTEGRAL DE STREAMLIT
+# EL BOTÓN NATIVO FLOTANTE DE MÁXIMA COMPATIBILIDAD
 # =========================================================
-# Colocamos un contenedor nativo al cual el CSS global le aplica el fixed. No se puede perder.
-with st.container(key="contenedor_flotante_fijo"):
-    if st.button(f"🛒 MI PEDIDO ({items_en_carrito})", key="boton_abrir_carrito_fijo"):
-        abrir_modal_carrito()
+# Se declara de forma limpia. El bloque CSS superior lo intercepta y lo remueve del layout regular.
+if st.button(f"🛒 MI PEDIDO ({items_en_carrito})", key="boton_carrito_flotante_maestro"):
+    abrir_modal_carrito()
 
 
 # 6. PESTAÑAS PRINCIPALES
