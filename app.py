@@ -4,6 +4,7 @@ import base64
 import os
 import time
 import random
+import urllib.parse  # <-- CORREGIDO: Importación necesaria para el link de WhatsApp
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
@@ -12,7 +13,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# 2. INICIALIZACIÓN DE ESTADOS (Evitamos totalmente query_params)
+# 2. INICIALIZACIÓN DE ESTADOS
 if "carrito" not in st.session_state:
     st.session_state["carrito"] = []
 
@@ -78,7 +79,7 @@ def cargar_catalogo_limpio():
 aplicar_fondo_stable()
 df_carta = cargar_catalogo_limpio()
 
-# 4. CALLBACKS DE NAVEGACIÓN CORREGIDOS (Sin reinicios de página)
+# 4. CALLBACKS DE NAVEGACIÓN
 def ir_a_categoria(nombre_cat):
     st.session_state["categoria_activa"] = nombre_cat
     st.session_state["vista_actual"] = "ver_platos"
@@ -167,7 +168,6 @@ div[data-testid="stTabs"] button p { color: #FFFFFF !important; font-size: 15px 
 
 .contenedor-seccion-platos { padding: 10px 5px 0px 5px !important; margin-bottom: 40px !important; }
 
-/* RE-ESTILIZACIÓN DE BOTONES NATIVOS DE CATEGORÍA PARA QUE SEAN SEPARADOS E INAMOVIBLES */
 div.contenedor-categoria-limpio div.stButton > button {
     display: block !important;
     background: #F5F5F5 !important;
@@ -180,7 +180,6 @@ div.contenedor-categoria-limpio div.stButton > button {
     margin-bottom: 12px !important;
 }
 
-/* FORZAR TEXTO NEGRO EN BOTONES */
 div.contenedor-categoria-limpio div.stButton > button p {
     color: #000000 !important;
     font-size: 16px !important;
@@ -195,7 +194,6 @@ div.contenedor-categoria-limpio div.stButton > button:focus {
     border-color: #BDBDBD !important;
 }
 
-/* FORZAR TEXTO NEGRO AL PASAR EL DEDO */
 div.contenedor-categoria-limpio div.stButton > button:hover p,
 div.contenedor-categoria-limpio div.stButton > button:active p,
 div.contenedor-categoria-limpio div.stButton > button:focus p {
@@ -214,7 +212,6 @@ div.boton-retroceder-contenedor div.stButton > button {
     margin-bottom: 15px !important;
 }
 
-/* TEXTO DEL BOTÓN VOLVER */
 div.boton-retroceder-contenedor div.stButton > button p {
     color: #000000 !important;
     text-shadow: none !important;
@@ -230,7 +227,6 @@ div[data-testid="stHorizontalBlock"] > div { min-width: 0 !important; display: f
 .texto-descripcion-plato { color: #FFFFFF !important; font-size: 13.5px !important; font-style: italic !important; margin-top: 2px; display: block; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important; line-height: 1.2; }
 .texto-precio-plato { color: #FFEB3B !important; font-size: 16px !important; font-weight: 900 !important; text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, -1.5px 1.5px 0 #000 !important; white-space: nowrap !important; margin-right: 2px; }
 
-/* Botón más (+) */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
     background-color: #FFEB3B !important; color: #000000 !important; border: 2px solid #8B0000 !important;
     border-radius: 6px !important; width: 32px !important; height: 32px !important; min-width: 32px !important;
@@ -253,31 +249,11 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .texto-plato-carrito { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-precio-carrito { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-detalles-resaltados { color: #FFFFFF !important; font-size: 12px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; }
-.enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; font-weight: bold !important; font-size: 16px !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; }
+.enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; font-weight: bold !important; font-size: 16px !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.4) !important; }
 .alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; margin-bottom: 15px; }
 .recuadro-total-final { background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
-/* Inputs nombre y dirección */
-div[data-testid="stTextInput"] input {
-    background-color: #F5F5F5 !important;
-    color: #000000 !important;
-    border: 1px solid #BDBDBD !important;
-    border-radius: 8px !important;
-}
 
-/* Placeholder */
-div[data-testid="stTextInput"] input::placeholder {
-    color: #000000 !important;
-    opacity: 0.7 !important;
-}
-
-/* Labels de los inputs */
-div[data-testid="stTextInput"] label {
-    color: #FFFFFF !important;
-    font-weight: bold !important;
-}
-/* ===== PESTAÑA MI PEDIDO: TEXTOS MÁS VISIBLES ===== */
-
-/* Labels principales */
+/* ===== PESTAÑA MI PEDIDO: LABELS E INPUTS ===== */
 div[data-testid="stTextInput"] label,
 div[data-testid="stRadio"] > label {
     color: #FFEB3B !important;
@@ -286,7 +262,6 @@ div[data-testid="stRadio"] > label {
     text-shadow: 2px 2px 4px #000000 !important;
 }
 
-/* Opciones de radio (Delivery, Recojo, Yape, Efectivo) */
 div[data-testid="stRadio"] label p {
     color: #FFFFFF !important;
     font-size: 17px !important;
@@ -294,7 +269,6 @@ div[data-testid="stRadio"] label p {
     text-shadow: 2px 2px 4px #000000 !important;
 }
 
-/* Inputs (texto escrito) */
 div[data-testid="stTextInput"] input {
     background-color: #F5F5F5 !important;
     color: #000000 !important;
@@ -304,14 +278,12 @@ div[data-testid="stTextInput"] input {
     border-radius: 8px !important;
 }
 
-/* Placeholder */
 div[data-testid="stTextInput"] input::placeholder {
     color: #444444 !important;
     opacity: 1 !important;
     font-weight: bold !important;
 }
 
-/* Mensajes de error */
 div[data-testid="stAlert"] {
     background-color: rgba(255, 0, 0, 0.25) !important;
     border: 1px solid red !important;
@@ -324,14 +296,6 @@ div[data-testid="stAlert"] p {
     text-shadow: 2px 2px 3px #000000 !important;
 }
 
-/* Texto del botón deshabilitado COMPLETE SUS DATOS */
-.enlace-wa-directo-siempre {
-    font-size: 18px !important;
-    font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.4) !important;
-}
-
-/* Botón vaciar carrito */
 div.boton-vaciar-pedido div.stButton > button {
     background-color: #F5F5F5 !important;
     border: 2px solid #BDBDBD !important;
@@ -415,7 +379,6 @@ with tab_carta:
             categorias_excel = sorted(list(df_carta["Category"].unique()))
             todas_categorias = ["✨ Recomendaciones del Día"] + categorias_excel
 
-            # Botones nativos controlados de forma limpia sin recargar la URL de la página
             st.markdown('<div class="contenedor-categoria-limpio">', unsafe_allow_html=True)
             for cat in todas_categorias:
                 icono = "🔥" if cat == "✨ Recomendaciones del Día" else "🥢"
@@ -529,7 +492,7 @@ with tab_pedido:
                 if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
 
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
-            link_final = f"https://wa.me/51933437275?text={urllib.parse.quote(mensaje_wa)}"
+            link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
             st.markdown(f'<a href="{link_final}" target="_blank" class="enlace-wa-directo-siempre">💬 ENVIAR PEDIDO A WHATSAPP</a>', unsafe_allow_html=True)
         else:
             st.markdown('<a href="#" onclick="return false;" style="background-color: #cccccc !important; color: #666666 !important; cursor: not-allowed;" class="enlace-wa-directo-siempre">💬 COMPLETE SUS DATOS ARRIBA</a>', unsafe_allow_html=True)
@@ -543,4 +506,4 @@ with tab_pedido:
     st.markdown('</div>', unsafe_allow_html=True)
 
 if st.session_state["mostrar_modal"]:
-    abrir_modal_dinamico()
+    abrir_modal_dinamico()  # <-- CORREGIDO: Eliminado el "." erróneo
