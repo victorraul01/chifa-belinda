@@ -361,7 +361,7 @@ with tab_menu:
     hora_actual_peru = datetime.now(zona_horaria_peru).time()
     
     # Definimos los límites (11:00 AM a 4:30 PM)
-    hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
+    hora_inicio = datetime.strptime("11:00:01", "%H:%M:%S").time()
     hora_fin = datetime.strptime("16:30:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
