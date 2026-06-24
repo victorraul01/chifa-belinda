@@ -33,16 +33,6 @@ if "vista_actual" not in st.session_state:
 if "fondo_seleccionado" not in st.session_state:
     st.session_state["fondo_seleccionado"] = "pag1.jpeg"
 
-# Detectar si el usuario hizo clic en el botón flotante real
-if "abrir_carrito_trigger" not in st.session_state:
-    st.session_state["abrir_carrito_trigger"] = False
-
-# Verificar si el componente HTML nos mandó la señal de abrir carrito
-query_params = st.query_params
-if "action" in query_params and query_params["action"] == "open_cart":
-    st.query_params.clear() # Limpiar la URL inmediatamente
-    st.session_state["abrir_carrito_trigger"] = True
-
 # 3. FUNCIONES DE CARGA Y ESTILOS
 @st.cache_data
 def cargar_imagen_b64(nombre_imagen):
@@ -213,7 +203,7 @@ def abrir_modal_carrito():
                 mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
                 if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
                 if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
-                if item.get('notes'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
+                if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
 
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
             link_final = f"https://wa.me/51933437275?text={urllib.parse.quote(mensaje_wa)}"
@@ -243,18 +233,8 @@ div[data-testid="stManageAppButton"], [data-testid="stManageAppButton"], .stDepl
 
 html, body, [data-testid="stApp"] { margin: 0 !important; padding: 0 !important; }
 
-/* El padding inferior de la pantalla asegura que el contenido pase por detrás del botón flotante */
 [data-testid="stMainBlockContainer"] { padding-top: 0px !important; padding-bottom: 140px !important; }
 .main .block-container { padding-top: 0px !important; padding-bottom: 140px !important; max-width: 100% !important; }
-
-/* Ocultar el iframe del botón flotante original por si acaso */
-iframe[title="st.components.v1.html"] {
-    position: fixed !important;
-    bottom: 25px !important;
-    right: 20px !important;
-    z-index: 99999999 !important;
-    border: none !important;
-}
 
 .cabecera-fija-chifa {
     position: fixed !important; top: 0px !important; left: 0px !important; right: 0px !important;
@@ -354,42 +334,83 @@ items_en_carrito = sum(item["cant"] for item in st.session_state.carrito)
 
 
 # =========================================================================
-# BOTÓN FLOTANTE DEFINITIVO INYECTADO POR COMPONENTE HTML EN EL VIEWPORT
+# BOTÓN INVISIBLE OCULTO PARA RECIBIR LA SEÑAL NATIVA DESDE JS
 # =========================================================================
-# Usamos un iframe nativo invisible que inyecta el botón real directamente en la ventana.
-# Se comunica de regreso a Streamlit mediante la URL compartida.
-boton_html_maestro = f"""
-<div style="position: fixed; bottom: 25px; right: 20px; z-index: 9999999999;">
-    <button onclick="parent.window.location.href='?action=open_cart';" style="
-        background-color: #FFEB3B;
-        color: #000000;
-        border: 3px solid #8B0000;
-        box-shadow: 0px 8px 24px rgba(0,0,0,0.6);
-        padding: 0px 24px;
-        height: 54px;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-weight: 900;
-        font-size: 16px;
-        border-radius: 50px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-        letter-spacing: 0.5px;
-        transition: transform 0.1s ease;
-    " onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
-        🛒 MI PEDIDO ({items_en_carrito})
-    </button>
-</div>
-"""
-# Renderizamos el componente al principio o final, el CSS `position: fixed` hará que flote igual.
-st.components.v1.html(boton_html_maestro, height=0)
-
-# Si el botón mandó la señal, abrimos el modal del carrito de inmediato
-if st.session_state["abrir_carrito_trigger"]:
-    st.session_state["abrir_carrito_trigger"] = False
+# Ponemos un botón invisible estándar. El JS lo va a clickear automáticamente por detrás.
+if st.button("OPEN_CART_TRIGGER", key="trigger_invisible_interno"):
     abrir_modal_carrito()
+
+st.markdown("""
+<style>
+/* Escondemos por completo el botón trigger nativo para que nadie lo vea */
+div:has(> div > button[key="trigger_invisible_interno"]) {
+    display: none !important;
+    height: 0px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# =========================================================================
+# INYECCIÓN DIRECTA DE JAVASCRIPT EN EL DOM DE LA RAÍZ (EVITA IFRAMES)
+# =========================================================================
+# Este código inyecta el botón directamente en el body del navegador principal. 
+# Es imposible que falle o quede oculto porque ignora por completo las reglas de Streamlit.
+html_inyector_maestro = f"""
+<script>
+    (function() {{
+        // Evitar duplicaciones del botón al recargar
+        var botonExistente = window.parent.document.getElementById('btn-flotante-carrito-real');
+        if (botonExistente) {{
+            botonExistente.innerHTML = "🛒 MI PEDIDO ({items_en_carrito})";
+            return;
+        }}
+
+        // Crear el botón flotante real en el documento padre (la app real)
+        var btn = window.parent.document.createElement('button');
+        btn.id = 'btn-flotante-carrito-real';
+        btn.innerHTML = "🛒 MI PEDIDO ({items_en_carrito})";
+        
+        // Estilos CSS directos inyectados en la ventana del navegador
+        btn.style.position = 'fixed';
+        btn.style.bottom = '30px';
+        btn.style.right = '25px';
+        btn.style.zIndex = '999999999';
+        btn.style.backgroundColor = '#FFEB3B';
+        btn.style.color = '#000000';
+        btn.style.border = '3px solid #8B0000';
+        btn.style.borderRadius = '50px';
+        btn.style.padding = '0px 24px';
+        btn.style.height = '54px';
+        btn.style.fontWeight = '900';
+        btn.style.fontSize = '16px';
+        btn.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+        btn.style.boxShadow = '0px 8px 24px rgba(0,0,0,0.6)';
+        btn.style.cursor = 'pointer';
+        btn.style.whiteSpace = 'nowrap';
+        btn.style.letterSpacing = '0.5px';
+        
+        // Efecto click
+        btn.onmousedown = function() {{ this.style.transform = 'scale(0.95)'; }};
+        btn.onmouseup = function() {{ this.style.transform = 'scale(1)'; }};
+
+        // Evento de disparo: Busca el botón interno oculto de Streamlit y lo clickea
+        btn.onclick = function() {{
+            var botonesStreamlit = window.parent.document.querySelectorAll('button');
+            for (var i = 0; i < botonesStreamlit.length; i++) {{
+                if (botonesStreamlit[i].textContent.includes('OPEN_CART_TRIGGER')) {{
+                    botonesStreamlit[i].click();
+                    break;
+                }}
+            }}
+        }};
+
+        // Insertar el botón en el body absoluto del navegador
+        window.parent.document.body.appendChild(btn);
+    }})();
+</script>
+"""
+st.markdown(html_inyector_maestro, unsafe_allow_html=True)
 
 
 # 6. PESTAÑAS PRINCIPALES
