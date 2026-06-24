@@ -506,7 +506,7 @@ with tab_pedido:
 
             for item in st.session_state.carrito:
                 tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
-                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
+                mensaje_wa += f"✅ {item['cant']} &nbsp; {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
                 if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
                 if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
                 if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
