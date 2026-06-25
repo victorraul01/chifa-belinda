@@ -249,7 +249,7 @@ div.boton-tacho-contenedor div.stButton > button { background-color: #FFEB3B !im
 .linea-principal-carrito { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; }
 .texto-plato-carrito { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
 .texto-precio-carrito { color: #FFFFFF !important; font-size: 15px !important; font-weight: bold !important; text-shadow: 2px 2px 2px #000000 !important; }
-.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 12px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; }
+.texto-detalles-resaltados { color: #FFFFFF !important; font-size: 12px !important; font-weight: 500 !important; display: block; margin-left: 36px; opacity: 0.95; text-shadow: 1px 1px 2px #000000 !important; }
 .enlace-wa-directo-siempre { display: block !important; background-color: #25D366 !important; color: white !important; text-align: center !important; font-weight: bold !important; font-size: 16px !important; padding: 14px 20px !important; border-radius: 8px !important; text-decoration: none !important; box-shadow: 0px 5px 10px rgba(0,0,0,0.4) !important; margin: 18px 0px !important; border: 1px solid #ffffff !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.4) !important; }
 .alerta-delivery-destacada { background-color: rgba(0, 0, 0, 0.75) !important; border: 2px solid #FFEB3B !important; padding: 15px !important; border-radius: 10px !important; color: #FFFFFF !important; margin-bottom: 15px; }
 .recuadro-total-final { background-color: rgba(0, 0, 0, 0.5) !important; border: 1px solid #FFEB3B !important; border-radius: 8px !important; padding: 12px 15px !important; margin: 20px 0px !important; display: flex !important; justify-content: space-between !important; }
@@ -356,18 +356,15 @@ tab_menu, tab_carta, tab_pedido = st.tabs(["🍱 Menú del Día", "📖 Platos a
 
 # PESTAÑA: MENÚ DEL DÍA (CON LÓGICA DE HORARIO INTEGRADA)
 with tab_menu:
-    # NUEVO: Forzar Zona Horaria Perú (UTC-5) para evitar fallos en servidores extranjeros
     zona_horaria_peru = timezone(timedelta(hours=-5))
     hora_actual_peru = datetime.now(zona_horaria_peru).time()
     
-    # Definimos los límites (11:00 AM a 4:00 PM)
     hora_inicio = datetime.strptime("11:00:00", "%H:%M:%S").time()
     hora_fin = datetime.strptime("16:30:00", "%H:%M:%S").time()
 
     st.markdown('<div class="contenedor-seccion-platos">', unsafe_allow_html=True)
     st.markdown('<div class="titulo-categoria-chifa">🍱 Menú chifa del día</div>', unsafe_allow_html=True)
 
-    # Validación de la hora
     if hora_inicio <= hora_actual_peru <= hora_fin:
         for plato in PLATOS_MENU_INTERNO:
             col_izq, col_der = st.columns([0.86, 0.14], gap="small")
@@ -377,7 +374,6 @@ with tab_menu:
                 st.button("＋", key=f"btn_menu_{plato['ID']}", on_click=click_agregar_plato, args=(plato, "Menú del Día", "MENÚ"))
             st.markdown('<div class="divisor-plato"></div>', unsafe_allow_html=True)
     else:
-        # Mensaje amigable cuando el menú no está disponible
         st.markdown(f"""
         <div style="background-color: rgba(0,0,0,0.7); padding: 30px; border-radius: 12px; border: 2px dashed #FFEB3B; text-align: center; margin-top: 20px;">
             <h3 style="color: #FFEB3B; margin-bottom: 10px;">🕒 Menú No Disponible</h3>
@@ -463,10 +459,13 @@ with tab_pedido:
         for item in list(st.session_state.carrito):
             subtotal = item["precio"] * item["cant"]
             total += subtotal
+            
+            # --- MODIFICADO: Estructuración y Renderizado en Carrito ---
             detalles_lista = [f"📌 {item.get('tipo','Carta')}"]
             if item.get("entrada"): detalles_lista.append(f"🍲 {item['entrada']}")
             if item.get('cremas'): detalles_lista.append(f"🧂 {item['cremas']}")
             if item.get('notas'):  detalles_lista.append(f"📝 {item['notas']}")
+            detalles_html = " | ".join(detalles_lista)
 
             st.markdown('<div class="fila-carrito-ordenada">', unsafe_allow_html=True)
             col_tacho, col_info = st.columns([0.12, 0.88])
@@ -475,7 +474,13 @@ with tab_pedido:
                 st.button("🗑️", key=f"del_{item['uid']}", on_click=eliminar_del_carrito, args=(item['uid'],))
                 st.markdown('</div>', unsafe_allow_html=True)
             with col_info:       
-                st.markdown(f'<div class="linea-principal-carrito"><span class="texto-plato-carrito" style="color:#000 !important; text-shadow:none !important;">💥 {item["cant"]} &nbsp; {item["nombre"]}</span><span class="texto-precio-carrito" style="color:#8B0000 !important; text-shadow:none !important;">S/. {subtotal:.2f}</span></div>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class="linea-principal-carrito">
+                    <span class="texto-plato-carrito" style="color:#000 !important; text-shadow:none !important;">💥 {item["cant"]} &nbsp; {item["nombre"]}</span>
+                    <span class="texto-precio-carrito" style="color:#8B0000 !important; text-shadow:none !important;">S/. {subtotal:.2f}</span>
+                </div>
+                <span class="texto-detalles-resaltados" style="color:#333333 !important;">{detalles_html}</span>
+                """, unsafe_allow_html=True)
 
         st.markdown(f'<div class="recuadro-total-final"><span style="color:#FFF; font-size:16px; font-weight:bold;">💵 TOTAL:</span><span style="color:#FFEB3B; font-size:18px; font-weight:900;">S/. {total:.2f}</span></div>', unsafe_allow_html=True)
 
@@ -503,12 +508,16 @@ with tab_pedido:
                 mensaje_wa += f"📍 Dirección: {direccion_cliente.strip()}\n"
             mensaje_wa += f"💳 Pago: {metodo_pago}\n-------------------------\n"
 
+            # --- MODIFICADO: Generación de formato limpio para WhatsApp ---
             for item in st.session_state.carrito:
                 tipo_txt = "(MENÚ)" if item.get('tipo') == "Menú del Día" else "(CARTA)"
-                mensaje_wa += f"✅ {item['cant']}x {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
-                if item.get("entrada"): mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
-                if item.get('cremas'): mensaje_wa += f"   ↳ Cremas: {item['cremas']}\n"
-                if item.get('notas'):  mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
+                mensaje_wa += f"✅ {item['cant']} {item['nombre']} {tipo_txt} - S/. {item['precio'] * item['cant']:.2f}\n"
+                if item.get("entrada"): 
+                    mensaje_wa += f"   ↳ Entrada: {item['entrada']}\n"
+                if item.get('cremas'): 
+                    mensaje_wa += f"   ↳ {item['cremas']}\n"  # Sin el prefijo "Cremas:"
+                if item.get('notas'):  
+                    mensaje_wa += f"   ↳ Obs: {item['notas']}\n"
 
             mensaje_wa += f"-------------------------\n💰 TOTAL: S/. {total:.2f}"
             link_final = f"https://wa.me/51923860158?text={urllib.parse.quote(mensaje_wa)}"
